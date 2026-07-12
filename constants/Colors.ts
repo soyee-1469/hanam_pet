@@ -48,8 +48,8 @@ export const Colors = {
   // Buttons
   buttonPrimaryBg: '#FA6F37',
   buttonPrimaryText: '#FFFFFF',
-  buttonSecondaryBg: '#FFF0D4',
-  buttonSecondaryText: '#E89A28',
+  buttonSecondaryBg: '#FFF5EC',
+  buttonSecondaryText: '#E88F48',
   buttonDisabledBg: '#F3E8DC',
   buttonDisabledText: '#C4A990',
 
@@ -70,7 +70,7 @@ export type ColorToken = keyof typeof Colors
 /** Shadow System */
 export const Shadows = {
   elevation: {
-    shadowColor: '#5C3D2E',
+    shadowColor: '#4A3427',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,

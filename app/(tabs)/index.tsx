@@ -26,7 +26,7 @@ import {
   Bell,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 
 const USER = {
   nickname: '몽이',
@@ -46,7 +46,7 @@ const HEADER_MENU = [
   {
     id: 'feed',
     label: '사료 받기',
-    image: require('../../assets/images/pet-menu-1.png'),
+    image: require('../../assets/images/bowl.png'),
     bgColor: Colors.surface,
     badge: 1,
   },
@@ -1136,14 +1136,13 @@ const styles = StyleSheet.create({
   },
   stockCtaOn: {
     backgroundColor: Colors.buttonPrimaryBg,
+    ...Shadows.elevation,
   },
   stockCtaOnHover: {
     backgroundColor: Colors.primaryPressed,
   },
   stockCtaOff: {
-    backgroundColor: '#FFF9F3',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors.buttonSecondaryBg,
   },
   stockCtaText: {
     fontSize: 13,
@@ -1155,7 +1154,7 @@ const styles = StyleSheet.create({
     color: Colors.buttonPrimaryText,
   },
   stockCtaTextOff: {
-    color: Colors.textSecondary,
+    color: Colors.buttonSecondaryText,
   },
   careGrid: {
     flexDirection: 'row',

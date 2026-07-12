@@ -10,7 +10,7 @@ import {
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 
 function SoftTabButton({
   children,
@@ -90,9 +90,10 @@ export default function TabLayout() {
           paddingTop: 8,
           paddingBottom: tabBottomPad,
           backgroundColor: '#FFFFFF',
-          borderTopColor: Colors.border,
-          borderTopWidth: 1,
-          elevation: 0,
+          borderTopWidth: 0,
+          ...Shadows.elevation,
+          shadowOffset: { width: 0, height: -2 },
+          elevation: 8,
         },
         tabBarButton: (props) => <SoftTabButton {...props} />,
         tabBarItemStyle: {

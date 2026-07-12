@@ -26,7 +26,7 @@ import {
   Bell,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
 
 const USER = {
   nickname: '몽이',
@@ -104,7 +104,6 @@ const FIRST_OPEN_MISSION_ID =
   TODAY_MISSIONS.find((m) => !m.done)?.id ?? TODAY_MISSIONS[0]?.id ?? 'diary'
 
 type CareStockCardProps = {
-  stockLabel: string
   count: number
   icon: number
   useLabel: string
@@ -115,9 +114,8 @@ type CareStockCardProps = {
   grayIconWhenEmpty?: boolean
 }
 
-/** Accent Rule v1.1 — Primary CTA / Active-Nudge */
+/** Soft recessed CTA card v2 — Fill #FFFBF6 / Stroke 0.5 #F0E2D2 / Inner shadow */
 function CareStockCard({
-  stockLabel,
   count,
   icon,
   useLabel,
@@ -149,10 +147,24 @@ function CareStockCard({
   }
 
   return (
-    <View style={[styles.stockCard, styles.stockCardOn]}>
-      <View style={styles.stockTop}>
-        <Text style={[styles.stockLabel, styles.stockLabelOn]} numberOfLines={1}>
-          {stockLabel}
+    <Animated.View style={[styles.stockCardWrap, { transform: [{ scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={enabled ? useLabel : acquireLabel}
+        // Nudge: disabled 금지 — 카드 전체가 CTA
+        onPress={enabled ? onUse : onAcquire}
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.stockCard,
+          hovered && styles.stockCardHovered,
+          { cursor: 'pointer' } as object,
+        ]}
+      >
+        <Text style={styles.stockActionLabel} numberOfLines={1}>
+          {enabled ? useLabel : acquireLabel}
         </Text>
         <View style={styles.stockIconCountRow}>
           <Image
@@ -163,39 +175,12 @@ function CareStockCard({
             ]}
             resizeMode="contain"
           />
-          <Text style={[styles.stockCount, styles.stockCountOn]} numberOfLines={1}>
+          <Text style={styles.stockCount} numberOfLines={1}>
             {count}개
           </Text>
         </View>
-      </View>
-
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <Pressable
-          accessibilityRole="button"
-          // Nudge: disabled 금지 — 터치/포인터 유지. 카드는 동일, CTA만 분기
-          onPress={enabled ? onUse : onAcquire}
-          onHoverIn={() => setHovered(true)}
-          onHoverOut={() => setHovered(false)}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          style={[
-            styles.stockCta,
-            { cursor: 'pointer' } as object,
-            enabled ? styles.stockCtaOn : styles.stockCtaOff,
-            enabled && hovered && styles.stockCtaOnHover,
-          ]}
-        >
-          <Text
-            style={[styles.stockCtaText, enabled ? styles.stockCtaTextOn : styles.stockCtaTextOff]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.85}
-          >
-            {enabled ? useLabel : acquireLabel}
-          </Text>
-        </Pressable>
-      </Animated.View>
-    </View>
+      </Pressable>
+    </Animated.View>
   )
 }
 
@@ -274,7 +259,6 @@ function LevelEnergyBlock({
   energy: number
   energyMax: number
 }) {
-  const remain = Math.max(0, energyMax - energy)
   const energyRatio = Math.min(100, Math.round((energy / energyMax) * 100))
 
   return (
@@ -295,7 +279,6 @@ function LevelEnergyBlock({
       <View style={styles.energyTrack}>
         <View style={[styles.energyFill, { width: `${energyRatio}%` }]} />
       </View>
-      <Text style={styles.energyRemain}>레벨업까지 {remain.toLocaleString()} 남음</Text>
     </View>
   )
 }
@@ -677,24 +660,22 @@ export default function PetHomeScreen() {
           <LevelEnergyBlock energy={energy} energyMax={PET.energyMax} />
           <View style={styles.actionRow}>
             <CareStockCard
-              stockLabel="보유 사료"
               count={foodCount}
               icon={
                 foodCount <= 0
                   ? require('../../assets/images/null-bowl.png')
                   : require('../../assets/images/bowl.png')
               }
-              useLabel="사료주기"
+              useLabel="사료 주기"
               acquireLabel="사료 획득하기"
               onUse={handleFeedPress}
               onAcquire={handleAcquireFeed}
             />
             <View style={{ width: actionGap }} />
             <CareStockCard
-              stockLabel="보유 장난감"
               count={toyCount}
               icon={require('../../assets/images/toy.png')}
-              useLabel="놀아주기"
+              useLabel="놀아 주기"
               acquireLabel="장난감 획득하기"
               grayIconWhenEmpty
               onUse={handlePlayPress}
@@ -1051,13 +1032,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: Colors.energyFill,
   },
-  energyRemain: {
-    marginTop: 8,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '500',
-    color: Colors.textDisabled,
-  },
   primaryBlock: {
     alignSelf: 'stretch',
   },
@@ -1066,95 +1040,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
   },
+  stockCardWrap: {
+    flex: 1,
+  },
   stockCard: {
     flex: 1,
-    borderRadius: 16,
-    paddingTop: 14,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-  stockCardOn: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  stockCardOff: {
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  stockTop: {
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFBF6',
+    borderWidth: 0.5,
+    borderColor: '#F0E2D2',
+    // Figma: Inner Shadow X:-3 Y:-3 Blur:4 Color:#F1E7DC
+    boxShadow: 'inset -3px -3px 4px 0px #F1E7DC',
+  },
+  stockCardHovered: {
+    backgroundColor: '#FFF7EF',
+  },
+  stockActionLabel: {
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   stockIconCountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
+    marginTop: 8,
   },
   stockIcon: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
     marginRight: 6,
   },
   stockIconMuted: {
     tintColor: '#B8B0A8',
     opacity: 0.55,
   },
-  stockLabel: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  stockLabelOn: {
-    color: Colors.textSecondary,
-  },
-  stockLabelOff: {
-    color: Colors.textDisabled,
-  },
   stockCount: {
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 24,
     fontWeight: '700',
-  },
-  stockCountOn: {
     color: Colors.textPrimary,
-  },
-  stockCountOff: {
-    color: Colors.textSecondary,
-  },
-  stockCta: {
-    marginTop: 12,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    ...({
-      transitionProperty: 'background-color',
-      transitionDuration: '150ms',
-    } as object),
-  },
-  stockCtaOn: {
-    backgroundColor: Colors.buttonPrimaryBg,
-    ...Shadows.elevation,
-  },
-  stockCtaOnHover: {
-    backgroundColor: Colors.primaryPressed,
-  },
-  stockCtaOff: {
-    backgroundColor: Colors.buttonSecondaryBg,
-  },
-  stockCtaText: {
-    fontSize: 13,
-    lineHeight: 17,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  stockCtaTextOn: {
-    color: Colors.buttonPrimaryText,
-  },
-  stockCtaTextOff: {
-    color: Colors.buttonSecondaryText,
   },
   careGrid: {
     flexDirection: 'row',

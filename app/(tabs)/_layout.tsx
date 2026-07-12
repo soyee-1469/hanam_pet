@@ -89,7 +89,7 @@ export default function TabLayout() {
           height: tabHeight,
           paddingTop: 8,
           paddingBottom: tabBottomPad,
-          backgroundColor: 'rgba(255, 249, 243, 0.94)',
+          backgroundColor: '#FFFFFF',
           borderTopColor: Colors.border,
           borderTopWidth: 1,
           elevation: 0,

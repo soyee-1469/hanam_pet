@@ -1,0 +1,12 @@
+---
+description: Never create or modify image assets — only wire user-provided files
+alwaysApply: true
+---
+
+# Image Asset Rule
+
+- Do **not** create, regenerate, resize, re-encode, or edit image files (PNG/JPG/WebP/SVG assets).
+- Do **not** run Pillow/ImageMagick/scripts that overwrite `assets/` images.
+- Only connect existing user-provided assets via `require()` / imports.
+- If a background or icon looks wrong, ask the user for a replacement file — do not invent one.
+- Background path for pet home: `assets/images/pet_bg.png` (user-owned).

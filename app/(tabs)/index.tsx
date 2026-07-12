@@ -111,6 +111,8 @@ type CareStockCardProps = {
   acquireLabel: string
   onUse: () => void
   onAcquire: () => void
+  /** 0개일 때 아이콘 회색 처리 (장난감 등) */
+  grayIconWhenEmpty?: boolean
 }
 
 /** Accent Rule v1.1 — Primary CTA / Active-Nudge */
@@ -122,6 +124,7 @@ function CareStockCard({
   acquireLabel,
   onUse,
   onAcquire,
+  grayIconWhenEmpty = false,
 }: CareStockCardProps) {
   const enabled = count > 0
   const scale = useRef(new Animated.Value(1)).current
@@ -152,7 +155,14 @@ function CareStockCard({
           {stockLabel}
         </Text>
         <View style={styles.stockIconCountRow}>
-          <Image source={icon} style={styles.stockIcon} resizeMode="contain" />
+          <Image
+            source={icon}
+            style={[
+              styles.stockIcon,
+              grayIconWhenEmpty && !enabled && styles.stockIconMuted,
+            ]}
+            resizeMode="contain"
+          />
           <Text style={[styles.stockCount, styles.stockCountOn]} numberOfLines={1}>
             {count}개
           </Text>
@@ -669,7 +679,11 @@ export default function PetHomeScreen() {
             <CareStockCard
               stockLabel="보유 사료"
               count={foodCount}
-              icon={require('../../assets/images/bowl.png')}
+              icon={
+                foodCount <= 0
+                  ? require('../../assets/images/null-bowl.png')
+                  : require('../../assets/images/bowl.png')
+              }
               useLabel="사료주기"
               acquireLabel="사료 획득하기"
               onUse={handleFeedPress}
@@ -682,6 +696,7 @@ export default function PetHomeScreen() {
               icon={require('../../assets/images/toy.png')}
               useLabel="놀아주기"
               acquireLabel="장난감 획득하기"
+              grayIconWhenEmpty
               onUse={handlePlayPress}
               onAcquire={handleAcquireToy}
             />
@@ -1081,7 +1096,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   stockIconMuted: {
-    opacity: 0.45,
+    tintColor: '#B8B0A8',
+    opacity: 0.55,
   },
   stockLabel: {
     fontSize: 12,

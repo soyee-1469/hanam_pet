@@ -4,9 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   CalendarHeart,
   ChatCircle,
-  Heart,
-  List,
+  FlowerLotus,
   PawPrint,
+  GearSix,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs'
@@ -50,9 +50,7 @@ function TabIcon({
 }) {
   return (
     <View style={styles.tabItem}>
-      <View
-        style={[styles.tabIconWrap, focused && styles.tabIconWrapFocused]}
-      >
+      <View style={styles.tabIconWrap}>
         <IconComponent size={22} color={color} weight={focused ? 'fill' : 'light'} />
       </View>
       <Text
@@ -89,7 +87,7 @@ export default function TabLayout() {
           height: tabHeight,
           paddingTop: 8,
           paddingBottom: tabBottomPad,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: Colors.surface,
           borderTopWidth: 0,
           ...Shadows.elevation,
           shadowOffset: { width: 0, height: -2 },
@@ -154,7 +152,7 @@ export default function TabLayout() {
           title: '마음챙김',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              IconComponent={Heart}
+              IconComponent={FlowerLotus}
               color={String(color)}
               focused={focused}
               label="마음챙김"
@@ -165,13 +163,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="more"
         options={{
-          title: '더보기',
+          title: '설정',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              IconComponent={List}
+              IconComponent={GearSix}
               color={String(color)}
               focused={focused}
-              label="더보기"
+              label="설정"
             />
           ),
         }}
@@ -193,10 +191,6 @@ const styles = StyleSheet.create({
     width: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 999,
-  },
-  tabIconWrapFocused: {
-    backgroundColor: Colors.primaryLight,
   },
   tabLabel: {
     width: '100%',

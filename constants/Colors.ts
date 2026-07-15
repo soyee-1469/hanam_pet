@@ -1,68 +1,92 @@
 /**
- * Hanam Healing Pet Color System v2.0
- * 컨셉 2 — 반려동물과의 다정한 동화
+ * Hanam Healing Pet Color System v3.0
+ * 웜톤 힐링 팔레트 — 채도 낮고 명도 높은 아날로그 감성
  *
- * 컨셉보드 추출 원색
- * - 코랄 오렌지 #FA6F37 (주조)
- * - 웜 옐로우   #FBAE38 (보조)
- * - 밀크 코코아 #BB7E3F (강조)
- * - 크리미 베이지 #FDDEAC (배경 계열)
+ * Main
+ * - Warm Coral   #F47B4B (Primary / CTA)
+ * - Soft Orange  #F5A23A (Secondary)
+ * - Cream Yellow #F4C85B (Accent)
+ * - Warm Taupe   #B79A8A (중립)
+ * - Warm Ivory   #F8F4EF (Background)
+ * - Cocoa Brown  #5B3927 (Text)
  *
- * Primary(코랄)는 아래 3곳에만
- * 1) Primary 버튼  2) 선택 탭/네비  3) 에너지 진행바
+ * Sub
+ * - Peach #F7C4A3 / Sand #E9DCCF / Beige #D9C7BA / Soft Brown #8E6F5C
+ *
+ * Primary(코랄/오렌지)는 아래 곳에만
+ * 1) Primary 버튼  2) 선택 탭/네비  3) 에너지 진행바  4) 기분 좋음(긍정 감정)
+ *
+ * 감정 색 의미
+ * - 좋음 → 오렌지 계열 (브랜드 메인 포인트 = 긍정)
+ * - 보통 → 노란빛 연두
+ * - 힘듦 → 스카이 블루 (눈물/하늘 톤)
  */
 
 export const Colors = {
-  // Brand — 컨셉보드
-  primary: '#FA6F37',
-  primaryPressed: '#E85F2A',
-  primaryLight: '#FFE4D6',
-  secondary: '#FBAE38',
-  secondaryPressed: '#E89A28',
-  secondaryLight: '#FFF0D4',
-  accent: '#BB7E3F',
-  accentSoft: '#F3E4D0',
+  // Brand
+  primary: '#F47B4B',
+  primaryPressed: '#E06A3C',
+  primaryLight: '#F7C4A3',
+  secondary: '#F5A23A',
+  secondaryPressed: '#E08E28',
+  secondaryLight: '#FCE8C0',
+  accent: '#F4C85B',
+  accentSoft: '#FBECC4',
+  taupe: '#B79A8A',
   sage: '#A9B69A',
   sageSoft: '#E8EEE4',
 
   // Background / Surface
-  background: '#FFF9F3',
+  background: '#F8F4EF',
   surface: '#FFFFFF',
-  surfaceSecondary: '#FFF3E6',
-  creamyBeige: '#FDDEAC',
+  surfaceSecondary: '#F5EDE6',
+  creamyBeige: '#F4C85B',
+  peach: '#F7C4A3',
+  sand: '#E9DCCF',
+  beige: '#D9C7BA',
 
   // Text
-  textPrimary: '#5C3D2E',
-  textSecondary: '#8B6B55',
-  textDisabled: '#C4A990',
+  textPrimary: '#5B3927',
+  textSecondary: '#8E6F5C',
+  textDisabled: '#B79A8A',
 
   // Border / Divider
-  border: '#F0E2D2',
-  divider: '#F7EEE4',
+  border: '#E9DCCF',
+  divider: '#F1E9E0',
 
   // Status
   success: '#A9B69A',
-  warning: '#FBAE38',
+  warning: '#F5A23A',
   error: '#E57A72',
 
+  // Emotion diary tones — 메인 오렌지 → 노란빛 연두 → 스카이 블루 그라데이션
+  moodGood: '#F47B4B',
+  moodOk: '#D4E08A',
+  moodHard: '#8EC5E8',
+
   // Buttons
-  buttonPrimaryBg: '#FA6F37',
+  buttonPrimaryBg: '#F47B4B',
   buttonPrimaryText: '#FFFFFF',
-  buttonSecondaryBg: '#FFF5EC',
-  buttonSecondaryText: '#E88F48',
-  buttonDisabledBg: '#F3E8DC',
-  buttonDisabledText: '#C4A990',
+  buttonSecondaryBg: '#FFF8F2',
+  buttonSecondaryText: '#F47B4B',
+  buttonDisabledBg: '#E9DCCF',
+  buttonDisabledText: '#B79A8A',
 
   // Energy / Progress
-  energyFill: '#FA6F37',
-  energyTrack: '#F3E8DC',
+  energyFill: '#F47B4B',
+  energyTrack: '#E9DCCF',
+
+  // Soft recessed card (CTA v2)
+  cardRecessed: '#FFFBF8',
+  cardRecessedHover: '#FFF6EF',
+  cardInsetShadow: '#F1E7DC',
 
   // Icon soft backgrounds
-  iconFeed: '#FFE8D8',
-  iconToy: '#F5EEF8',
-  iconAttendance: '#EEF5FF',
-  iconReward: '#FFF4D8',
-  iconHeart: '#FDEEF2',
+  iconFeed: '#FCE8DC',
+  iconToy: '#FCE8C0',
+  iconAttendance: '#EFE6DC',
+  iconReward: '#FBECC4',
+  iconHeart: '#FCE8DC',
 } as const
 
 export type ColorToken = keyof typeof Colors
@@ -70,7 +94,7 @@ export type ColorToken = keyof typeof Colors
 /** Shadow System */
 export const Shadows = {
   elevation: {
-    shadowColor: '#4A3427',
+    shadowColor: '#5B3927',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,

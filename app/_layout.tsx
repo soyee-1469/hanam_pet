@@ -11,7 +11,7 @@ SplashScreen.preventAutoHideAsync()
 export { ErrorBoundary } from 'expo-router'
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: 'index',
 }
 
 export default function RootLayout() {
@@ -23,7 +23,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="diary-write" />
+        <Stack.Screen name="storage" />
       </Stack>
     </SafeAreaProvider>
   )

@@ -33,6 +33,7 @@ function MoreMenuRow({
   return (
     <Pressable
       accessibilityRole="button"
+      android_ripple={{ color: 'transparent' }}
       onPress={onPress}
       onHoverIn={() => {
         setHovered(true)
@@ -44,20 +45,25 @@ function MoreMenuRow({
       }}
       onPressIn={() => setChevronShift(true)}
       onPressOut={() => setChevronShift(hovered)}
-      style={({ pressed }) => [
-        styles.row,
-        { cursor: 'pointer' } as object,
-        (hovered || pressed) && styles.rowHover,
-      ]}
+      style={({ pressed }) => [pressed && styles.rowPressed]}
     >
-      <IconComponent size={20} color={Colors.textSecondary} weight="light" />
-      <Text style={styles.rowLabel}>{label}</Text>
-      <CaretRight
-        size={18}
-        color={Colors.textDisabled}
-        weight="bold"
-        style={{ transform: [{ translateX: chevronShift ? 3 : 0 }] }}
-      />
+      <View
+        style={[styles.row, (hovered) && styles.rowHover]}
+        collapsable={false}
+      >
+        <View style={styles.rowIcon}>
+          <IconComponent size={20} color={Colors.textSecondary} weight="light" />
+        </View>
+        <Text style={styles.rowLabel} numberOfLines={1}>
+          {label}
+        </Text>
+        <CaretRight
+          size={18}
+          color={Colors.textDisabled}
+          weight="bold"
+          style={{ transform: [{ translateX: chevronShift ? 3 : 0 }] }}
+        />
+      </View>
     </Pressable>
   )
 }
@@ -65,7 +71,7 @@ function MoreMenuRow({
 export default function MoreScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.title}>더보기</Text>
+      <Text style={styles.title}>설정</Text>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {MORE_MENUS.map((item) => (
           <MoreMenuRow
@@ -94,7 +100,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   list: {
-    gap: 8,
     paddingBottom: 100,
   },
   row: {
@@ -102,17 +107,28 @@ const styles = StyleSheet.create({
     minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginBottom: 4,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 14,
     backgroundColor: 'transparent',
   },
+  rowPressed: {
+    opacity: 0.88,
+  },
   rowHover: {
     backgroundColor: Colors.surfaceSecondary,
   },
+  rowIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   rowLabel: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,

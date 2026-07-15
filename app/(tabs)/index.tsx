@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -7,26 +7,20 @@ import {
   Pressable,
   Alert,
   StyleSheet,
-  PanResponder,
-  LayoutAnimation,
   Animated,
   ScrollView,
   useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { router } from 'expo-router'
 import {
-  Camera,
-  Gift,
   Lightning,
-  Info,
-  CaretUp,
-  CaretDown,
+  CaretRight,
   Check,
   PawPrint,
   Bell,
 } from 'phosphor-react-native'
-import type { Icon } from 'phosphor-react-native'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 
 const USER = {
   nickname: '몽이',
@@ -35,7 +29,6 @@ const USER = {
 const PET = {
   name: '몽이',
   greetingBubble: '몽이지킴이님 오늘도 반가워요',
-  level: 4,
   energy: 595,
   energyMax: 1000,
   foodCount: 0,
@@ -63,14 +56,14 @@ const HEADER_MENU = [
     bgColor: Colors.surface,
   },
   {
-    id: 'draw',
-    label: '매일 뽑기',
+    id: 'storage',
+    label: '내 보관함',
     image: require('../../assets/images/pet-menu-4.png'),
     bgColor: Colors.surface,
   },
   {
-    id: 'mission',
-    label: '찾기 미션',
+    id: 'guide',
+    label: '안내',
     image: require('../../assets/images/pet-menu-5.png'),
     bgColor: Colors.surface,
   },
@@ -85,18 +78,6 @@ const TODAY_MISSIONS: {
   { id: 'diary', label: '마음일기 쓰기', desc: '오늘의 감정을 짧게 남겨보세요', done: false },
   { id: 'video', label: '힐링 영상 보기', desc: '짧은 영상을 보면 케어 아이템을 받아요', done: true },
   { id: 'attendance', label: '출석하기', desc: '매일 출석하면 보상을 받아요', done: true },
-]
-
-const PET_CARE_MENU: {
-  id: string
-  label: string
-  Icon: Icon
-  color: string
-}[] = [
-  { id: 'album', label: '나의펫 앨범', Icon: Camera, color: Colors.textSecondary },
-  { id: 'decorate', label: '꾸미기', Icon: Gift, color: Colors.textSecondary },
-  { id: 'energy', label: '에너지 내역', Icon: Lightning, color: Colors.textSecondary },
-  { id: 'guide', label: '서비스 안내', Icon: Info, color: Colors.textSecondary },
 ]
 
 const CARE_ENERGY_GAIN = 8
@@ -114,7 +95,7 @@ type CareStockCardProps = {
   grayIconWhenEmpty?: boolean
 }
 
-/** Soft recessed CTA card v2 — Fill #FFFBF6 / Stroke 0.5 #F0E2D2 / Inner shadow */
+/** Soft recessed CTA card v2 — Warm Ivory card + Sand stroke + soft inset */
 function CareStockCard({
   count,
   icon,
@@ -255,9 +236,11 @@ function MenuQuickItem({
 function LevelEnergyBlock({
   energy,
   energyMax,
+  onPressStorage,
 }: {
   energy: number
   energyMax: number
+  onPressStorage: () => void
 }) {
   const energyRatio = Math.min(100, Math.round((energy / energyMax) * 100))
 
@@ -265,16 +248,27 @@ function LevelEnergyBlock({
     <View style={styles.energyBlock}>
       <View style={styles.levelRow}>
         <View style={styles.levelLeft}>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelBadgeText}>레벨 {PET.level}</Text>
-          </View>
           <Lightning size={16} color={Colors.secondary} weight="fill" />
           <Text style={styles.energyLabelInline}>에너지</Text>
         </View>
-        <View style={styles.energyNums}>
-          <Text style={styles.energyCurrent}>{energy.toLocaleString()}</Text>
-          <Text style={styles.energyMax}> / {energyMax.toLocaleString()}</Text>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="내 보관함"
+          hitSlop={8}
+          onPress={onPressStorage}
+          style={({ pressed }) => [
+            styles.energyNumsBtn,
+            pressed && styles.energyNumsPressed,
+          ]}
+        >
+          <View style={styles.energyNums}>
+            <Text style={styles.energyCurrent}>{energy.toLocaleString()}</Text>
+            <Text style={styles.energyMax}> / {energyMax.toLocaleString()}</Text>
+          </View>
+          <View style={styles.energyCaret}>
+            <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
+          </View>
+        </Pressable>
       </View>
       <View style={styles.energyTrack}>
         <View style={[styles.energyFill, { width: `${energyRatio}%` }]} />
@@ -286,7 +280,6 @@ function LevelEnergyBlock({
 export default function PetHomeScreen() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions()
   const insets = useSafeAreaInsets()
-  const [expanded, setExpanded] = useState(false)
   const [energy, setEnergy] = useState(PET.energy)
   const [foodCount, setFoodCount] = useState(PET.foodCount)
   const [toyCount, setToyCount] = useState(PET.toyCount)
@@ -295,28 +288,24 @@ export default function PetHomeScreen() {
   const [fxLabel, setFxLabel] = useState<string | null>(null)
   const [fxAccent, setFxAccent] = useState(false)
   const [sheetH, setSheetH] = useState(320)
-  const expandedRef = useRef(expanded)
-  expandedRef.current = expanded
   const careBusyRef = useRef(false)
 
-  // 폰에서 헤더·캐릭터가 시트에 가리지 않도록 영역 고정
+  // 폰에서 헤더·캐릭터가 하단 패널에 가리지 않도록 영역 고정
   const tabBarReserve = 72 + Math.max(insets.bottom, 8) + 5
-  const sheetMaxHeight = Math.round(screenHeight * 0.7)
+  const sheetMaxHeight = Math.round(screenHeight * 0.55)
   const headerTopPad = insets.top + 8
   const headerBlockH = 102 // 닉네임 + 메뉴 대략 높이
   const petTop = headerTopPad + headerBlockH
-  // 실측 시트 높이 기준으로 캐릭터 영역 확보 (가림 방지)
-  const petSheetGap = 28
-  const petBottom = tabBarReserve + sheetH + petSheetGap
+  const petSheetGap = 20
+  const petBottom = tabBarReserve + Math.min(sheetH, sheetMaxHeight) + petSheetGap
   const petAvailH = Math.max(screenHeight - petTop - petBottom, 160)
   const petSize = Math.round(Math.min(200, Math.max(128, petAvailH * 0.68)))
   const menuCircleSize = Math.min(46, Math.floor((screenWidth - 32) / 5) - 8)
   const menuIconSize = Math.min(32, menuCircleSize - 12)
   const menuLabelSize = screenWidth < 360 ? 9 : 10
-  const sheetMaxHeightSafe = Math.min(sheetMaxHeight, screenHeight - headerTopPad - 80)
+  const sheetScrollMax = Math.max(sheetMaxHeight - 200, 140)
   const actionGap = 10
 
-  const arrowAnim = useRef(new Animated.Value(0)).current
   const speechOpacity = useRef(new Animated.Value(0)).current
   const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -328,45 +317,14 @@ export default function PetHomeScreen() {
   const missionSectionY = useRef(0)
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(arrowAnim, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(arrowAnim, {
-          toValue: 0,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ]),
-    )
-    loop.start()
-    return () => loop.stop()
-  }, [arrowAnim])
-
-  useEffect(() => {
     return () => {
       if (speechTimer.current) clearTimeout(speechTimer.current)
       if (focusTimer.current) clearTimeout(focusTimer.current)
     }
   }, [])
 
-  const arrowTranslateY = arrowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: expanded ? [0, 3] : [0, -4],
-  })
-
-  const arrowOpacity = arrowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.35, 0.75],
-  })
-
-  const setSheetExpanded = (next: boolean) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setExpanded(next)
-    if (!next) setFocusMissionId(null)
+  const openStorage = () => {
+    router.push('/storage')
   }
 
   const showSpeech = (message: string) => {
@@ -501,7 +459,6 @@ export default function PetHomeScreen() {
 
   const triggerMissionNudge = (missionId: string = FIRST_OPEN_MISSION_ID) => {
     setFocusMissionId(missionId)
-    setSheetExpanded(true)
     if (focusTimer.current) clearTimeout(focusTimer.current)
     focusTimer.current = setTimeout(() => setFocusMissionId(null), 3200)
     setTimeout(() => {
@@ -509,7 +466,7 @@ export default function PetHomeScreen() {
         y: Math.max(missionSectionY.current - 8, 0),
         animated: true,
       })
-    }, 280)
+    }, 120)
   }
 
   const handleAcquireFeed = () => {
@@ -532,20 +489,6 @@ export default function PetHomeScreen() {
 
   const bubbleText = speech ?? PET.greetingBubble
   const bubbleAnimated = speech != null
-
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 6,
-        onPanResponderRelease: (_, g) => {
-          if (g.dy < -36) setSheetExpanded(true)
-          else if (g.dy > 36) setSheetExpanded(false)
-          else setSheetExpanded(!expandedRef.current)
-        },
-      }),
-    [],
-  )
 
   return (
     <ImageBackground
@@ -583,7 +526,10 @@ export default function PetHomeScreen() {
               circleSize={menuCircleSize}
               iconSize={menuIconSize}
               labelSize={menuLabelSize}
-              onPress={() => Alert.alert(item.label, '더미 화면입니다.')}
+              onPress={() => {
+                if (item.id === 'storage') openStorage()
+                else Alert.alert(item.label, '더미 화면입니다.')
+              }}
             />
           ))}
         </View>
@@ -632,32 +578,21 @@ export default function PetHomeScreen() {
         </View>
       </View>
 
-      {/* 하단 시트 */}
+      {/* 하단 패널 — 고정 UI (모달/드래그 아님) */}
       <View
-        style={[styles.sheet, { bottom: tabBarReserve }]}
+        style={[styles.sheet, { bottom: tabBarReserve, maxHeight: sheetMaxHeight }]}
         onLayout={(e) => {
           const h = Math.round(e.nativeEvent.layout.height)
           if (h > 0 && Math.abs(h - sheetH) > 2) setSheetH(h)
         }}
       >
-        <View style={styles.sheetHandle} {...panResponder.panHandlers}>
-          <Animated.View
-            style={{
-              opacity: arrowOpacity,
-              transform: [{ translateY: arrowTranslateY }],
-            }}
-          >
-            {expanded ? (
-              <CaretDown size={20} color={Colors.textSecondary} weight="bold" />
-            ) : (
-              <CaretUp size={20} color={Colors.textSecondary} weight="bold" />
-            )}
-          </Animated.View>
-        </View>
-
-        {/* 레벨 + 보유 카드 — 항상 표시 */}
+        {/* 에너지 + 보유 카드 — 항상 표시 */}
         <View style={styles.primaryBlock}>
-          <LevelEnergyBlock energy={energy} energyMax={PET.energyMax} />
+          <LevelEnergyBlock
+            energy={energy}
+            energyMax={PET.energyMax}
+            onPressStorage={openStorage}
+          />
           <View style={styles.actionRow}>
             <CareStockCard
               count={foodCount}
@@ -684,15 +619,13 @@ export default function PetHomeScreen() {
           </View>
         </View>
 
-        {/* 펼쳤을 때만 미션/펫키우기 */}
-        {expanded ? (
-          <ScrollView
-            ref={scrollRef}
-            style={{ maxHeight: Math.max(sheetMaxHeightSafe - 220, 160) }}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-            contentContainerStyle={{ paddingBottom: 16, paddingTop: 12 }}
-          >
+        <ScrollView
+          ref={scrollRef}
+          style={{ maxHeight: sheetScrollMax }}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={{ paddingBottom: 16, paddingTop: 12 }}
+        >
             <View
               style={styles.sectionCard}
               onLayout={(e) => {
@@ -760,27 +693,7 @@ export default function PetHomeScreen() {
                 })}
               </View>
             </View>
-
-            <View style={[styles.sectionCardAlt, { marginTop: 12 }]}>
-              <View style={styles.sectionHeader}>
-                <View style={[styles.sectionAccent, styles.sectionAccentAlt]} />
-                <Text style={[styles.sectionTitle, styles.careSectionTitle]}>펫 키우기</Text>
-              </View>
-              <View style={styles.careGrid}>
-                {PET_CARE_MENU.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    style={styles.careItem}
-                    onPress={() => Alert.alert(item.label, '더미 화면입니다.')}
-                  >
-                    <item.Icon size={18} color={Colors.textDisabled} weight="light" />
-                    <Text style={styles.careLabel}>{item.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          </ScrollView>
-        ) : null}
+        </ScrollView>
       </View>
     </ImageBackground>
   )
@@ -789,7 +702,7 @@ export default function PetHomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: Colors.background,
   },
   petBgImage: {
     width: '100%',
@@ -913,16 +826,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     backgroundColor: Colors.surface,
     paddingHorizontal: 16,
+    paddingTop: 14,
     paddingBottom: 10,
     overflow: 'visible',
-    borderTopWidth: 1,
-    borderColor: Colors.border,
+    borderTopWidth: 0,
+    ...Shadows.elevation,
+    shadowOffset: { width: 0, height: -2 },
     alignItems: 'stretch',
-  },
-  sheetHandle: {
-    alignItems: 'center',
-    paddingTop: 6,
-    paddingBottom: 4,
   },
   menuIcon: {
     width: 36,
@@ -948,7 +858,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 18,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: Colors.border,
   },
   greetingBubbleText: {
@@ -983,28 +893,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 0,
   },
-  levelBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: Colors.secondary,
-    marginRight: 8,
-  },
-  levelBadgeText: {
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   energyLabelInline: {
     marginLeft: 4,
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
+  energyNumsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  energyNumsPressed: {
+    opacity: 0.75,
+  },
   energyNums: {
     flexDirection: 'row',
     alignItems: 'baseline',
+  },
+  energyCaret: {
+    marginLeft: 2,
+    marginTop: 1,
   },
   energyCurrent: {
     fontSize: 18,
@@ -1050,14 +958,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    backgroundColor: '#FFFBF6',
+    backgroundColor: Colors.cardRecessed,
     borderWidth: 0.5,
-    borderColor: '#F0E2D2',
-    // Figma: Inner Shadow X:-3 Y:-3 Blur:4 Color:#F1E7DC
-    boxShadow: 'inset -3px -3px 4px 0px #F1E7DC',
+    borderColor: Colors.border,
+    boxShadow: `inset -3px -3px 4px 0px ${Colors.cardInsetShadow}`,
   },
   stockCardHovered: {
-    backgroundColor: '#FFF7EF',
+    backgroundColor: Colors.cardRecessedHover,
   },
   stockActionLabel: {
     fontSize: 13,
@@ -1078,7 +985,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   stockIconMuted: {
-    tintColor: '#B8B0A8',
+    tintColor: Colors.taupe,
     opacity: 0.55,
   },
   stockCount: {
@@ -1087,10 +994,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
   },
-  careGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
   sectionCard: {
     alignSelf: 'stretch',
     borderRadius: 18,
@@ -1098,16 +1001,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 24,
-  },
-  sectionCardAlt: {
-    alignSelf: 'stretch',
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1118,35 +1011,13 @@ const styles = StyleSheet.create({
     width: 3,
     height: 14,
     borderRadius: 2,
-    backgroundColor: Colors.textSecondary,
+    backgroundColor: Colors.secondary,
     marginRight: 8,
-  },
-  sectionAccentAlt: {
-    backgroundColor: Colors.textDisabled,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: Colors.textPrimary,
-  },
-  careSectionTitle: {
-    color: Colors.textSecondary,
-  },
-  careItem: {
-    width: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.divider,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-  },
-  careLabel: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
   },
   missionCard: {
     paddingHorizontal: 0,
@@ -1169,7 +1040,7 @@ const styles = StyleSheet.create({
   },
   missionRowFocused: {
     borderRadius: 10,
-    backgroundColor: Colors.divider,
+    backgroundColor: Colors.surfaceSecondary,
   },
   missionCheck: {
     width: 18,
@@ -1182,10 +1053,10 @@ const styles = StyleSheet.create({
   },
   missionCheckDone: {
     borderColor: Colors.border,
-    backgroundColor: Colors.buttonDisabledBg,
+    backgroundColor: Colors.sand,
   },
   missionCheckTodo: {
-    borderColor: Colors.textDisabled,
+    borderColor: Colors.taupe,
     backgroundColor: 'transparent',
   },
   missionCopy: {
@@ -1228,9 +1099,8 @@ const styles = StyleSheet.create({
     minHeight: 34,
     marginRight: 0,
     borderRadius: 999,
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    backgroundColor: Colors.buttonSecondaryBg,
+    borderWidth: 0,
     paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1241,7 +1111,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: Colors.buttonSecondaryText,
     includeFontPadding: false,
   },
   missionCta: {
@@ -1249,7 +1119,7 @@ const styles = StyleSheet.create({
     minHeight: 34,
     marginRight: 0,
     borderRadius: 999,
-    backgroundColor: Colors.textPrimary,
+    backgroundColor: Colors.primary,
     borderWidth: 0,
     paddingVertical: 8,
     alignItems: 'center',
@@ -1259,6 +1129,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     fontWeight: '600',
-    color: Colors.surface,
+    color: Colors.buttonPrimaryText,
   },
 })

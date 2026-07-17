@@ -5,32 +5,33 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Color System v3.0 — 웜톤 힐링 팔레트
+        // Color System v3.1 — 힐링 중심 (브라운·크림 베이스)
         primary: {
           DEFAULT: '#F47B4B',
           pressed: '#E06A3C',
           light: '#F7C4A3',
         },
         secondary: {
-          DEFAULT: '#F5A23A',
-          pressed: '#E08E28',
+          DEFAULT: '#F67C49',
+          pressed: '#E56B3A',
           light: '#FCE8C0',
         },
         accent: {
           DEFAULT: '#F4C85B',
           soft: '#FBECC4',
         },
+        selected: '#8A5B44',
         taupe: '#B79A8A',
         sage: {
-          DEFAULT: '#B79A8A',
-          soft: '#E9DCCF',
+          DEFAULT: '#A9B69A',
+          soft: '#E8EEE4',
         },
         background: '#F8F4EF',
         surface: {
           DEFAULT: '#FFFFFF',
           secondary: '#F5EDE6',
         },
-        creamy: '#F4C85B',
+        creamy: '#F6EFE5',
         peach: '#F7C4A3',
         sand: '#E9DCCF',
         beige: {
@@ -41,7 +42,7 @@ module.exports = {
           300: '#F5EDE6',
         },
         ink: {
-          DEFAULT: '#5B3927',
+          DEFAULT: '#5E4033',
           soft: '#8E6F5C',
           disabled: '#B79A8A',
         },
@@ -50,7 +51,7 @@ module.exports = {
           divider: '#F1E9E0',
         },
         success: '#A9B69A',
-        warning: '#F5A23A',
+        warning: '#F67C49',
         error: '#E57A72',
         coral: {
           DEFAULT: '#F47B4B',
@@ -63,7 +64,7 @@ module.exports = {
           mission: '#F4C85B',
         },
         cocoa: {
-          DEFAULT: '#5B3927',
+          DEFAULT: '#5E4033',
           soft: '#8E6F5C',
           faint: '#B79A8A',
           mute: '#B79A8A',

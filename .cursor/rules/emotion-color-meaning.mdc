@@ -5,20 +5,38 @@ alwaysApply: true
 
 # 감정·브랜드 색 의미
 
-## 오렌지 계열 = 기분 좋음
+## 베이스 = 브라운 · 크림 (힐링)
 
-**메인 오렌지(`Colors.primary` / `#F47B4B`)** 는 브랜드 메인 포인트이며,
-**긍정·기분 좋음**을 나타낼 때 쓴다.
+앱 분위기의 기본은 **코코아 브라운 + 크림/베이지**.
+오렌지는 CTA·긍정 감정 포인트에만 쓴다.
+
+| 역할 | 토큰 | HEX |
+|------|------|-----|
+| 제목·본문 | `Colors.cocoa` / `textPrimary` | `#5E4033` |
+| 칩·선택 상태 | `Colors.selected` | `#8A5B44` |
+| 연한 배경·면 | `Colors.creamyBeige` | `#F6EFE5` |
+| 포인트 옐로 | `Colors.accent` | `#F4C85B` |
+| Accent 연한 면 | `Colors.accentSoft` | `#FBECC4` |
+| CTA 보조 | `Colors.secondary` | `#F67C49` |
+| 메인 CTA | `Colors.primary` | `#F47B4B` |
+
+`creamyBeige`와 `accent`는 **절대 같은 색을 쓰지 않는다.**
+
+## 오렌지 계열 = 기분 좋음 / CTA
+
+**메인 오렌지(`Colors.primary` / `#F47B4B`)** 는
+**긍정·기분 좋음·행동 유도**에만 쓴다.
 
 허용 예:
 - Primary CTA, 선택 탭, 에너지 바
-- 감정일기 **좋음** (`Colors.moodGood` = Primary 오렌지)
-- 감정일기 **「감정 기록하기」** 버튼 = `Colors.primary` (메인 오렌지)
+- 감정일기 **좋음** (`Colors.moodGood`)
+- 감정일기 **「감정 기록하기」** 버튼
 
 금지:
 - **힘듦 / 부정 / 위험** 상태에 오렌지·코랄 사용
+- 연령·성별 등 **선택 칩**에 오렌지 사용 → `Colors.selected` 사용
 
-## 감정 분포 색 (그라데이션으로 이어짐)
+## 감정 분포 색
 
 | 감정 | 계열 | 토큰 | HEX |
 |------|------|------|-----|

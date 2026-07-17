@@ -2,14 +2,24 @@ import type { ReactNode } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
 
 type ScreenHeaderProps = {
-  title: string
+  title?: string
   onBack?: () => void
+  /** 우측 건너뛰기 — 서비스 소개 투어 등 */
+  onSkip?: () => void
+  skipLabel?: string
   right?: ReactNode
 }
 
-export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
+export function ScreenHeader({
+  title,
+  onBack,
+  onSkip,
+  skipLabel = '건너뛰기',
+  right,
+}: ScreenHeaderProps) {
   return (
     <View style={styles.header}>
       {onBack ? (
@@ -24,12 +34,30 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
       ) : (
-        <View style={styles.sideBtn} />
+        <View style={styles.sideSlot} />
       )}
-      <Text style={styles.title} numberOfLines={1}>
-        {title}
-      </Text>
-      <View style={styles.sideBtn}>{right ?? null}</View>
+      {title ? (
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+      ) : (
+        <View style={styles.titleSpacer} />
+      )}
+      {right != null ? (
+        <View style={styles.sideSlot}>{right}</View>
+      ) : onSkip ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={skipLabel}
+          hitSlop={8}
+          onPress={onSkip}
+          style={({ pressed }) => [styles.skipBtn, pressed && styles.pressed]}
+        >
+          <Text style={styles.skipText}>{skipLabel}</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.sideSlot} />
+      )}
     </View>
   )
 }
@@ -40,15 +68,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingTop: 4,
-    paddingBottom: 8,
-    minHeight: 48,
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
+    minHeight: 56,
+    backgroundColor: Colors.background,
+    zIndex: 10,
+    flexShrink: 0,
   },
   sideBtn: {
-    width: 40,
+    width: 72,
     height: 40,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
+  },
+  sideSlot: {
+    width: 72,
+    height: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  skipBtn: {
+    width: 72,
+    height: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  skipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textDisabled,
   },
   pressed: {
     opacity: 0.85,
@@ -59,5 +107,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
+  },
+  titleSpacer: {
+    flex: 1,
   },
 })

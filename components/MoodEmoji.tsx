@@ -7,10 +7,17 @@ type MoodEmojiProps = {
   size?: number
 }
 
+/** 웹 DOM에 dataName 등으로 새어 나가는 Illustrator 메타 속성 제거 */
+function sanitizeSvgXml(xml: string) {
+  return xml
+    .replace(/\sdata-name="[^"]*"/gi, '')
+    .replace(/\sid="[^"]*"/gi, '')
+}
+
 export function MoodEmoji({ index, size = 40 }: MoodEmojiProps) {
   return (
     <SvgXml
-      xml={MOOD_EMOJI_XML[index - 1]}
+      xml={sanitizeSvgXml(MOOD_EMOJI_XML[index - 1])}
       width={size}
       height={size}
       preserveAspectRatio="xMidYMid meet"

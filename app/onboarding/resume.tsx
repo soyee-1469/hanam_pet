@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState, type MutableRefObject } from 'react'
 import {
   View,
   Text,
@@ -7,27 +7,181 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  type TextInput as RNTextInput,
+  type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import {
+  CaretRight,
+  DeviceMobile,
+  Images,
+  Lock,
+  WarningCircle,
+} from 'phosphor-react-native'
+import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { PrimaryButton, SecondaryButton, ScreenHeader } from '../../components/ui'
+import { Layout } from '../../constants/Layout'
+import { onboardingMascot } from '../../constants/OnboardingMascot'
+import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
+import { getOnboardingCopy } from '../../lib/onboarding'
 
-type Step = 'code' | 'lost' | 'restored'
+const copy = getOnboardingCopy().resume
+const CODE_LEN = 8
+/** 더미 복구에도 로딩이 보이도록 */
+const RESTORE_DELAY_MS = 1400
+
+type Step = 'code' | 'lost' | 'giveUp' | 'restored'
+
+const TIP_META: Record<
+  string,
+  { Icon: Icon; image: ImageSourcePropType }
+> = {
+  gallery: {
+    Icon: Images,
+    image: onboardingMascot(0, 'wink'),
+  },
+  device: {
+    Icon: DeviceMobile,
+    image: onboardingMascot(1, 'soft'),
+  },
+}
+
+function OtpGroup({
+  start,
+  digits,
+  focused,
+  inputs,
+  onChange,
+  onKeyPress,
+  onFocus,
+}: {
+  start: number
+  digits: string[]
+  focused: number
+  inputs: MutableRefObject<(RNTextInput | null)[]>
+  onChange: (index: number, raw: string) => void
+  onKeyPress: (index: number, key: string) => void
+  onFocus: (index: number) => void
+}) {
+  return (
+    <View style={styles.otpGroup}>
+      {digits.slice(start, start + 4).map((digit, offset) => {
+        const i = start + offset
+        const isActive = focused === i
+        return (
+          <View key={i} style={styles.otpCellWrap}>
+            <TextInput
+              ref={(el) => {
+                inputs.current[i] = el
+              }}
+              value={digit}
+              onChangeText={(t) => onChange(i, t)}
+              onKeyPress={({ nativeEvent }) => onKeyPress(i, nativeEvent.key)}
+              onFocus={() => onFocus(i)}
+              keyboardType="number-pad"
+              maxLength={i === 0 ? CODE_LEN : 1}
+              selectTextOnFocus
+              textContentType="oneTimeCode"
+              style={[
+                styles.otpCell,
+                isActive && styles.otpCellOn,
+                digit !== '' && !isActive && styles.otpCellFilled,
+              ]}
+              accessibilityLabel={`${i + 1}번째 자리`}
+            />
+          </View>
+        )
+      })}
+    </View>
+  )
+}
 
 export default function OnboardingResume() {
   const [step, setStep] = useState<Step>('code')
-  const [code, setCode] = useState('')
+  const [digits, setDigits] = useState<string[]>(Array(CODE_LEN).fill(''))
+  const [focused, setFocused] = useState(0)
   const [busy, setBusy] = useState(false)
+  const inputs = useRef<(RNTextInput | null)[]>([])
 
-  const codeOk = code.trim().length >= 6
+  const code = digits.join('')
+  const codeOk = /^\d{8}$/.test(code)
+
+  useEffect(() => {
+    if (step !== 'code' || busy) return
+    const t = setTimeout(() => {
+      setFocused(0)
+      inputs.current[0]?.focus()
+    }, 120)
+    return () => clearTimeout(t)
+  }, [step, busy])
+
+  const focusAt = (index: number) => {
+    const i = Math.max(0, Math.min(CODE_LEN - 1, index))
+    setFocused(i)
+    requestAnimationFrame(() => {
+      inputs.current[i]?.focus()
+    })
+  }
+
+  const setDigitAt = (index: number, raw: string) => {
+    if (busy) return
+    const cleaned = raw.replace(/\D/g, '')
+    if (cleaned.length === 0) {
+      const next = [...digits]
+      next[index] = ''
+      setDigits(next)
+      return
+    }
+
+    if (cleaned.length > 1) {
+      const next = [...digits]
+      const chars = cleaned.slice(0, CODE_LEN - index).split('')
+      chars.forEach((ch, i) => {
+        next[index + i] = ch
+      })
+      setDigits(next)
+      const filledTo = index + chars.length
+      focusAt(filledTo >= CODE_LEN ? CODE_LEN - 1 : filledTo)
+      return
+    }
+
+    const next = [...digits]
+    next[index] = cleaned
+    setDigits(next)
+    if (index < CODE_LEN - 1) {
+      focusAt(index + 1)
+    }
+  }
+
+  const onKeyPress = (index: number, key: string) => {
+    if (busy) return
+    if (key === 'Backspace') {
+      if (digits[index] !== '') {
+        const next = [...digits]
+        next[index] = ''
+        setDigits(next)
+        return
+      }
+      if (index > 0) {
+        const next = [...digits]
+        next[index - 1] = ''
+        setDigits(next)
+        focusAt(index - 1)
+      }
+    }
+  }
 
   const submitCode = async () => {
     if (!codeOk || busy) return
     setBusy(true)
+    inputs.current.forEach((el) => el?.blur())
     try {
-      // Dummy restore — any 6+ char code works
+      await new Promise((r) => setTimeout(r, RESTORE_DELAY_MS))
       await markOnboardingCompleted()
       setStep('restored')
     } finally {
@@ -38,26 +192,135 @@ export default function OnboardingResume() {
   if (step === 'lost') {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScreenHeader title="이어보기" onBack={() => setStep('code')} />
-        <View style={styles.body}>
-          <Text style={styles.headline}>번호를 잊으셨나요?</Text>
-          <Text style={styles.sub}>
-            서버 연동 전이라 지금은 복구 코드를 다시 찾을 수 없어요.
-            {'\n'}새로 시작하거나, 코드를 기억나시면 입력해 주세요.
-          </Text>
-          <View style={styles.card}>
-            <Text style={styles.cardText}>
-              나중에 계정 연동이 되면 이메일·휴대폰으로 이어볼 수 있게 될 거예요.
-            </Text>
+        <ScreenHeader title={copy.header} onBack={() => setStep('code')} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.lostBody}
+          showsVerticalScrollIndicator={false}
+        >
+          <Image
+            source={onboardingMascot(0, 'soft')}
+            style={styles.lostPet}
+            resizeMode="contain"
+          />
+          <Text style={styles.headline}>{copy.lost.headline}</Text>
+          <Text style={styles.sub}>{copy.lost.body}</Text>
+
+          <View style={styles.tipList}>
+            {copy.lost.tips.map((tip) => {
+              const meta = TIP_META[tip.key]
+              const TipIcon = meta?.Icon ?? Images
+              return (
+                <View key={tip.key}>
+                  <View style={styles.tipCard}>
+                    <View style={styles.tipVisual}>
+                      {meta ? (
+                        <Image
+                          source={meta.image}
+                          style={styles.tipPet}
+                          resizeMode="contain"
+                        />
+                      ) : null}
+                      <View style={styles.tipIconBadge}>
+                        <TipIcon
+                          size={18}
+                          color={Colors.textSecondary}
+                          weight="duotone"
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.tipCopy}>
+                      <Text style={styles.tipTitle}>{tip.title}</Text>
+                      <Text style={styles.tipBody}>{tip.body}</Text>
+                    </View>
+                  </View>
+                  {tip.key === 'device' ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setStep('giveUp')}
+                      style={({ pressed }) => [
+                        styles.cantFindBtn,
+                        pressed && styles.cantFindBtnPressed,
+                      ]}
+                    >
+                      <Text style={styles.cantFindBtnText}>
+                        {copy.lost.cantFind}
+                      </Text>
+                      <CaretRight
+                        size={18}
+                        color={Colors.textSecondary}
+                        weight="bold"
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+              )
+            })}
           </View>
-        </View>
+
+          <Text style={styles.note}>{copy.lost.note}</Text>
+        </ScrollView>
         <View style={styles.footer}>
-          <PrimaryButton label="코드 다시 입력" onPress={() => setStep('code')} />
-          <View style={styles.gap} />
-          <SecondaryButton
-            label="처음부터 시작"
+          <PrimaryButton
+            label={copy.lost.retry}
+            emphasized
+            onPress={() => setStep('code')}
+          />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.replace('/onboarding/intro')}
+            style={({ pressed }) => [
+              styles.restartLink,
+              pressed && styles.restartLinkPressed,
+            ]}
+          >
+            <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (step === 'giveUp') {
+    const g = copy.lost.giveUp
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <ScreenHeader title={copy.header} onBack={() => setStep('lost')} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.giveUpBody}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.giveUpTitle}>{g.title}</Text>
+
+          <View style={styles.giveUpCard}>
+            <View style={styles.giveUpWarnBadge}>
+              <WarningCircle size={28} color={Colors.secondary} weight="fill" />
+            </View>
+            <View style={styles.giveUpPrivacyRow}>
+              <Lock size={18} color={Colors.sage} weight="fill" />
+              <Text style={styles.giveUpPrivacyTitle}>{g.privacyTitle}</Text>
+            </View>
+            <Text style={styles.giveUpPrivacyBody}>{g.privacyBody}</Text>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <PrimaryButton
+            label={g.restart}
+            emphasized
             onPress={() => router.replace('/onboarding/intro')}
           />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setStep('code')}
+            style={({ pressed }) => [
+              styles.giveUpLookAgain,
+              pressed && styles.giveUpLookAgainPressed,
+            ]}
+          >
+            <Text style={styles.giveUpLookAgainText}>{g.lookAgain}</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     )
@@ -68,15 +331,21 @@ export default function OnboardingResume() {
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.center}>
           <Image
-            source={require('../../assets/images/dog-character_5.png')}
+            source={onboardingMascot(0, 'wink')}
             style={styles.pet}
             resizeMode="contain"
           />
-          <Text style={[styles.headline, styles.centerText]}>다시 만났어요</Text>
-          <Text style={[styles.sub, styles.centerText]}>이어서 함께해요.</Text>
+          <Text style={[styles.headline, styles.centerText]}>
+            {copy.restored.headline}
+          </Text>
+          <Text style={[styles.sub, styles.centerText]}>{copy.restored.body}</Text>
         </View>
         <View style={styles.footer}>
-          <PrimaryButton label="홈으로" onPress={() => router.replace('/(tabs)')} />
+          <PrimaryButton
+            label={copy.restored.cta}
+            emphasized
+            onPress={() => router.replace('/(tabs)')}
+          />
         </View>
       </SafeAreaView>
     )
@@ -84,43 +353,73 @@ export default function OnboardingResume() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader title="이어보기" onBack={() => router.back()} />
+      <ScreenHeader title={copy.header} onBack={() => router.back()} />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.body}>
-          <Text style={styles.headline}>이어보기 번호</Text>
-          <Text style={styles.sub}>
-            이전에 받은 6자리 이상 코드를 입력해 주세요. (더미)
-          </Text>
-          <TextInput
-            value={code}
-            onChangeText={setCode}
-            placeholder="예: HP-ABC123"
-            placeholderTextColor={Colors.textDisabled}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            style={styles.input}
-            returnKeyType="done"
-            onSubmitEditing={() => {
-              void submitCode()
-            }}
-          />
-          <SecondaryButton
-            label="번호를 잊었어요"
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.body}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.headline}>{copy.code.headline}</Text>
+          <Text style={styles.sub}>{copy.code.body}</Text>
+
+          <View style={styles.otpRow} pointerEvents={busy ? 'none' : 'auto'}>
+            <OtpGroup
+              start={0}
+              digits={digits}
+              focused={focused}
+              inputs={inputs}
+              onChange={setDigitAt}
+              onKeyPress={onKeyPress}
+              onFocus={setFocused}
+            />
+            <Text style={styles.otpSep}>·</Text>
+            <OtpGroup
+              start={4}
+              digits={digits}
+              focused={focused}
+              inputs={inputs}
+              onChange={setDigitAt}
+              onKeyPress={onKeyPress}
+              onFocus={setFocused}
+            />
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
             onPress={() => setStep('lost')}
-            style={styles.lostBtn}
-          />
-        </View>
+            style={({ pressed }) => [
+              styles.helpBtn,
+              pressed && styles.helpBtnPressed,
+              busy && styles.helpBtnDisabled,
+            ]}
+          >
+            <Text style={styles.helpBtnText}>{copy.code.lostLink}</Text>
+            <CaretRight size={18} color={Colors.textSecondary} weight="bold" />
+          </Pressable>
+        </ScrollView>
+
         <View style={styles.footer}>
-          <PrimaryButton
-            label={busy ? '확인 중…' : '이어하기'}
-            disabled={!codeOk || busy}
-            onPress={() => {
-              void submitCode()
-            }}
-          />
+          {busy ? (
+            <View style={styles.loadingBlock}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>{copy.code.loadingMessage}</Text>
+            </View>
+          ) : (
+            <PrimaryButton
+              label={copy.code.cta}
+              disabled={!codeOk}
+              emphasized={codeOk}
+              onPress={() => {
+                void submitCode()
+              }}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -131,13 +430,22 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    overflow: 'hidden',
   },
   flex: {
     flex: 1,
   },
-  body: {
+  scroll: {
     flex: 1,
-    paddingHorizontal: 20,
+    minHeight: 0,
+  },
+  body: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 12,
+  },
+  lostBody: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 20,
   },
   center: {
     flex: 1,
@@ -153,11 +461,18 @@ const styles = StyleSheet.create({
     height: 120,
     marginBottom: 16,
   },
+  lostPet: {
+    width: 88,
+    height: 88,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
   headline: {
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 10,
+    lineHeight: 30,
   },
   sub: {
     fontSize: 14,
@@ -166,41 +481,261 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 20,
   },
-  input: {
-    height: 54,
-    borderRadius: 14,
+  otpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    gap: 10,
+  },
+  otpGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  otpSep: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textDisabled,
+    marginHorizontal: 2,
+    marginBottom: 2,
+  },
+  otpCellWrap: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 28,
+    maxWidth: 44,
+  },
+  otpCell: {
+    width: '100%',
+    height: 52,
+    borderRadius: 12,
     borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    letterSpacing: 1,
     textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    padding: 0,
   },
-  lostBtn: {
-    marginTop: 12,
-  },
-  card: {
+  otpCellOn: {
+    borderColor: Colors.primary,
     backgroundColor: Colors.surface,
+  },
+  otpCellFilled: {
+    borderColor: Colors.beige,
+    backgroundColor: Colors.surface,
+  },
+  helpBtn: {
+    marginTop: 22,
+    width: '100%',
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
     borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     ...Shadows.elevation,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  cardText: {
+  helpBtnPressed: {
+    opacity: 0.85,
+  },
+  helpBtnDisabled: {
+    opacity: 0.5,
+  },
+  helpBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  tipList: {
+    gap: 12,
+    marginBottom: 8,
+  },
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+  },
+  tipVisual: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tipPet: {
+    width: 56,
+    height: 56,
+  },
+  tipIconBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: Colors.surface,
+  },
+  tipCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  tipTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  tipBody: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  cantFindBtn: {
+    marginTop: 10,
+    marginBottom: 8,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  cantFindBtnPressed: {
+    opacity: 0.85,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  cantFindBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  note: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: '500',
+    color: Colors.textDisabled,
+    marginBottom: 8,
+  },
+  loadingBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 12,
+    minHeight: 72,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  footer: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 16,
+    paddingTop: 12,
+    backgroundColor: Colors.background,
+  },
+  restartLink: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+  },
+  restartLinkPressed: {
+    opacity: 0.7,
+  },
+  restartLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textDisabled,
+  },
+  giveUpBody: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 12,
+    flexGrow: 1,
+  },
+  giveUpTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginBottom: 20,
+    lineHeight: 32,
+  },
+  giveUpCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 18,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+  },
+  giveUpWarnBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  giveUpPrivacyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  giveUpPrivacyTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  giveUpPrivacyBody: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
-  footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+  giveUpLookAgain: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
   },
-  gap: {
-    height: 10,
+  giveUpLookAgainPressed: {
+    opacity: 0.7,
+  },
+  giveUpLookAgainText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    textDecorationLine: 'underline',
   },
 })

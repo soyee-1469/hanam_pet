@@ -1,5 +1,13 @@
-import { useMemo, useState } from 'react'
-import { View, Text, StyleSheet, Alert } from 'react-native'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Animated,
+  Easing,
+  Alert,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/Colors'
@@ -8,97 +16,157 @@ import {
   PrimaryButton,
   ProgressDots,
   ScreenHeader,
+  TermsSheet,
+  onboardingFooterStyle,
 } from '../../components/ui'
 import { ONBOARDING_STEPS } from '../../lib/onboardingDraft'
+import { getOnboardingCopy, type TermKeyV1 } from '../../lib/onboarding'
 
-type TermKey = 'service' | 'privacy' | 'age' | 'ai' | 'marketing'
+const copy = getOnboardingCopy().terms
 
-const TERMS: {
-  key: TermKey
-  label: string
-  required: boolean
-}[] = [
-  { key: 'service', label: '서비스 이용약관 동의', required: true },
-  { key: 'privacy', label: '개인정보 수집·이용 동의', required: true },
-  { key: 'age', label: '만 14세 이상입니다', required: true },
-  { key: 'ai', label: 'AI 상담 유의사항 확인', required: true },
-  { key: 'marketing', label: '마케팅 정보 수신 (선택)', required: false },
-]
+type SheetKey = TermKeyV1 | null
 
 export default function OnboardingTerms() {
-  const [checks, setChecks] = useState<Record<TermKey, boolean>>({
+  const [checks, setChecks] = useState<Record<TermKeyV1, boolean>>({
     service: false,
     privacy: false,
-    age: false,
-    ai: false,
+    sensitive: false,
     marketing: false,
   })
+  const [sheetKey, setSheetKey] = useState<SheetKey>(null)
+  const ctaPulse = useRef(new Animated.Value(0)).current
+  const prevReady = useRef(false)
 
   const requiredKeys = useMemo(
-    () => TERMS.filter((t) => t.required).map((t) => t.key),
+    () => copy.items.filter((t) => t.required).map((t) => t.key),
     [],
   )
   const allRequired = requiredKeys.every((k) => checks[k])
-  const allChecked = TERMS.every((t) => checks[t.key])
+  const requiredAllOn = allRequired
 
-  const toggle = (key: TermKey) => {
+  useEffect(() => {
+    if (allRequired && !prevReady.current) {
+      Animated.sequence([
+        Animated.timing(ctaPulse, {
+          toValue: 1,
+          duration: 220,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ctaPulse, {
+          toValue: 0,
+          duration: 180,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start()
+    }
+    prevReady.current = allRequired
+  }, [allRequired, ctaPulse])
+
+  const toggle = (key: TermKeyV1) => {
     setChecks((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const toggleAll = () => {
-    const next = !allChecked
-    setChecks({
+  const toggleRequiredAll = () => {
+    const next = !requiredAllOn
+    setChecks((prev) => ({
+      ...prev,
       service: next,
       privacy: next,
-      age: next,
-      ai: next,
-      marketing: next,
-    })
+      sensitive: next,
+    }))
   }
 
-  const showTerm = (label: string) => {
-    Alert.alert(label, '약관 전문은 Phase 2에서 연결됩니다. (더미)')
-  }
+  const sheetItem = sheetKey
+    ? copy.items.find((i) => i.key === sheetKey)
+    : null
+
+  const ctaScale = ctaPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.03],
+  })
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader title="약관 동의" onBack={() => router.back()} />
-      <ProgressDots total={ONBOARDING_STEPS} index={1} />
+      <ScreenHeader title={copy.header} onBack={() => router.back()} />
 
-      <View style={styles.body}>
-        <Text style={styles.headline}>시작하기 전에</Text>
-        <Text style={styles.sub}>
-          필수 항목만 동의하면 바로 이어갈 수 있어요.
-        </Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.body}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.headline}>{copy.headline}</Text>
+        <Text style={styles.sub}>{copy.sub}</Text>
 
-        <View style={styles.card}>
+        <View style={styles.allBlock}>
           <CheckRow
-            label="전체 동의"
-            checked={allChecked}
-            onToggle={toggleAll}
+            label={copy.allAgree}
+            checked={requiredAllOn}
+            onToggle={toggleRequiredAll}
             emphasize
+            compact
+            hint={copy.allAgreeHint}
           />
-          {TERMS.map((t) => (
-            <CheckRow
-              key={t.key}
-              label={`${t.required ? '(필수) ' : '(선택) '}${t.label}`}
-              checked={checks[t.key]}
-              onToggle={() => toggle(t.key)}
-              onPressLink={
-                t.key === 'age' ? undefined : () => showTerm(t.label)
-              }
-            />
-          ))}
         </View>
-      </View>
+
+        <View style={styles.listBlock}>
+          {copy.items
+            .filter((t) => t.required)
+            .map((t) => (
+              <CheckRow
+                key={t.key}
+                label={t.label}
+                checked={checks[t.key]}
+                onToggle={() => toggle(t.key)}
+                onPressDetail={() => setSheetKey(t.key)}
+                badge="required"
+              />
+            ))}
+          {copy.items
+            .filter((t) => !t.required)
+            .map((t) => (
+              <View key={t.key} style={styles.optionalWrap}>
+                <CheckRow
+                  label={t.label}
+                  checked={checks[t.key]}
+                  onToggle={() => toggle(t.key)}
+                  onPressDetail={() => setSheetKey(t.key)}
+                  badge="optional"
+                />
+              </View>
+            ))}
+        </View>
+      </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton
-          label="다음"
-          disabled={!allRequired}
-          onPress={() => router.push('/onboarding/profile')}
-        />
+        <Text style={styles.footerNote}>{copy.footerNote}</Text>
+        <ProgressDots total={ONBOARDING_STEPS} index={0} />
+        <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
+          <PrimaryButton
+            label={allRequired ? copy.cta : copy.ctaDisabled}
+            disabled={!allRequired}
+            emphasized={allRequired}
+            onPress={() => router.push('/onboarding/pet-select')}
+            onDisabledPress={() =>
+              Alert.alert('', copy.ctaNudge, [{ text: '확인' }])
+            }
+          />
+        </Animated.View>
       </View>
+
+      <TermsSheet
+        visible={sheetKey != null}
+        title={sheetItem?.label ?? ''}
+        body={sheetKey ? copy.dummyBodies[sheetKey] : ''}
+        onClose={() => setSheetKey(null)}
+        onConfirm={() => {
+          if (sheetKey) {
+            setChecks((prev) => ({ ...prev, [sheetKey]: true }))
+          }
+          setSheetKey(null)
+        }}
+      />
     </SafeAreaView>
   )
 }
@@ -108,33 +176,52 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  body: {
+  scroll: {
     flex: 1,
+  },
+  body: {
     paddingHorizontal: 20,
+    paddingBottom: 16,
   },
   headline: {
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 8,
+    lineHeight: 30,
   },
   sub: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 18,
+    marginBottom: 14,
   },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
+  allBlock: {
+    /** 배경(#F8F4EF)보다 반 단계 크리미 — 테두리 없이 면만 */
+    backgroundColor: '#EFE9E1',
+    borderRadius: 16,
+    paddingLeft: 4,
+    paddingRight: 8,
+    paddingVertical: 8,
+    marginBottom: 20,
+  },
+  listBlock: {
+    paddingVertical: 2,
+  },
+  optionalWrap: {
+    marginTop: 10,
+  },
+  footerNote: {
+    marginBottom: 10,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '500',
+    color: Colors.textDisabled,
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    ...onboardingFooterStyle,
   },
 })

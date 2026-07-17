@@ -1,18 +1,34 @@
 import { useEffect } from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { Colors } from '../../constants/Colors'
+import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
+import { resetOnboardingCompleted } from '../../lib/onboardingStorage'
 
-const HOLD_MS = 1600
+const HOLD_MS = 1800
+const copy = getOnboardingCopy().splash
 
 export default function OnboardingSplash() {
+  const { reset } = useLocalSearchParams<{ reset?: string }>()
+
   useEffect(() => {
-    const t = setTimeout(() => {
-      router.replace('/onboarding/gate')
-    }, HOLD_MS)
-    return () => clearTimeout(t)
-  }, [])
+    let t: ReturnType<typeof setTimeout> | undefined
+    let alive = true
+    ;(async () => {
+      if (reset === '1') {
+        await resetOnboardingCompleted()
+      }
+      if (!alive) return
+      t = setTimeout(() => {
+        router.replace('/onboarding/gate')
+      }, HOLD_MS)
+    })()
+    return () => {
+      alive = false
+      if (t) clearTimeout(t)
+    }
+  }, [reset])
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -24,10 +40,9 @@ export default function OnboardingSplash() {
             resizeMode="contain"
           />
         </View>
-        <Text style={styles.title}>마음챙김의 모든 것</Text>
-        <Text style={styles.sub}>
-          언제나 곁에 있는 나만의 펫과 함께{'\n'}매일 마음을 힐링해요
-        </Text>
+        <Text style={styles.title}>{copy.title}</Text>
+        <Text style={styles.sub}>{copy.body}</Text>
+        <Text style={styles.versionBadge}>온보딩 {ONBOARDING_VERSION}</Text>
       </View>
     </SafeAreaView>
   )
@@ -63,7 +78,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: -0.6,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sub: {
     fontSize: 14,
@@ -71,5 +86,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  versionBadge: {
+    marginTop: 20,
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textDisabled,
   },
 })

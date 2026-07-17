@@ -6,10 +6,14 @@ export default function OnboardingLayout() {
       <Stack.Screen name="splash" />
       <Stack.Screen name="gate" />
       <Stack.Screen name="intro" />
+      <Stack.Screen name="diary-record" />
+      <Stack.Screen name="healing-content" />
+      <Stack.Screen name="mind-check" />
       <Stack.Screen name="terms" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="restore-code" />
+      <Stack.Screen name="welcome" />
       <Stack.Screen name="pet-select" />
-      <Stack.Screen name="ai-notice" />
       <Stack.Screen name="resume" />
     </Stack>
   )

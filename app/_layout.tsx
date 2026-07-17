@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import 'react-native-reanimated'
 import '../global.css'
+import { AppViewport } from '../components/AppViewport'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -22,13 +23,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="diary-write" />
-        <Stack.Screen name="storage" />
-      </Stack>
+      <AppViewport>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="diary-write" />
+          <Stack.Screen name="storage" />
+        </Stack>
+      </AppViewport>
     </SafeAreaProvider>
   )
 }

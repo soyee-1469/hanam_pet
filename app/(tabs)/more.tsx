@@ -10,6 +10,7 @@ import {
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
 
 const MORE_MENUS: { id: string; label: string; Icon: Icon }[] = [
   { id: 'album', label: '나의펫 앨범', Icon: Camera },
@@ -90,11 +91,11 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
   },
   title: {
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: Layout.headerPaddingTop,
+    marginBottom: Layout.headerContentGap,
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,

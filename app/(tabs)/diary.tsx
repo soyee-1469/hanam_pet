@@ -11,6 +11,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { CaretLeft, CaretRight, List, Plus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
 import {
   DIARY_MOODS,
   type DiaryMoodId,
@@ -371,9 +372,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
   },
   title: {
     fontSize: 22,
@@ -391,8 +392,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.divider,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 0,
     paddingBottom: 20,
   },
   ctaWrap: {

@@ -14,6 +14,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { List, PaperPlaneTilt } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
 import { CHAT_EMOTION_CARDS } from '../../constants/Moods'
 import { MoodEmoji } from '../../components/MoodEmoji'
 
@@ -65,7 +67,7 @@ export default function ChatScreen() {
 
             <View style={styles.avatarWrap}>
               <Image
-                source={require('../../assets/images/dog-character_3.png')}
+                source={DogExpr.wink}
                 style={styles.avatarImage}
                 resizeMode="contain"
               />
@@ -150,9 +152,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
   },
   title: {
     fontSize: 22,
@@ -170,8 +172,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.divider,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 0,
     paddingBottom: 20,
   },
   petBlock: {

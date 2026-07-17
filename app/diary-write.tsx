@@ -16,6 +16,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { CaretLeft, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Layout } from '../constants/Layout'
+import { DogExpr } from '../constants/DogExpr'
 import { DIARY_MOODS, type DiaryMoodId } from '../constants/Moods'
 import { MoodEmoji } from '../components/MoodEmoji'
 
@@ -28,37 +30,37 @@ const TAGS = ['업무', '관계', '건강', '수면', '애정'] as const
 const WEEKDAY_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 const PET_IDLE = {
-  image: require('../assets/images/dog-character_3.png'),
+  image: DogExpr.soft,
   main: '오늘 감정을 눌러줘.',
   sub: '천천히 골라도 괜찮아.',
 }
 
 const PET_BY_MOOD: Record<
   DiaryMoodId,
-  { image: number; main: string; sub: string }
+  { image: (typeof DogExpr)[keyof typeof DogExpr]; main: string; sub: string }
 > = {
   great: {
-    image: require('../assets/images/dog-character_3.png'),
+    image: DogExpr.fun,
     main: '와, 그렇게 좋았구나!',
     sub: '그 기분 더 들려줄래?',
   },
   good: {
-    image: require('../assets/images/dog-character_3.png'),
+    image: DogExpr.wink,
     main: '좋은 하루였구나.',
     sub: '웃는 네 모습, 나도 기뻐.',
   },
   ok: {
-    image: require('../assets/images/dog-character_2.png'),
+    image: DogExpr.soft,
     main: '잔잔한 하루였구나.',
     sub: '그냥 있어도 괜찮아.',
   },
   bad: {
-    image: require('../assets/images/dog-character.png'),
+    image: DogExpr.tired,
     main: '조금 힘들었구나…',
     sub: '천천히 말해도 괜찮아.',
   },
   hard: {
-    image: require('../assets/images/dog-character.png'),
+    image: DogExpr.soft,
     main: '많이 걱정됐구나.',
     sub: '여기 앉아 있을게. 혼자가 아니야.',
   },
@@ -424,8 +426,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingTop: 4,
-    paddingBottom: 8,
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
   },
   backBtn: {
     width: 40,
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 24,
   },
   dateText: {

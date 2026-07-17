@@ -8,19 +8,18 @@ import {
   Alert,
   StyleSheet,
   Animated,
-  ScrollView,
-  useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import {
   Lightning,
   CaretRight,
-  Check,
-  PawPrint,
   Bell,
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { useDesignWindow } from '../../components/AppViewport'
+import { consumeWelcomePending } from '../../lib/onboardingStorage'
+import { getOnboardingCopy } from '../../lib/onboarding'
 
 const USER = {
   nickname: '몽이',
@@ -28,7 +27,7 @@ const USER = {
 
 const PET = {
   name: '몽이',
-  greetingBubble: '몽이지킴이님 오늘도 반가워요',
+  greetingBubble: '오늘도 같이 있어줘서 고마워',
   energy: 595,
   energyMax: 1000,
   foodCount: 0,
@@ -69,20 +68,7 @@ const HEADER_MENU = [
   },
 ] as const
 
-const TODAY_MISSIONS: {
-  id: string
-  label: string
-  desc: string
-  done: boolean
-}[] = [
-  { id: 'diary', label: '마음일기 쓰기', desc: '오늘의 감정을 짧게 남겨보세요', done: false },
-  { id: 'video', label: '힐링 영상 보기', desc: '짧은 영상을 보면 케어 아이템을 받아요', done: true },
-  { id: 'attendance', label: '출석하기', desc: '매일 출석하면 보상을 받아요', done: true },
-]
-
 const CARE_ENERGY_GAIN = 8
-const FIRST_OPEN_MISSION_ID =
-  TODAY_MISSIONS.find((m) => !m.done)?.id ?? TODAY_MISSIONS[0]?.id ?? 'diary'
 
 type CareStockCardProps = {
   count: number
@@ -278,12 +264,11 @@ function LevelEnergyBlock({
 }
 
 export default function PetHomeScreen() {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions()
+  const { width: screenWidth, height: screenHeight } = useDesignWindow()
   const insets = useSafeAreaInsets()
   const [energy, setEnergy] = useState(PET.energy)
   const [foodCount, setFoodCount] = useState(PET.foodCount)
   const [toyCount, setToyCount] = useState(PET.toyCount)
-  const [focusMissionId, setFocusMissionId] = useState<string | null>(null)
   const [speech, setSpeech] = useState<string | null>(null)
   const [fxLabel, setFxLabel] = useState<string | null>(null)
   const [fxAccent, setFxAccent] = useState(false)
@@ -303,23 +288,18 @@ export default function PetHomeScreen() {
   const menuCircleSize = Math.min(46, Math.floor((screenWidth - 32) / 5) - 8)
   const menuIconSize = Math.min(32, menuCircleSize - 12)
   const menuLabelSize = screenWidth < 360 ? 9 : 10
-  const sheetScrollMax = Math.max(sheetMaxHeight - 200, 140)
   const actionGap = 10
 
   const speechOpacity = useRef(new Animated.Value(0)).current
   const speechTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const petScale = useRef(new Animated.Value(1)).current
   const petNudgeY = useRef(new Animated.Value(0)).current
   const fxOpacity = useRef(new Animated.Value(0)).current
   const fxTranslateY = useRef(new Animated.Value(0)).current
-  const scrollRef = useRef<ScrollView>(null)
-  const missionSectionY = useRef(0)
 
   useEffect(() => {
     return () => {
       if (speechTimer.current) clearTimeout(speechTimer.current)
-      if (focusTimer.current) clearTimeout(focusTimer.current)
     }
   }, [])
 
@@ -327,7 +307,7 @@ export default function PetHomeScreen() {
     router.push('/storage')
   }
 
-  const showSpeech = (message: string) => {
+  const showSpeech = (message: string, holdMs = 2400) => {
     if (speechTimer.current) clearTimeout(speechTimer.current)
     setSpeech(message)
     speechOpacity.setValue(0)
@@ -347,8 +327,25 @@ export default function PetHomeScreen() {
           speechOpacity.setValue(1)
         }
       })
-    }, 2400)
+    }, holdMs)
   }
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const pending = await consumeWelcomePending()
+      if (cancelled || !pending) return
+      if (pending === 'resume') {
+        showSpeech(getOnboardingCopy().resume.restored.homeBubble, 3600)
+        return
+      }
+      showSpeech('반가워! 위에서 사료 받기부터 해볼래?', 3200)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 첫 진입 환영만
+  }, [])
 
   const playFx = (label: string, accent: boolean) =>
     new Promise<void>((resolve) => {
@@ -457,26 +454,12 @@ export default function PetHomeScreen() {
     }
   }
 
-  const triggerMissionNudge = (missionId: string = FIRST_OPEN_MISSION_ID) => {
-    setFocusMissionId(missionId)
-    if (focusTimer.current) clearTimeout(focusTimer.current)
-    focusTimer.current = setTimeout(() => setFocusMissionId(null), 3200)
-    setTimeout(() => {
-      scrollRef.current?.scrollTo({
-        y: Math.max(missionSectionY.current - 8, 0),
-        animated: true,
-      })
-    }, 120)
-  }
-
   const handleAcquireFeed = () => {
-    showSpeech('오늘 할 일에서 사료를 받아와 줄래요?')
-    triggerMissionNudge(FIRST_OPEN_MISSION_ID)
+    showSpeech('위에서 「사료 받기」를 눌러 받아와 줄래요?')
   }
 
   const handleAcquireToy = () => {
-    showSpeech('오늘 할 일에서 장난감을 받아와 줄래요?')
-    triggerMissionNudge(FIRST_OPEN_MISSION_ID)
+    showSpeech('위에서 「장난감 받기」를 눌러 받아와 줄래요?')
   }
 
   const handleFeedPress = () => {
@@ -618,82 +601,6 @@ export default function PetHomeScreen() {
             />
           </View>
         </View>
-
-        <ScrollView
-          ref={scrollRef}
-          style={{ maxHeight: sheetScrollMax }}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          contentContainerStyle={{ paddingBottom: 16, paddingTop: 12 }}
-        >
-            <View
-              style={styles.sectionCard}
-              onLayout={(e) => {
-                missionSectionY.current = e.nativeEvent.layout.y
-              }}
-            >
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionAccent} />
-                <Text style={styles.sectionTitle}>오늘 할 일</Text>
-              </View>
-              <View>
-                {TODAY_MISSIONS.map((item) => {
-                  const focused = focusMissionId === item.id
-                  return (
-                    <View
-                      key={item.id}
-                      style={[styles.missionRow, focused && styles.missionRowFocused]}
-                    >
-                      <View
-                        style={[
-                          styles.missionCheck,
-                          item.done ? styles.missionCheckDone : styles.missionCheckTodo,
-                        ]}
-                      >
-                        {item.done ? <Check size={12} color={Colors.textDisabled} weight="bold" /> : null}
-                      </View>
-
-                      <View style={styles.missionCopy}>
-                        <Text
-                          style={[
-                            styles.missionLabel,
-                            item.done && styles.missionLabelDone,
-                            focused && styles.missionLabelFocused,
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
-                        <Text
-                          style={[styles.missionDesc, item.done && styles.missionDescDone]}
-                        >
-                          {item.desc}
-                        </Text>
-                      </View>
-
-                      <View style={styles.missionRight}>
-                        {item.done ? (
-                          <View style={styles.missionDoneBox}>
-                            <PawPrint size={12} color={Colors.textSecondary} weight="fill" />
-                            <Text style={styles.missionDoneText}>완료</Text>
-                          </View>
-                        ) : (
-                          <Pressable
-                            style={styles.missionCta}
-                            onPress={() => {
-                              setFocusMissionId(null)
-                              Alert.alert(item.label, `${item.label} 화면으로 이동합니다. (더미)`)
-                            }}
-                          >
-                            <Text style={styles.missionCtaText}>확인하기</Text>
-                          </Pressable>
-                        )}
-                      </View>
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-        </ScrollView>
       </View>
     </ImageBackground>
   )
@@ -993,142 +900,5 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontWeight: '700',
     color: Colors.textPrimary,
-  },
-  sectionCard: {
-    alignSelf: 'stretch',
-    borderRadius: 18,
-    backgroundColor: Colors.surfaceSecondary,
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionAccent: {
-    width: 3,
-    height: 14,
-    borderRadius: 2,
-    backgroundColor: Colors.secondary,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  missionCard: {
-    paddingHorizontal: 0,
-    paddingTop: 0,
-    paddingBottom: 4,
-  },
-  missionTitle: {
-    marginBottom: 16,
-    fontSize: 17,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  missionRow: {
-    width: '100%',
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  missionRowFocused: {
-    borderRadius: 10,
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  missionCheck: {
-    width: 18,
-    height: 18,
-    marginRight: 12,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  missionCheckDone: {
-    borderColor: Colors.border,
-    backgroundColor: Colors.sand,
-  },
-  missionCheckTodo: {
-    borderColor: Colors.taupe,
-    backgroundColor: 'transparent',
-  },
-  missionCopy: {
-    flex: 1,
-    marginRight: 10,
-  },
-  missionLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    includeFontPadding: false,
-  },
-  missionDesc: {
-    marginTop: 2,
-    fontSize: 12,
-    lineHeight: 15,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  missionDescDone: {
-    color: Colors.textDisabled,
-  },
-  missionLabelDone: {
-    fontWeight: '500',
-    color: Colors.textDisabled,
-  },
-  missionLabelFocused: {
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  missionRight: {
-    width: 78,
-    marginRight: 0,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  missionDoneBox: {
-    width: 78,
-    minHeight: 34,
-    marginRight: 0,
-    borderRadius: 999,
-    backgroundColor: Colors.buttonSecondaryBg,
-    borderWidth: 0,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  missionDoneText: {
-    marginLeft: 4,
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '600',
-    color: Colors.buttonSecondaryText,
-    includeFontPadding: false,
-  },
-  missionCta: {
-    width: 78,
-    minHeight: 34,
-    marginRight: 0,
-    borderRadius: 999,
-    backgroundColor: Colors.primary,
-    borderWidth: 0,
-    paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  missionCtaText: {
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '600',
-    color: Colors.buttonPrimaryText,
   },
 })

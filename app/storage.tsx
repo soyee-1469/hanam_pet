@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { CaretLeft, Lightning } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { Layout } from '../constants/Layout'
 
 type EnergyEntry = {
   id: string
@@ -86,8 +87,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingTop: 4,
-    paddingBottom: 8,
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
   },
   backBtn: {
     width: 40,
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 40,
   },
   sectionLabel: {

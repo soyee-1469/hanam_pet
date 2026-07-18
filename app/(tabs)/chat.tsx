@@ -80,6 +80,8 @@ export default function ChatScreen() {
   const depleted = energyReady && energy < CHAT_ENERGY_COST
   const canSend = message.trim().length > 0 && !typing && !depleted
   const chatting = messages.length > 0
+  const composing = message.trim().length > 0
+  const showComposeTip = tipVisible && composing && !typing && !depleted
   const replies = useMemo(() => petReplies(petName), [petName])
 
   /** 유의사항 통과 직후 — 첫인사 페이드·살짝 올라옴 */
@@ -347,16 +349,7 @@ export default function ChatScreen() {
                   </View>
                   <View style={styles.petBubbleTail} />
                 </View>
-              ) : latestPetReply ? (
-                <View style={styles.petBubbleContainer}>
-                  <View style={styles.petAnswerBubble}>
-                    <Text style={styles.petAnswerText}>
-                      {latestPetReply.text}
-                    </Text>
-                  </View>
-                  <View style={styles.petBubbleTail} />
-                </View>
-              ) : tipVisible ? (
+              ) : showComposeTip ? (
                 <View style={styles.tipWrap}>
                   <View style={styles.tipBubble}>
                     <Text style={styles.tipText}>
@@ -373,6 +366,15 @@ export default function ChatScreen() {
                     </Pressable>
                   </View>
                   <View style={styles.tipTail} />
+                </View>
+              ) : latestPetReply ? (
+                <View style={styles.petBubbleContainer}>
+                  <View style={styles.petAnswerBubble}>
+                    <Text style={styles.petAnswerText}>
+                      {latestPetReply.text}
+                    </Text>
+                  </View>
+                  <View style={styles.petBubbleTail} />
                 </View>
               ) : null}
 

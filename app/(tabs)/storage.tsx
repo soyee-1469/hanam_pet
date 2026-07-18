@@ -277,7 +277,7 @@ export default function StorageScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={8}
-          onPress={() => router.back()}
+          onPress={() => router.replace('/(tabs)')}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />

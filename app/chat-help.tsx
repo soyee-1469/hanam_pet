@@ -9,9 +9,8 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Headset, Phone, Users } from 'phosphor-react-native'
-import type { Icon } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Phone } from 'phosphor-react-native'
+import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 
 type HelpContact = {
@@ -20,41 +19,36 @@ type HelpContact = {
   phone: string
   phoneDisplay: string
   note: string
-  Icon: Icon
 }
 
 const CONTACTS: HelpContact[] = [
   {
     id: 'suicide',
-    name: '자살예방상담전화',
+    name: '자살예방 상담전화',
     phone: '109',
     phoneDisplay: '109',
-    note: '24시간 자살예방 상담',
-    Icon: Users,
+    note: '24시간 자살예방 및 위기상황 전문 상담',
   },
   {
     id: 'life',
-    name: '생명의전화',
+    name: '생명의 전화',
     phone: '15889191',
     phoneDisplay: '1588-9191',
-    note: '24시간 심리 상담',
-    Icon: Phone,
+    note: '24시간 마음을 다독이는 위기 극복 상담',
   },
   {
     id: 'mental',
-    name: '정신건강상담전화',
+    name: '정신건강 위기상담 전화',
     phone: '15770199',
     phoneDisplay: '1577-0199',
-    note: '24시간 정신건강 상담',
-    Icon: Headset,
+    note: '24시간 정신건강 상담 및 마음 지킴 지원',
   },
   {
     id: 'hanam',
-    name: '하남시정신건강복지센터',
+    name: '하남시 정신건강복지센터',
     phone: '0317936552',
     phoneDisplay: '031-793-6552',
-    note: '지역 정신건강 상담',
-    Icon: Headset,
+    note: '하남시 정신건강 서비스',
   },
 ]
 
@@ -80,7 +74,7 @@ export default function ChatHelpScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>지금 도움이 필요하신가요?</Text>
+        <Text style={styles.title}>지금 도움이 필요한가요?</Text>
         <Text style={styles.lead}>
           혼자 견디지 않아도 괜찮아요. 아래 연락처로 연결하면 도움받을 수
           있어요.
@@ -89,12 +83,15 @@ export default function ChatHelpScreen() {
         <View style={styles.list}>
           {CONTACTS.map((c) => (
             <View key={c.id} style={styles.card}>
-              <View style={styles.iconWrap}>
-                <c.Icon size={22} color={Colors.textSecondary} weight="regular" />
-              </View>
               <View style={styles.copy}>
-                <Text style={styles.name}>{c.name}</Text>
-                <Text style={styles.phone}>{c.phoneDisplay}</Text>
+                <View style={styles.nameRow}>
+                  <View style={styles.dot} />
+                  <Text style={styles.name}>{c.name}</Text>
+                </View>
+                <View style={styles.phoneRow}>
+                  <Phone size={16} color={Colors.primary} weight="fill" />
+                  <Text style={styles.phone}>{c.phoneDisplay}</Text>
+                </View>
                 <Text style={styles.note}>{c.note}</Text>
               </View>
               <Pressable
@@ -108,6 +105,7 @@ export default function ChatHelpScreen() {
                   pressed && styles.pressed,
                 ]}
               >
+                <Phone size={14} color={Colors.surface} weight="fill" />
                 <Text style={styles.connectText}>연결</Text>
               </Pressable>
             </View>
@@ -161,52 +159,64 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    ...Shadows.elevation,
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.creamyBeige,
+    borderColor: Colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   copy: {
     flex: 1,
     minWidth: 0,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+  },
   name: {
-    fontSize: 13,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 2,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
   },
   phone: {
     fontSize: 20,
     fontWeight: '800',
     color: Colors.primary,
-    marginBottom: 2,
+    letterSpacing: -0.2,
   },
   note: {
     fontSize: 12,
     fontWeight: '500',
+    lineHeight: 18,
     color: Colors.textSecondary,
   },
   connectBtn: {
     height: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 5,
   },
   connectText: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.buttonPrimaryText,
+    color: Colors.surface,
   },
   pressed: {
     opacity: 0.88,

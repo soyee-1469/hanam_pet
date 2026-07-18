@@ -96,7 +96,7 @@ const HEADER_MENU = [
   },
   {
     id: 'guide',
-    label: '도움말',
+    label: '안내',
     image: require('../../assets/images/pet-menu-5.png'),
     bgColor: Colors.surface,
   },
@@ -920,7 +920,7 @@ export default function PetHomeScreen() {
         sheetStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
       >
         <View style={styles.helpHeader}>
-          <Text style={styles.helpTitle}>도움말</Text>
+          <Text style={styles.helpTitle}>안내</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="닫기"

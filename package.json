@@ -38,8 +38,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "export:web": "expo export -p web",
-    "deploy:web": "npx vercel --prod"
+    "export:web": "expo export -p web"
   },
   "private": true
 }

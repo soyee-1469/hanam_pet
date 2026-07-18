@@ -1,7 +1,8 @@
-import { Modal, View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Trash, Warning } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
+import { CenterDialog } from './AppOverlay'
 
 type ConfirmTone = 'danger' | 'warning'
 
@@ -36,76 +37,52 @@ export function ConfirmDialog({
   const isDanger = tone === 'danger'
   const Glyph = Icon ?? (isDanger ? Trash : Warning)
   const iconColor = isDanger ? Colors.error : Colors.accent
-  const handleBackdrop = onBackdropPress ?? onCancel
 
   return (
-    <Modal
+    <CenterDialog
       visible={visible}
-      transparent
-      animationType="fade"
       onRequestClose={onCancel}
+      onBackdropPress={onBackdropPress ?? onCancel}
+      cardStyle={styles.cardAlign}
     >
-      <View style={styles.backdrop}>
-        <Pressable style={styles.dismiss} onPress={handleBackdrop} />
-        <View style={styles.card}>
-          <View
-            style={[
-              styles.iconWrap,
-              isDanger ? styles.iconWrapDanger : styles.iconWrapWarning,
-            ]}
-          >
-            <Glyph size={28} color={iconColor} weight="regular" />
-          </View>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.body}>{body}</Text>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={cancelLabel}
-              onPress={onCancel}
-              style={({ pressed }) => [
-                styles.secondary,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.secondaryText}>{cancelLabel}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={confirmLabel}
-              onPress={onConfirm}
-              style={({ pressed }) => [
-                isDanger ? styles.danger : styles.primary,
-                pressed && styles.actionPressed,
-              ]}
-            >
-              <Text style={styles.confirmText}>{confirmLabel}</Text>
-            </Pressable>
-          </View>
-        </View>
+      <View
+        style={[
+          styles.iconWrap,
+          isDanger ? styles.iconWrapDanger : styles.iconWrapWarning,
+        ]}
+      >
+        <Glyph size={28} color={iconColor} weight="regular" />
       </View>
-    </Modal>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.body}>{body}</Text>
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={cancelLabel}
+          onPress={onCancel}
+          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+        >
+          <Text style={styles.secondaryText}>{cancelLabel}</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={confirmLabel}
+          onPress={onConfirm}
+          style={({ pressed }) => [
+            isDanger ? styles.danger : styles.primary,
+            pressed && styles.actionPressed,
+          ]}
+        >
+          <Text style={styles.confirmText}>{confirmLabel}</Text>
+        </Pressable>
+      </View>
+    </CenterDialog>
   )
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-  },
-  dismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 20,
+  cardAlign: {
     alignItems: 'center',
-    ...Shadows.elevation,
   },
   iconWrap: {
     width: 56,

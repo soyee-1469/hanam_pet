@@ -1,43 +1,42 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
+/**
+ * 대화 에너지 API — 실제 값은 petStock 에너지와 동일(단일화).
+ * 기존 import 경로 호환용 래퍼.
+ */
+import {
+  ENERGY_CHAT_COST,
+  ENERGY_MAX,
+  loadPetStock,
+  savePetStock,
+  spendEnergy,
+} from './petStock'
 
-const KEY = 'hp_chat_energy'
-/** 데모용 하루 대화 횟수 — 질문 1회당 1 차감 */
-export const CHAT_ENERGY_MAX = 2
-export const CHAT_ENERGY_COST = 1
+export const CHAT_ENERGY_MAX = ENERGY_MAX
+export const CHAT_ENERGY_COST = ENERGY_CHAT_COST
 
 export async function loadChatEnergy(): Promise<number> {
-  try {
-    const raw = await AsyncStorage.getItem(KEY)
-    if (raw == null) return CHAT_ENERGY_MAX
-    const n = Number(raw)
-    if (!Number.isFinite(n)) return CHAT_ENERGY_MAX
-    return Math.max(0, Math.min(CHAT_ENERGY_MAX, Math.floor(n)))
-  } catch {
-    return CHAT_ENERGY_MAX
-  }
+  const stock = await loadPetStock()
+  return stock.energy
 }
 
-export async function saveChatEnergy(value: number): Promise<void> {
-  const next = Math.max(0, Math.min(CHAT_ENERGY_MAX, Math.floor(value)))
-  try {
-    await AsyncStorage.setItem(KEY, String(next))
-  } catch {
-    // ignore
-  }
+export async function saveChatEnergy(value: number): Promise<number> {
+  const stock = await loadPetStock()
+  const saved = await savePetStock({
+    ...stock,
+    energy: Math.max(0, Math.min(ENERGY_MAX, Math.floor(value))),
+  })
+  return saved.energy
 }
 
-/** 성공 시 남은 에너지, 실패 시 null */
 export async function spendChatEnergy(
   cost = CHAT_ENERGY_COST,
 ): Promise<number | null> {
-  const current = await loadChatEnergy()
-  if (current < cost) return null
-  const next = current - cost
-  await saveChatEnergy(next)
-  return next
+  const next = await spendEnergy(cost)
+  return next?.energy ?? null
 }
 
+/** @deprecated 가득 채우기 대신 addEnergy 사용 권장 */
 export async function refillChatEnergy(): Promise<number> {
-  await saveChatEnergy(CHAT_ENERGY_MAX)
-  return CHAT_ENERGY_MAX
+  const stock = await loadPetStock()
+  const saved = await savePetStock({ ...stock, energy: ENERGY_MAX })
+  return saved.energy
 }

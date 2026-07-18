@@ -304,9 +304,12 @@ export default function DiaryWriteScreen() {
     ]).start(() => {
       setTimeout(() => {
         if (isEdit) {
-          showToast('일기 내용을 고쳤어요')
+          showToast('수정되었어요')
           allowLeave.current = true
-          router.back()
+          // 토스트가 그려진 뒤 이동 (바로 back 하면 안 보이는 경우 방지)
+          setTimeout(() => {
+            router.back()
+          }, 80)
         } else {
           allowLeave.current = true
           router.replace('/diary-done')

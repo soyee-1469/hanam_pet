@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
 import {
-  Modal,
   View,
   Text,
   Pressable,
@@ -9,9 +8,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { X } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
+import { BottomSheet } from './AppOverlay'
 import { PrimaryButton } from './Button'
 
 type TermsSheetProps = {
@@ -29,7 +28,6 @@ export function TermsSheet({
   onClose,
   onConfirm,
 }: TermsSheetProps) {
-  const insets = useSafeAreaInsets()
   const [reachedEnd, setReachedEnd] = useState(false)
   const contentH = useRef(0)
   const layoutH = useRef(0)
@@ -65,90 +63,59 @@ export function TermsSheet({
   }
 
   return (
-    <Modal
+    <BottomSheet
       visible={visible}
-      animationType="slide"
-      transparent
       onRequestClose={handleClose}
+      sheetStyle={styles.sheet}
     >
-      <View style={styles.backdrop}>
-        <Pressable style={styles.backdropTap} onPress={handleClose} />
-        <View
-          style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}
+      <View style={styles.header}>
+        <Text style={styles.title} numberOfLines={2}>
+          {title}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="닫기"
+          hitSlop={8}
+          onPress={handleClose}
+          style={styles.closeBtn}
         >
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <Text style={styles.title} numberOfLines={2}>
-              {title}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="닫기"
-              hitSlop={8}
-              onPress={handleClose}
-              style={styles.closeBtn}
-            >
-              <X size={22} color={Colors.textPrimary} weight="bold" />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            onContentSizeChange={(_, h) => {
-              contentH.current = h
-              checkEnd(0)
-            }}
-            onLayout={(e) => {
-              layoutH.current = e.nativeEvent.layout.height
-              checkEnd(0)
-            }}
-          >
-            <Text style={styles.body}>{body}</Text>
-            {!reachedEnd ? (
-              <Text style={styles.scrollHint}>아래로 끝까지 읽어 주세요</Text>
-            ) : null}
-          </ScrollView>
-
-          <PrimaryButton
-            label="확인했어요"
-            disabled={!reachedEnd}
-            onPress={handleConfirm}
-          />
-        </View>
+          <X size={22} color={Colors.textPrimary} weight="bold" />
+        </Pressable>
       </View>
-    </Modal>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        onContentSizeChange={(_, h) => {
+          contentH.current = h
+          checkEnd(0)
+        }}
+        onLayout={(e) => {
+          layoutH.current = e.nativeEvent.layout.height
+          checkEnd(0)
+        }}
+      >
+        <Text style={styles.body}>{body}</Text>
+        {!reachedEnd ? (
+          <Text style={styles.scrollHint}>아래로 끝까지 읽어 주세요</Text>
+        ) : null}
+      </ScrollView>
+
+      <PrimaryButton
+        label="확인했어요"
+        disabled={!reachedEnd}
+        onPress={handleConfirm}
+      />
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-  },
-  backdropTap: {
-    flex: 1,
-  },
   sheet: {
     maxHeight: '78%',
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    ...Shadows.elevation,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.sand,
-    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',

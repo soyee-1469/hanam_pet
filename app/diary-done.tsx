@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
@@ -6,8 +7,16 @@ import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
+import { ENERGY_DIARY_GAIN, addEnergy } from '../lib/petStock'
 
 export default function DiaryDoneScreen() {
+  const granted = useRef(false)
+  useEffect(() => {
+    if (granted.current) return
+    granted.current = true
+    void addEnergy(ENERGY_DIARY_GAIN)
+  }, [])
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
@@ -29,7 +38,9 @@ export default function DiaryDoneScreen() {
           </View>
           <View style={styles.reward}>
             <Lightning size={14} color={Colors.primary} weight="fill" />
-            <Text style={styles.rewardText}>에너지 +2 획득</Text>
+            <Text style={styles.rewardText}>
+              에너지 +{ENERGY_DIARY_GAIN} 획득
+            </Text>
           </View>
         </View>
       </View>

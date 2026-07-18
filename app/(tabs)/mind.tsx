@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
   CaretRight,
   Heart,
@@ -103,7 +103,12 @@ function openContent(id: string) {
 export default function MindScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
-  const [tab, setTab] = useState<TabId>('fill')
+  const params = useLocalSearchParams<{ segment?: string }>()
+  const initialSegment =
+    params.segment === 'check' || params.segment === 'fill'
+      ? params.segment
+      : 'fill'
+  const [tab, setTab] = useState<TabId>(initialSegment)
   const [filter, setFilter] = useState<MindMoodFilter>('all')
   const [dailyDone, setDailyDone] = useState<Record<string, boolean>>({
     sleep: false,
@@ -113,6 +118,9 @@ export default function MindScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      if (params.segment === 'check' || params.segment === 'fill') {
+        setTab(params.segment)
+      }
       let alive = true
       void getMindCheckResults().then((list) => {
         if (alive) setResults(list)
@@ -120,7 +128,7 @@ export default function MindScreen() {
       return () => {
         alive = false
       }
-    }, []),
+    }, [params.segment]),
   )
 
   const list = useMemo(() => {
@@ -148,24 +156,35 @@ export default function MindScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.tabs}>
-        {TABS.map((t) => {
-          const on = tab === t.id
-          return (
-            <Pressable
-              key={t.id}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              onPress={() => setTab(t.id)}
-              style={styles.tabBtn}
-            >
-              <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>
-                {t.label}
-              </Text>
-              {on ? <View style={styles.tabUnderline} /> : null}
-            </Pressable>
-          )
-        })}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>마음챙김</Text>
+        <Text style={styles.headerSubtitle}>
+          {tab === 'fill'
+            ? '추천 콘텐츠로 하루를 채워봐요'
+            : '자가검진으로 상태를 살펴봐요'}
+        </Text>
+        <View style={styles.tabs}>
+          {TABS.map((t) => {
+            const on = tab === t.id
+            return (
+              <Pressable
+                key={t.id}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                onPress={() => setTab(t.id)}
+                style={({ pressed }) => [
+                  styles.tabBtn,
+                  pressed && styles.tabPressed,
+                ]}
+              >
+                <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>
+                  {t.label}
+                </Text>
+                {on ? <View style={styles.tabUnderline} /> : null}
+              </Pressable>
+            )
+          })}
+        </View>
       </View>
 
       <ScrollView
@@ -360,11 +379,11 @@ export default function MindScreen() {
                         : '아직 검사 기록이 없어요'}
                     </Text>
                     <Text style={styles.scoreEmptyBody}>
-                      스스로 체크하기로 마음을 살펴보면 여기에 점수가 쌓여요.
+                      아래 자가검진을 하면 이번 주 점수가 여기에 모여요.
                     </Text>
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel="검사하러 가기"
+                      accessibilityLabel="우울 검사 시작"
                       onPress={() =>
                         router.push({
                           pathname: '/mind-check-intro',
@@ -376,7 +395,9 @@ export default function MindScreen() {
                         pressed && styles.pressed,
                       ]}
                     >
-                      <Text style={styles.scoreEmptyCtaText}>검사하러 가기</Text>
+                      <Text style={styles.scoreEmptyCtaText}>
+                        자가검진 하러 가기
+                      </Text>
                       <CaretRight
                         size={16}
                         color={Colors.primary}
@@ -472,6 +493,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  header: {
+    paddingTop: Layout.headerPaddingTop,
+  },
+  headerTitle: {
+    paddingHorizontal: Layout.screenPaddingH,
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    paddingHorizontal: Layout.screenPaddingH,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    marginBottom: 14,
+  },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: Layout.screenPaddingH,
@@ -480,12 +519,15 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.divider,
   },
   tabBtn: {
-    paddingTop: Layout.headerPaddingTop,
+    paddingTop: 2,
     paddingBottom: 12,
     position: 'relative',
   },
+  tabPressed: {
+    opacity: 0.85,
+  },
   tabLabel: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.textDisabled,
   },
@@ -504,7 +546,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 16,
+    paddingTop: Layout.headerContentGap,
   },
   featured: {
     borderRadius: 20,

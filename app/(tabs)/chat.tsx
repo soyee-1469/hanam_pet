@@ -71,7 +71,7 @@ export default function ChatScreen() {
   const [tipVisible, setTipVisible] = useState(true)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
-  const [energy, setEnergy] = useState(2)
+  const [energy, setEnergy] = useState(20)
   const [energyReady, setEnergyReady] = useState(false)
   const [petName, setPetName] = useState('몽이')
   const greetOpacity = useRef(new Animated.Value(0)).current

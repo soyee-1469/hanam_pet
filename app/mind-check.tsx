@@ -5,15 +5,15 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Modal,
   BackHandler,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
-import { CaretLeft, Check, Warning } from 'phosphor-react-native'
+import { CaretLeft, Check } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { getAssessment } from '../constants/MindAssessments'
+import { ConfirmDialog } from '../components/ui'
 import { showToast } from '../lib/toast'
 
 export default function MindCheckScreen() {
@@ -123,7 +123,7 @@ export default function MindCheckScreen() {
 
   const goNext = () => {
     if (!canNext || !ready) {
-      showToast('보기 중 하나를 선택해 주세요.')
+      showToast('보기 중 하나를 선택해 주세요.', { bottomOffset: 72 })
       return
     }
     if (isLast) {
@@ -243,52 +243,17 @@ export default function MindCheckScreen() {
         </Pressable>
       </View>
 
-      <Modal
+      <ConfirmDialog
         visible={exitOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setExitOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            style={styles.modalDismiss}
-            onPress={() => setExitOpen(false)}
-          />
-          <View style={styles.modalCard}>
-            <View style={styles.modalIconWrap}>
-              <Warning size={28} color={Colors.accent} weight="regular" />
-            </View>
-            <Text style={styles.modalTitle}>검사가 아직 안 끝났어요!</Text>
-            <Text style={styles.modalBody}>
-              지금 나가면 진행한 응답이 초기화돼요.
-            </Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="나가기"
-                onPress={confirmLeave}
-                style={({ pressed }) => [
-                  styles.modalLeave,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.modalLeaveText}>나가기</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="계속하기"
-                onPress={() => setExitOpen(false)}
-                style={({ pressed }) => [
-                  styles.modalStay,
-                  pressed && styles.nextPressed,
-                ]}
-              >
-                <Text style={styles.modalStayText}>계속하기</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        title="검사가 아직 안 끝났어요!"
+        body="지금 나가면 진행한 응답이 초기화돼요."
+        cancelLabel="나가기"
+        confirmLabel="계속하기"
+        tone="warning"
+        onCancel={confirmLeave}
+        onConfirm={() => setExitOpen(false)}
+        onBackdropPress={() => setExitOpen(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -472,80 +437,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textSecondary,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.4)',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-  },
-  modalDismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  modalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 20,
-    alignItems: 'center',
-    ...Shadows.elevation,
-  },
-  modalIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 21,
-    marginBottom: 22,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    alignSelf: 'stretch',
-    gap: 10,
-  },
-  modalLeave: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  modalLeaveText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  modalStay: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
-  },
-  modalStayText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 })

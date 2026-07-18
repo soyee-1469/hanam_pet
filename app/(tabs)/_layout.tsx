@@ -64,7 +64,7 @@ function TabIcon({
     <View style={styles.tabItem}>
       <View style={styles.tabIconWrap}>
         <IconComponent
-          size={18}
+          size={20}
           color={color}
           weight={focused ? 'fill' : 'light'}
         />
@@ -120,7 +120,7 @@ export default function TabLayout() {
         },
         tabBarIconStyle: {
           width: '100%',
-          height: 38,
+          height: 42,
         },
       }}
     >
@@ -194,6 +194,20 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="storage"
+        options={{
+          href: null,
+          title: '보관함',
+        }}
+      />
+      <Tabs.Screen
+        name="attendance"
+        options={{
+          href: null,
+          title: '출석',
+        }}
+      />
     </Tabs>
   )
 }
@@ -207,16 +221,16 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   tabIconWrap: {
-    height: 24,
-    width: 24,
+    height: 26,
+    width: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabLabel: {
     width: '100%',
     marginTop: 1,
-    fontSize: 10,
-    lineHeight: 12,
+    fontSize: 11,
+    lineHeight: 13,
     textAlign: 'center',
   },
   tabLabelActive: {

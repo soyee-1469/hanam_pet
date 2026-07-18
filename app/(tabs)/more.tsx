@@ -154,7 +154,10 @@ export default function MoreScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Text style={styles.title}>설정</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>설정</Text>
+        <Text style={styles.subtitle}>계정과 이용 안내를 관리해요</Text>
+      </View>
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace + 16 }]}
@@ -196,12 +199,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   title: {
-    marginTop: Layout.headerPaddingTop,
-    marginBottom: Layout.headerContentGap,
-    paddingHorizontal: Layout.screenPaddingH,
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
+  },
+  header: {
+    paddingTop: Layout.headerPaddingTop,
+    paddingBottom: Layout.headerContentGap,
+    paddingHorizontal: Layout.screenPaddingH,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,

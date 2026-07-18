@@ -32,7 +32,7 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
     month: 7,
     day: 6,
     weekday: '금요일',
-    moodId: 'good',
+    moodId: 'hard',
     preview: '생각이 많아 늦게까지 잠들지 못했어요.',
     body: '생각이 많아 늦게까지 잠들지 못했어요. 관계에서 온 말들이 자꾸 맴돌아서 마음을 가라앉히기가 쉽지 않았어요. 그래도 이렇게 적어 보니 조금은 가벼워진 것 같아요.',
     tags: ['관계', '수면'],
@@ -74,12 +74,43 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
 
 export const DIARY_MOOD_LABEL_COLOR: Record<DiaryMoodId, string> = {
   great: Colors.primary,
-  good: Colors.moodHard,
-  ok: Colors.error,
+  good: Colors.moodGood,
+  ok: Colors.moodOk,
   bad: '#9B7EBF',
-  hard: '#7A9B6E',
+  hard: Colors.moodHard,
 }
 
 export function findDiaryEntry(id: string) {
   return DIARY_DEMO_ENTRIES.find((e) => e.id === id)
+}
+
+export function findDiaryEntryByDate(
+  year: number,
+  month: number,
+  day: number,
+) {
+  return DIARY_DEMO_ENTRIES.find(
+    (e) => e.year === year && e.month === month && e.day === day,
+  )
+}
+
+/** 캘린더용 — 실제 데모 기록이 있는 날만 감정 표시 */
+export function diaryMoodsForMonth(
+  year: number,
+  month: number,
+  today: Date,
+) {
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ).getTime()
+  const map = new Map<number, DiaryMoodId>()
+  for (const e of DIARY_DEMO_ENTRIES) {
+    if (e.year !== year || e.month !== month) continue
+    const t = new Date(e.year, e.month - 1, e.day).getTime()
+    if (t > todayStart) continue
+    if (!map.has(e.day)) map.set(e.day, e.moodId)
+  }
+  return [...map.entries()].map(([day, moodId]) => ({ day, moodId }))
 }

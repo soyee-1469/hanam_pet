@@ -12,14 +12,16 @@ const easeOut = Easing.out(Easing.cubic)
 export function ToastHost() {
   const insets = useSafeAreaInsets()
   const [message, setMessage] = useState<string | null>(null)
+  const [bottomOffset, setBottomOffset] = useState(0)
   const opacity = useRef(new Animated.Value(0)).current
   const translateY = useRef(new Animated.Value(12)).current
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    return subscribeToast((next) => {
+    return subscribeToast((payload) => {
       if (timer.current) clearTimeout(timer.current)
-      setMessage(next)
+      setMessage(payload.message)
+      setBottomOffset(payload.bottomOffset ?? 0)
       opacity.setValue(0)
       translateY.setValue(12)
       Animated.parallel([
@@ -69,7 +71,10 @@ export function ToastHost() {
   return (
     <View
       pointerEvents="none"
-      style={[styles.wrap, { bottom: Math.max(insets.bottom, 12) + 24 }]}
+      style={[
+        styles.wrap,
+        { bottom: Math.max(insets.bottom, 12) + 24 + bottomOffset },
+      ]}
     >
       <Animated.View
         style={[
@@ -89,8 +94,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 100,
-    elevation: 100,
+    zIndex: 9999,
+    elevation: 9999,
   },
   toast: {
     backgroundColor: 'rgba(70, 55, 45, 0.92)',

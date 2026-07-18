@@ -6,6 +6,11 @@ export { TourDots, onboardingFooterStyle } from './TourDots'
 export { TermsSheet } from './TermsSheet'
 export { ConfirmDialog } from './ConfirmDialog'
 export {
+  CenterDialog,
+  BottomSheet,
+  OVERLAY_SCRIM,
+} from './AppOverlay'
+export {
   ExternalLinkModal,
   openExternalUrl,
 } from '../ExternalLinkModal'

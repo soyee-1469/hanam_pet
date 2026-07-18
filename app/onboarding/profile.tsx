@@ -43,12 +43,8 @@ export default function OnboardingProfile() {
   const petName = pets.find((p) => p.id === petId)?.name ?? '하치'
 
   const [nickname, setNickname] = useState(draft.nickname)
-  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(
-    draft.ageGroup ?? '20s',
-  )
-  const [gender, setGender] = useState<GenderChoice | null>(
-    draft.gender ?? 'unspecified',
-  )
+  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(draft.ageGroup)
+  const [gender, setGender] = useState<GenderChoice | null>(draft.gender)
   const [focused, setFocused] = useState(false)
   const [busy, setBusy] = useState(false)
 

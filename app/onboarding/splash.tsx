@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Colors } from '../../constants/Colors'
-import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
+import { getOnboardingCopy } from '../../lib/onboarding'
 import { resetOnboardingCompleted } from '../../lib/onboardingStorage'
 
 const HOLD_MS = 1800
@@ -42,7 +42,6 @@ export default function OnboardingSplash() {
         </View>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.sub}>{copy.body}</Text>
-        <Text style={styles.versionBadge}>온보딩 {ONBOARDING_VERSION}</Text>
       </View>
     </SafeAreaView>
   )
@@ -51,7 +50,7 @@ export default function OnboardingSplash() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.accentSoft,
+    backgroundColor: Colors.background,
   },
   body: {
     flex: 1,
@@ -86,11 +85,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
-  },
-  versionBadge: {
-    marginTop: 20,
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textDisabled,
   },
 })

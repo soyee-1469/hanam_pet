@@ -18,6 +18,7 @@ import Svg, { Circle } from 'react-native-svg'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import {
   getSeverityBand,
   getSeverityBands,
@@ -26,6 +27,13 @@ import {
 } from '../constants/MindAssessments'
 import { showToast } from '../lib/toast'
 import { saveMindCheckResult } from '../lib/mindCheckResults'
+
+function goMindCheckTab() {
+  router.replace({
+    pathname: '/(tabs)/mind',
+    params: { segment: 'check' },
+  })
+}
 
 const RING_SIZE = 160
 const RING_STROKE = 14
@@ -103,6 +111,7 @@ export default function MindCheckResultScreen() {
     [score, assessmentId],
   )
   const [saving, setSaving] = useState(false)
+  const [leaveOpen, setLeaveOpen] = useState(false)
   const accent = band.color
 
   const openGuide = () => {
@@ -110,6 +119,16 @@ export default function MindCheckResultScreen() {
       pathname: '/mind-check-guide',
       params: { id: assessmentId ?? 'phq' },
     })
+  }
+
+  const persistAndGoHome = async () => {
+    await saveMindCheckResult({
+      assessmentId: assessmentId ?? 'phq',
+      score,
+      max,
+    })
+    showToast('평가 결과가 보관되었어요')
+    goMindCheckTab()
   }
 
   const confirm = () => {
@@ -121,18 +140,20 @@ export default function MindCheckResultScreen() {
     setSaving(true)
     void (async () => {
       try {
-        await saveMindCheckResult({
-          assessmentId: assessmentId ?? 'phq',
-          score,
-          max,
-        })
-        showToast('평가 결과가 보관되었어요')
-        router.replace('/(tabs)/mind')
+        await persistAndGoHome()
       } catch {
         showToast('저장에 실패했어요. 잠시 후 다시 시도해 주세요.')
         setSaving(false)
       }
     })()
+  }
+
+  const requestBack = () => {
+    if (!freshMode || viewMode) {
+      router.back()
+      return
+    }
+    setLeaveOpen(true)
   }
 
   return (
@@ -141,7 +162,7 @@ export default function MindCheckResultScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="뒤로"
-          onPress={() => router.back()}
+          onPress={requestBack}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
@@ -234,6 +255,32 @@ export default function MindCheckResultScreen() {
           onPress={confirm}
         />
       </View>
+
+      <ConfirmDialog
+        visible={leaveOpen}
+        title="결과를 저장할까요?"
+        body="확인하지 않으면 방금 검사한 결과가 보관되지 않아요."
+        cancelLabel="저장 안 함"
+        confirmLabel="저장할게요"
+        tone="warning"
+        onCancel={() => {
+          setLeaveOpen(false)
+          goMindCheckTab()
+        }}
+        onConfirm={() => {
+          setLeaveOpen(false)
+          if (saving) return
+          setSaving(true)
+          void (async () => {
+            try {
+              await persistAndGoHome()
+            } catch {
+              showToast('저장에 실패했어요. 잠시 후 다시 시도해 주세요.')
+              setSaving(false)
+            }
+          })()
+        }}
+      />
     </SafeAreaView>
   )
 }

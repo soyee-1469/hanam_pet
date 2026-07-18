@@ -17,7 +17,7 @@ export const Layout = {
    * 하단 탭 바 콘텐츠 높이 (세이프에리어·extra pad 제외).
    * 전체 높이 = tabBarContentHeight + max(bottom, 8) + tabBarExtraBottom
    */
-  tabBarContentHeight: 52,
+  tabBarContentHeight: 57,
   /** 탭 바 하단 추가 패딩 (홈 인디케이터 여유) */
   tabBarExtraBottom: 5,
 } as const

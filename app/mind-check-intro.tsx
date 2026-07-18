@@ -249,7 +249,7 @@ export default function MindCheckIntroScreen() {
 
       <View style={styles.footer}>
         <PrimaryButton
-          label="마음을 살펴 볼게요"
+          label={latest ? '다시 검사할게요' : '마음을 살펴 볼게요'}
           emphasized
           onPress={startCheck}
         />

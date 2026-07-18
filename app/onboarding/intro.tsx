@@ -47,13 +47,6 @@ const FEATURE_ICONS: Record<string, Icon> = {
   check: MagnifyingGlass,
 }
 
-const HIGHLIGHT_ICONS: Record<string, Icon> = {
-  pet: PawPrint,
-  chat: ChatCircle,
-  diary: CalendarHeart,
-  mind: Heart,
-}
-
 async function dial(phone: string, name: string) {
   const url = `tel:${phone}`
   try {
@@ -184,27 +177,6 @@ function PrivacySlide({
   )
 }
 
-function HighlightSlide({
-  slideKey,
-  title,
-  body,
-}: {
-  slideKey: string
-  title: string
-  body: string
-}) {
-  const IconComp = HIGHLIGHT_ICONS[slideKey] ?? Heart
-  return (
-    <View style={styles.centerSlide}>
-      <View style={styles.highlightIcon}>
-        <IconComp size={40} color={Colors.primary} weight="fill" />
-      </View>
-      <Text style={styles.centerTitle}>{title}</Text>
-      <Text style={styles.centerBody}>{body}</Text>
-    </View>
-  )
-}
-
 export default function OnboardingIntro() {
   const [index, setIndex] = useState(0)
   const item = SLIDES[index]
@@ -215,7 +187,9 @@ export default function OnboardingIntro() {
     setIndex(Math.max(0, Math.min(SLIDES.length - 1, next)))
   }
 
-  const finishTour = () => router.push('/onboarding/terms')
+  /** 투어 다음 = 기능 토크(일기→콘텐츠→체크) → 약관 */
+  const finishTour = () => router.push('/onboarding/diary-record')
+  const skipToTerms = () => router.push('/onboarding/terms')
 
   const goNext = () => {
     if (canSwipeNext) {
@@ -242,7 +216,7 @@ export default function OnboardingIntro() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader
         onBack={canSwipePrev ? () => goTo(index - 1) : undefined}
-        onSkip={finishTour}
+        onSkip={skipToTerms}
         skipLabel={copy.skip}
       />
 
@@ -254,19 +228,13 @@ export default function OnboardingIntro() {
       >
         {item.key === 'brand' ? (
           <BrandSlide title={item.title} body={item.body} />
-        ) : item.key === 'help' ? (
-          <HelpSlide title={item.title} body={item.body} />
         ) : item.key === 'features' ? (
           <FeaturesSlide title={item.title} body={item.body} />
         ) : item.key === 'privacy' ? (
           <PrivacySlide title={item.title} body={item.body} />
-        ) : (
-          <HighlightSlide
-            slideKey={item.key}
-            title={item.title}
-            body={item.body}
-          />
-        )}
+        ) : item.key === 'help' ? (
+          <HelpSlide title={item.title} body={item.body} />
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -323,15 +291,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
-  },
-  highlightIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 24,
-    backgroundColor: Colors.iconFeed,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
   },
   centerTitle: {
     fontSize: 24,

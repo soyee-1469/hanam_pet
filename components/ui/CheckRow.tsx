@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   boxOn: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+    borderColor: Colors.selected,
+    backgroundColor: Colors.selected,
   },
   labelBlock: {
     flex: 1,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   badgeRequired: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   badgeOptional: {
     backgroundColor: Colors.sand,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   badgeTextRequired: {
-    color: Colors.buttonPrimaryText,
+    color: '#FFFFFF',
   },
   badgeTextOptional: {
     color: Colors.textDisabled,

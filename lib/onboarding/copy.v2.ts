@@ -27,17 +27,12 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 슬라이드 — brand·help·features·privacy + 기능 하이라이트 */
+    /** 투어 4장 — brand → features → privacy → help(후반). 깊은 소개는 talk 화면으로 */
     slides: [
       {
         key: 'brand' as const,
         title: '마음을 돌보는 친구\n힐링펫',
         body: '매일 스스로를 돌보는 습관을 만들고\n마음을 함께 나누어요.',
-      },
-      {
-        key: 'help' as const,
-        title: '힘들 땐 언제든\n도움받을 수 있어요',
-        body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n언제든지 혼자가 아니에요.',
       },
       {
         key: 'features' as const,
@@ -50,24 +45,9 @@ export const onboardingCopyV2 = {
         body: '이름 없이 익명으로 이용할 수 있어요.\n힐링펫은 마음을 돌보는 친구일 뿐, 전문 치료를 대신하지 않아요.',
       },
       {
-        key: 'pet' as const,
-        title: '나만의 펫 키우기',
-        body: '매일매일 사료를 주고 놀아주면서\n펫을 무럭무럭 성장시켜요.',
-      },
-      {
-        key: 'chat' as const,
-        title: '나의 펫과 대화하기',
-        body: '공감형 펫과 대화하며 마음을 나누고\n위로와 공감을 받아요.',
-      },
-      {
-        key: 'diary' as const,
-        title: '마음 기록하기',
-        body: '하루의 기분과 감정을 돌아보고\n일기장에 마음을 글로 풀어내요.',
-      },
-      {
-        key: 'mind' as const,
-        title: '마음 채우고 살피기',
-        body: '나를 다독이는 콘텐츠와\n간단한 체크로 마음을 들여다봐요.',
+        key: 'help' as const,
+        title: '힘들 땐 언제든\n도움받을 수 있어요',
+        body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n언제든지 혼자가 아니에요.',
       },
     ],
     features: [
@@ -223,10 +203,15 @@ export const onboardingCopyV2 = {
     codeLabel: '나의 번호',
     dummyCode: '48291736',
     tip: '메모장에 적어두거나 스크린샷으로 보관해 주세요.',
-    cta: '나의 번호 저장하기',
-    ctaBusy: '저장 중…',
-    savingMessage: '번호를 안전하게 저장하는 중이에요',
+    cta: '번호 복사하고 계속하기',
+    ctaBusy: '복사 중…',
+    savingMessage: '번호를 클립보드에 복사하는 중이에요',
     copiedToast: '클립보드에 복사되었어요!',
+    sheetTitle: '번호를 안전하게 보관해요',
+    sheetBody:
+      '클립보드에 번호를 복사해 드릴게요. 메모장에 붙여 넣거나, 이 화면을 스크린샷으로 남겨 두세요.',
+    sheetPrimary: '복사하고 계속하기',
+    sheetAlt: '나중에 할게요',
   },
 
   welcome: {
@@ -270,12 +255,13 @@ export const onboardingCopyV2 = {
     header: '기록 가져오기',
     code: {
       headline: '이전 기록을 이어가려면\n가져오기 번호를 입력해 주세요',
-      body: '처음 가입할 때 받은 8자리 번호예요.\n사진첩 안내 카드나, 예전 휴대폰 앱의\n[설정 > 내 정보]에서 확인할 수 있어요.',
+      body: '처음 가입할 때 받은 8자리 번호예요.\n메모·스크린샷이나, 예전 휴대폰 앱의\n[설정 > 내 정보]에서 확인할 수 있어요.',
       placeholder: '예: 48291736',
       lostLink: '도움이 필요하신가요?',
       cta: '기록 가져오기',
       ctaBusy: '불러오는 중…',
       loadingMessage: '기록을 안전하게 불러오는 중이에요',
+      wrongCode: '번호가 맞지 않아요. 다시 확인해 주세요.',
     },
     lost: {
       headline: '번호를 잊으셨나요?',
@@ -284,7 +270,7 @@ export const onboardingCopyV2 = {
         {
           key: 'gallery',
           title: '갤러리에서 사진을 확인해 보세요',
-          body: '가입할 때 저장해 둔 8자리 안내 카드가 사진첩에 있을 수 있어요.',
+          body: '가입할 때 스크린샷으로 남겨 둔 8자리 번호가 사진첩에 있을 수 있어요.',
         },
         {
           key: 'device',

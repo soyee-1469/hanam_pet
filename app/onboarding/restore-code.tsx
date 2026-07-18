@@ -21,7 +21,6 @@ import {
   onboardingFooterStyle,
 } from '../../components/ui'
 import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
-import { PhotoPermissionDeniedDialog } from '../../components/PhotoPermissionDeniedDialog'
 import { ONBOARDING_STEPS, getOnboardingDraft } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -42,7 +41,6 @@ export default function OnboardingRestoreCode() {
 
   const [saving, setSaving] = useState(false)
   const [permSheetOpen, setPermSheetOpen] = useState(false)
-  const [deniedOpen, setDeniedOpen] = useState(false)
   /** 4/5 → 저장 직후 5번째 하트까지 채운 뒤 팝 */
   const [progressIndex, setProgressIndex] = useState(3)
   const [popLast, setPopLast] = useState(false)
@@ -93,30 +91,24 @@ export default function OnboardingRestoreCode() {
     }, SAVE_NAV_DELAY_MS)
   }
 
-  /** CTA → 권한 안내 시트 */
+  /** CTA → 보관 안내 시트 */
   const onPressSave = () => {
     if (saving) return
     setPermSheetOpen(true)
   }
 
-  /** 다른 방법 = 클립보드만 저장하고 진행 */
+  /** 나중에 = 그래도 클립보드에 복사하고 진행 */
   const saveOtherWay = () => {
     setPermSheetOpen(false)
     void finishSave(copy.copiedToast)
   }
 
-  /** 알겠어요 → 권한 안내 후 저장 (클립보드). 네이티브 사진첩 모듈은 웹 SSR에서 깨져 보류 */
-  const requestPhotoPermission = async () => {
+  /** 복사하고 계속하기 */
+  const confirmCopy = async () => {
     setPermSheetOpen(false)
     await finishSave(
       '번호가 클립보드에 복사됐어요. 스크린샷으로도 보관해 주세요.',
     )
-  }
-
-  /** 권한 없이도 이어서 진행 (클립보드) */
-  const continueWithoutPhoto = () => {
-    setDeniedOpen(false)
-    void finishSave(copy.copiedToast)
   }
 
   return (
@@ -188,14 +180,9 @@ export default function OnboardingRestoreCode() {
       <PhotoPermissionSheet
         visible={permSheetOpen}
         onAllow={() => {
-          void requestPhotoPermission()
+          void confirmCopy()
         }}
         onOtherWay={saveOtherWay}
-      />
-
-      <PhotoPermissionDeniedDialog
-        visible={deniedOpen}
-        onClose={continueWithoutPhoto}
       />
     </SafeAreaView>
   )
@@ -283,7 +270,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     fontWeight: '600',
-    color: '#555555',
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
   footer: {

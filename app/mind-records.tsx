@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Modal,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
@@ -13,12 +12,12 @@ import {
   CaretLeft,
   CalendarHeart,
   Check,
-  Warning,
   WarningCircle,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { ConfirmDialog } from '../components/ui'
 import { showToast } from '../lib/toast'
 import { clearMindCheckResults } from '../lib/mindCheckResults'
 
@@ -148,50 +147,16 @@ export default function MindRecordsScreen() {
         </Text>
       </ScrollView>
 
-      <Modal
+      <ConfirmDialog
         visible={pending != null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPending(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            style={styles.modalDismiss}
-            onPress={() => setPending(null)}
-          />
-          <View style={styles.modalCard}>
-            <View style={styles.modalIconWrap}>
-              <Warning size={28} color={Colors.error} weight="regular" />
-            </View>
-            <Text style={styles.modalTitle}>{pending?.confirmTitle}</Text>
-            <Text style={styles.modalBody}>{pending?.confirmBody}</Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setPending(null)}
-                style={({ pressed }) => [
-                  styles.modalSecondary,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.modalSecondaryText}>취소</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                onPress={runDelete}
-                style={({ pressed }) => [
-                  styles.modalDanger,
-                  pressed && styles.actionBtnPressed,
-                ]}
-              >
-                <Text style={styles.modalDangerText}>
-                  {pending?.confirmCta ?? '확인'}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        title={pending?.confirmTitle ?? ''}
+        body={pending?.confirmBody ?? ''}
+        cancelLabel="취소"
+        confirmLabel={pending?.confirmCta ?? '확인'}
+        tone="danger"
+        onCancel={() => setPending(null)}
+        onConfirm={runDelete}
+      />
     </SafeAreaView>
   )
 }
@@ -299,81 +264,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textDisabled,
     lineHeight: 20,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalDismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  modalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 20,
-    alignItems: 'center',
-    ...Shadows.elevation,
-  },
-  modalIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFF0EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: 10,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 22,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    alignSelf: 'stretch',
-    gap: 10,
-  },
-  modalSecondary: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  modalSecondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  modalDanger: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.error,
-  },
-  modalDangerText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 })

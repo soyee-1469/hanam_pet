@@ -1,6 +1,7 @@
-import { Modal, View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native'
+import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native'
 import { ArrowUpRight } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
+import { CenterDialog } from './ui/AppOverlay'
 
 type ExternalLinkModalProps = {
   visible: boolean
@@ -30,7 +31,7 @@ export async function openExternalUrl(url: string) {
   }
 }
 
-/** 외부 웹 페이지 이동 전 확인 모달 */
+/** 외부 웹 페이지 이동 전 확인 — 가운데 팝업 */
 export function ExternalLinkModal({
   visible,
   url,
@@ -44,81 +45,50 @@ export function ExternalLinkModal({
   }
 
   return (
-    <Modal
+    <CenterDialog
       visible={visible}
-      transparent
-      animationType="fade"
       onRequestClose={onClose}
+      cardStyle={styles.cardAlign}
     >
-      <View style={styles.backdrop}>
-        <Pressable style={styles.dismiss} onPress={onClose} />
-        <View style={styles.card}>
-          <View style={styles.iconWrap}>
-            <ArrowUpRight
-              size={26}
-              color={Colors.selected}
-              weight="bold"
-            />
-          </View>
-          <Text style={styles.title}>외부 사이트로 이동합니다</Text>
-          <Text style={styles.body}>
-            앱 밖의 웹 페이지로 이동해요. 계속할까요?
-          </Text>
-          <View style={styles.urlBox}>
-            <Text style={styles.urlText} numberOfLines={1}>
-              {truncateUrl(url)}
-            </Text>
-          </View>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="취소"
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.cancelBtn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.cancelText}>취소</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="이동하기"
-              onPress={() => {
-                void go()
-              }}
-              style={({ pressed }) => [
-                styles.goBtn,
-                pressed && styles.goPressed,
-              ]}
-            >
-              <Text style={styles.goText}>이동하기</Text>
-            </Pressable>
-          </View>
-        </View>
+      <View style={styles.iconWrap}>
+        <ArrowUpRight size={26} color={Colors.selected} weight="bold" />
       </View>
-    </Modal>
+      <Text style={styles.title}>외부 사이트로 이동합니다</Text>
+      <Text style={styles.body}>
+        앱 밖의 웹 페이지로 이동해요. 계속할까요?
+      </Text>
+      <View style={styles.urlBox}>
+        <Text style={styles.urlText} numberOfLines={1}>
+          {truncateUrl(url)}
+        </Text>
+      </View>
+      <View style={styles.actions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="취소"
+          onPress={onClose}
+          style={({ pressed }) => [styles.cancelBtn, pressed && styles.pressed]}
+        >
+          <Text style={styles.cancelText}>취소</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="이동하기"
+          onPress={() => {
+            void go()
+          }}
+          style={({ pressed }) => [styles.goBtn, pressed && styles.goPressed]}
+        >
+          <Text style={styles.goText}>이동하기</Text>
+        </Pressable>
+      </View>
+    </CenterDialog>
   )
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.4)',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-  },
-  dismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 20,
+  cardAlign: {
     alignItems: 'center',
-    ...Shadows.elevation,
   },
   iconWrap: {
     width: 56,

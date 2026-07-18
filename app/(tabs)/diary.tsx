@@ -15,7 +15,10 @@ import {
   DIARY_MOODS,
   type DiaryMoodId,
 } from '../../constants/Moods'
-import { DIARY_DEMO_ENTRIES } from '../../constants/diaryDemo'
+import {
+  diaryMoodsForMonth,
+  findDiaryEntryByDate,
+} from '../../constants/diaryDemo'
 import { MoodEmoji } from '../../components/MoodEmoji'
 
 type DayMood = {
@@ -40,36 +43,6 @@ function moodMeta(id: DiaryMoodId) {
 
 function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
-}
-
-/** 데모용 — 이번 달 일부 날짜에 감정 기록 (5종) */
-function buildDemoMoods(year: number, month: number, today: Date): DayMood[] {
-  const seed: DayMood[] = [
-    { day: 1, moodId: 'great' },
-    { day: 2, moodId: 'ok' },
-    { day: 3, moodId: 'good' },
-    { day: 5, moodId: 'hard' },
-    { day: 6, moodId: 'great' },
-    { day: 8, moodId: 'bad' },
-    { day: 9, moodId: 'ok' },
-    { day: 10, moodId: 'good' },
-    { day: 12, moodId: 'great' },
-    { day: 14, moodId: 'ok' },
-    { day: 15, moodId: 'hard' },
-    { day: 17, moodId: 'good' },
-    { day: 18, moodId: 'great' },
-    { day: 20, moodId: 'bad' },
-    { day: 22, moodId: 'hard' },
-    { day: 24, moodId: 'good' },
-    { day: 27, moodId: 'ok' },
-  ]
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const todayStart = startOfDay(today)
-  return seed.filter((m) => {
-    if (m.day > daysInMonth) return false
-    const t = startOfDay(new Date(year, month, m.day))
-    return t <= todayStart
-  })
 }
 
 function getMonthMatrix(year: number, month: number) {
@@ -106,7 +79,10 @@ export default function DiaryScreen() {
 
   const year = cursor.getFullYear()
   const month = cursor.getMonth()
-  const moods = useMemo(() => buildDemoMoods(year, month, today), [year, month, today])
+  const moods = useMemo(
+    () => diaryMoodsForMonth(year, month + 1, today),
+    [year, month, today],
+  )
   const moodMap = useMemo(() => {
     const map = new Map<number, DayMood>()
     moods.forEach((m) => map.set(m.day, m))
@@ -169,9 +145,7 @@ export default function DiaryScreen() {
   const openDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
-    const entry = DIARY_DEMO_ENTRIES.find(
-      (e) => e.year === year && e.month === month + 1 && e.day === day,
-    )
+    const entry = findDiaryEntryByDate(year, month + 1, day)
     if (entry) {
       router.push({
         pathname: '/diary-detail',
@@ -189,10 +163,36 @@ export default function DiaryScreen() {
     })
   }
 
+  const openSelectedOrWrite = () => {
+    const useToday = isFutureDay(selectedDay)
+    const y = useToday ? today.getFullYear() : year
+    const m = useToday ? today.getMonth() + 1 : month + 1
+    const d = useToday ? today.getDate() : selectedDay
+    const entry = findDiaryEntryByDate(y, m, d)
+    if (entry) {
+      router.push({
+        pathname: '/diary-detail',
+        params: { id: entry.id },
+      })
+      return
+    }
+    router.push({
+      pathname: '/diary-write',
+      params: {
+        year: String(y),
+        month: String(m),
+        day: String(d),
+      },
+    })
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>마음일기</Text>
+        <View style={styles.headerCopy}>
+          <Text style={styles.title}>마음일기</Text>
+          <Text style={styles.subtitle}>하루의 감정을 남겨봐요</Text>
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="마음일기장 보기"
@@ -396,22 +396,20 @@ export default function DiaryScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="감정 기록하기"
-          onPress={() => {
-            const useToday = isFutureDay(selectedDay)
-            router.push({
-              pathname: '/diary-write',
-              params: {
-                year: String(useToday ? today.getFullYear() : year),
-                month: String(useToday ? today.getMonth() + 1 : month + 1),
-                day: String(useToday ? today.getDate() : selectedDay),
-              },
-            })
-          }}
+          onPress={openSelectedOrWrite}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
           <View style={styles.cta} collapsable={false}>
             <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-            <Text style={styles.ctaText}>마음을 기록할게요</Text>
+            <Text style={styles.ctaText}>
+              {findDiaryEntryByDate(
+                isFutureDay(selectedDay) ? today.getFullYear() : year,
+                isFutureDay(selectedDay) ? today.getMonth() + 1 : month + 1,
+                isFutureDay(selectedDay) ? today.getDate() : selectedDay,
+              )
+                ? '기록 보러 갈게요'
+                : '마음을 기록할게요'}
+            </Text>
           </View>
         </Pressable>
       </View>
@@ -429,16 +427,28 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
   },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 12,
+  },
   title: {
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
   },
   iconBtn: {
     width: 40,
@@ -451,6 +461,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginTop: 2,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,

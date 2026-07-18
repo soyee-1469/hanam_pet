@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -8,17 +8,15 @@ import {
   Alert,
   StyleSheet,
   Animated,
-  Modal,
   TextInput,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import {
   Lightning,
   CaretRight,
   Bell,
   X,
-  PencilSimple,
   Heart,
   CaretDown,
 } from 'phosphor-react-native'
@@ -31,7 +29,20 @@ import {
   type PetChoice,
 } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
-import { refillChatEnergy } from '../../lib/chatEnergy'
+import {
+  ENERGY_FEED_GAIN,
+  ENERGY_MAX,
+  ENERGY_PLAY_GAIN,
+  FOOD_MAX,
+  TOY_MAX,
+  addEnergy,
+  addFood,
+  addToy,
+  energyBarColor as stockEnergyBarColor,
+  loadPetStock,
+  useFood,
+  useToy,
+} from '../../lib/petStock'
 import {
   consumeEnergyCareNudge,
   pickRandom,
@@ -43,6 +54,7 @@ import {
   defaultPetName,
 } from '../../lib/petProfile'
 import { showToast } from '../../lib/toast'
+import { BottomSheet, CenterDialog } from '../../components/ui'
 
 const USER = {
   nickname: '몽이',
@@ -90,8 +102,6 @@ const HEADER_MENU = [
   },
 ] as const
 
-const CARE_ENERGY_GAIN = 8
-const STOCK_MAX = 5
 
 const FEED_THANKS = [
   '맛있어요!',
@@ -216,15 +226,12 @@ function CareStockCard({
 }
 
 /** 충분(≥900)만 primary — 그 외는 accent로 완충 안내 */
-function energyBarColor(energy: number) {
-  return energy >= 900 ? Colors.energyFill : Colors.energyFillMid
-}
-
 type MenuQuickItemProps = {
   label: string
   image: number
   bgColor: string
   badge?: number
+  highlighted?: boolean
   circleSize: number
   iconSize: number
   labelSize: number
@@ -237,6 +244,7 @@ function MenuQuickItem({
   image,
   bgColor,
   badge,
+  highlighted,
   circleSize,
   iconSize,
   labelSize,
@@ -244,7 +252,7 @@ function MenuQuickItem({
 }: MenuQuickItemProps) {
   const claimable = Boolean(badge)
   const [hovered, setHovered] = useState(false)
-  const lift = claimable && hovered
+  const lift = (claimable && hovered) || highlighted
 
   return (
     <Pressable
@@ -267,6 +275,7 @@ function MenuQuickItem({
               height: circleSize,
               backgroundColor: bgColor,
             },
+            highlighted && styles.menuCircleNudge,
           ]}
         >
           <Image
@@ -298,33 +307,27 @@ function LevelEnergyBlock({
   onPressStorage: () => void
 }) {
   const energyRatio = Math.min(100, Math.round((energy / energyMax) * 100))
-  const fillColor = energyBarColor(energy)
+  const fillColor = stockEnergyBarColor(energy)
 
   return (
-    <View style={styles.energyBlock}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`에너지 ${energy} / ${energyMax}, 보관함 보기`}
+      onPress={onPressStorage}
+      style={({ pressed }) => [
+        styles.energyBlock,
+        pressed && styles.energyBlockPressed,
+      ]}
+    >
       <View style={styles.levelRow}>
         <View style={styles.levelLeft}>
           <Lightning size={16} color={fillColor} weight="fill" />
           <Text style={styles.energyLabelInline}>에너지</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="내 보관함"
-          hitSlop={8}
-          onPress={onPressStorage}
-          style={({ pressed }) => [
-            styles.energyNumsBtn,
-            pressed && styles.energyNumsPressed,
-          ]}
-        >
-          <View style={styles.energyNums}>
-            <Text style={styles.energyCurrent}>{energy.toLocaleString()}</Text>
-            <Text style={styles.energyMax}> / {energyMax.toLocaleString()}</Text>
-          </View>
-          <View style={styles.energyCaret}>
-            <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
-          </View>
-        </Pressable>
+        <View style={styles.energyNums}>
+          <Text style={styles.energyCurrent}>{energy.toLocaleString()}</Text>
+          <Text style={styles.energyMax}> / {energyMax.toLocaleString()}</Text>
+        </View>
       </View>
       <View style={styles.energyTrack}>
         <View
@@ -334,14 +337,14 @@ function LevelEnergyBlock({
           ]}
         />
       </View>
-    </View>
+    </Pressable>
   )
 }
 
 export default function PetHomeScreen() {
   const { width: screenWidth, height: screenHeight } = useDesignWindow()
   const insets = useSafeAreaInsets()
-  const [energy, setEnergy] = useState(PET.energy)
+  const [energy, setEnergy] = useState(20)
   const [foodCount, setFoodCount] = useState(PET.foodCount)
   const [toyCount, setToyCount] = useState(PET.toyCount)
   const [speech, setSpeech] = useState(PET.greetingBubble)
@@ -357,9 +360,16 @@ export default function PetHomeScreen() {
   const [nameSaving, setNameSaving] = useState(false)
   const [heartsOn, setHeartsOn] = useState(false)
   const [helpExpanded, setHelpExpanded] = useState<string | null>(null)
-  /** 오늘 남은 사료 받기 횟수 — 0이면 뱃지 숨김 */
+  /** 오늘 남은 받기 횟수 — 0이면 뱃지 숨김 */
   const [feedClaimsLeft, setFeedClaimsLeft] = useState(1)
+  const [toyClaimsLeft, setToyClaimsLeft] = useState(1)
+  /** 빈 재고일 때 상단 받기 메뉴 강조 */
+  const [menuNudge, setMenuNudge] = useState<'feed' | 'toy' | null>(null)
+  /** 케어 직후 대화로 유도 */
+  const [chatCtaOn, setChatCtaOn] = useState(false)
   const careBusyRef = useRef(false)
+  const menuNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const chatCtaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 폰에서 헤더·캐릭터가 하단 패널에 가리지 않도록 영역 고정
   const tabBarReserve = tabBarReserveHeight(insets.bottom)
@@ -390,8 +400,22 @@ export default function PetHomeScreen() {
   useEffect(() => {
     return () => {
       if (speechTimer.current) clearTimeout(speechTimer.current)
+      if (menuNudgeTimer.current) clearTimeout(menuNudgeTimer.current)
+      if (chatCtaTimer.current) clearTimeout(chatCtaTimer.current)
     }
   }, [])
+
+  const nudgeMenu = (kind: 'feed' | 'toy') => {
+    setMenuNudge(kind)
+    if (menuNudgeTimer.current) clearTimeout(menuNudgeTimer.current)
+    menuNudgeTimer.current = setTimeout(() => setMenuNudge(null), 3200)
+  }
+
+  const showChatCta = () => {
+    setChatCtaOn(true)
+    if (chatCtaTimer.current) clearTimeout(chatCtaTimer.current)
+    chatCtaTimer.current = setTimeout(() => setChatCtaOn(false), 4500)
+  }
 
   const openStorage = () => {
     router.push('/storage')
@@ -596,25 +620,31 @@ export default function PetHomeScreen() {
 
     careBusyRef.current = true
     try {
+      const gain = kind === 'feed' ? ENERGY_FEED_GAIN : ENERGY_PLAY_GAIN
       if (kind === 'feed') {
-        setFoodCount((c) => Math.max(0, c - 1))
+        const next = await useFood(1)
+        if (!next) return
+        setFoodCount(next.food)
         showSpeech(pickRandom(FEED_THANKS))
         playHearts()
         await playPetReact('eat')
       } else {
-        setToyCount((c) => Math.max(0, c - 1))
+        const next = await useToy(1)
+        if (!next) return
+        setToyCount(next.toy)
         showSpeech(pickRandom(PLAY_THANKS))
         playHearts()
         await playPetReact('play')
       }
 
-      setEnergy((e) => Math.min(PET.energyMax, e + CARE_ENERGY_GAIN))
-      await playFx(`+${CARE_ENERGY_GAIN}`, true)
-      await refillChatEnergy()
+      const after = await addEnergy(gain)
+      setEnergy(after.energy)
+      await playFx(`+${gain} 에너지`, true)
       showSpeech(
         `${petName}가 힘을 얻었어요! 이제 마음 편히 이야기해요.`,
         2800,
       )
+      showChatCta()
     } finally {
       careBusyRef.current = false
     }
@@ -622,7 +652,7 @@ export default function PetHomeScreen() {
 
   const claimFeed = () => {
     if (careBusyRef.current) return
-    if (foodCount >= STOCK_MAX) {
+    if (foodCount >= FOOD_MAX) {
       showSpeech('보관함이 가득해요. 먼저 맘마를 줄래요?')
       return
     }
@@ -630,30 +660,53 @@ export default function PetHomeScreen() {
       showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
       return
     }
-    setFoodCount((c) => Math.min(STOCK_MAX, c + 1))
-    setFeedClaimsLeft((n) => Math.max(0, n - 1))
-    playHearts()
-    showSpeech(pickRandom(CLAIM_FEED_LINES), 3000)
-    void playPetReact('eat')
+    void (async () => {
+      const next = await addFood(1)
+      if (!next) {
+        showSpeech('보관함이 가득해요. 먼저 맘마를 줄래요?')
+        return
+      }
+      setFoodCount(next.food)
+      setFeedClaimsLeft((n) => Math.max(0, n - 1))
+      setMenuNudge(null)
+      showToast('사료를 받았어요')
+      showSpeech(pickRandom(CLAIM_FEED_LINES), 3000)
+      await playFx('+1 사료', false)
+    })()
   }
 
   const claimToy = () => {
     if (careBusyRef.current) return
-    if (toyCount >= STOCK_MAX) {
+    if (toyCount >= TOY_MAX) {
       showSpeech('장난감이 충분해요. 먼저 놀아 줄래요?')
       return
     }
-    setToyCount((c) => Math.min(STOCK_MAX, c + 1))
-    playHearts()
-    showSpeech(pickRandom(CLAIM_TOY_LINES), 3000)
-    void playPetReact('play')
+    if (toyClaimsLeft <= 0) {
+      showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
+      return
+    }
+    void (async () => {
+      const next = await addToy(1)
+      if (!next) {
+        showSpeech('장난감이 충분해요. 먼저 놀아 줄래요?')
+        return
+      }
+      setToyCount(next.toy)
+      setToyClaimsLeft((n) => Math.max(0, n - 1))
+      setMenuNudge(null)
+      showToast('장난감을 받았어요')
+      showSpeech(pickRandom(CLAIM_TOY_LINES), 3000)
+      await playFx('+1 장난감', false)
+    })()
   }
 
   const handleAcquireFeed = () => {
+    nudgeMenu('feed')
     showSpeech('위에서 「사료 받기」를 눌러 받아와 줄래요?')
   }
 
   const handleAcquireToy = () => {
+    nudgeMenu('toy')
     showSpeech('위에서 「장난감 받기」를 눌러 받아와 줄래요?')
   }
 
@@ -708,8 +761,11 @@ export default function PetHomeScreen() {
               badge={
                 item.id === 'feed' && feedClaimsLeft > 0
                   ? feedClaimsLeft
-                  : undefined
+                  : item.id === 'toy' && toyClaimsLeft > 0
+                    ? toyClaimsLeft
+                    : undefined
               }
+              highlighted={menuNudge === item.id}
               circleSize={menuCircleSize}
               iconSize={menuIconSize}
               labelSize={menuLabelSize}
@@ -782,27 +838,38 @@ export default function PetHomeScreen() {
               resizeMode="contain"
             />
           </View>
-          <View style={styles.petNameRow}>
-            <Text style={styles.petName} numberOfLines={1}>
-              {petName}
-            </Text>
+          {chatCtaOn ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="펫 이름 수정"
-              hitSlop={8}
-              onPress={openNameEdit}
+              accessibilityLabel="대화하러 가기"
+              onPress={() => {
+                setChatCtaOn(false)
+                router.push('/(tabs)/chat')
+              }}
               style={({ pressed }) => [
-                styles.petNameEditBtn,
+                styles.chatCtaChip,
                 pressed && styles.headerIconPressed,
               ]}
             >
-              <PencilSimple
-                size={16}
-                color={Colors.textSecondary}
-                weight="bold"
-              />
+              <Text style={styles.chatCtaChipText}>대화하러 가기</Text>
+              <CaretRight size={14} color={Colors.primary} weight="bold" />
             </Pressable>
-          </View>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${petName}, 이름 수정`}
+            accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
+            hitSlop={8}
+            onPress={openNameEdit}
+            style={({ pressed }) => [
+              styles.petNameRow,
+              pressed && styles.headerIconPressed,
+            ]}
+          >
+            <Text style={styles.petName} numberOfLines={1}>
+              {petName}
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -817,7 +884,7 @@ export default function PetHomeScreen() {
         <View style={styles.primaryBlock}>
           <LevelEnergyBlock
             energy={energy}
-            energyMax={PET.energyMax}
+            energyMax={ENERGY_MAX}
             onPressStorage={openStorage}
           />
           <View style={styles.actionRow}>
@@ -829,7 +896,7 @@ export default function PetHomeScreen() {
                   : require('../../assets/images/bowl.png')
               }
               useLabel="사료 주기"
-              acquireLabel="사료 획득하기"
+              acquireLabel="사료 받기"
               onUse={handleFeedPress}
               onAcquire={handleAcquireFeed}
             />
@@ -838,7 +905,7 @@ export default function PetHomeScreen() {
               count={toyCount}
               icon={require('../../assets/images/toy.png')}
               useLabel="놀아 주기"
-              acquireLabel="장난감 획득하기"
+              acquireLabel="장난감 받기"
               grayIconWhenEmpty
               onUse={handlePlayPress}
               onAcquire={handleAcquireToy}
@@ -847,145 +914,123 @@ export default function PetHomeScreen() {
         </View>
       </View>
 
-      <Modal
+      <BottomSheet
         visible={helpOpen}
-        transparent
-        animationType="slide"
         onRequestClose={() => setHelpOpen(false)}
+        sheetStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
       >
-        <Pressable
-          style={styles.helpBackdrop}
-          onPress={() => setHelpOpen(false)}
-        >
+        <View style={styles.helpHeader}>
+          <Text style={styles.helpTitle}>도움말</Text>
           <Pressable
-            style={[styles.helpSheet, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}
-            onPress={(e) => e.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="닫기"
+            hitSlop={8}
+            onPress={() => setHelpOpen(false)}
+            style={styles.helpCloseBtn}
           >
-            <View style={styles.helpHandle} />
-            <View style={styles.helpHeader}>
-              <Text style={styles.helpTitle}>도움말</Text>
+            <X size={20} color={Colors.textSecondary} weight="bold" />
+          </Pressable>
+        </View>
+        <Text style={styles.helpLead}>
+          필요할 때만 보면 돼요. 천천히 확인해 주세요.
+        </Text>
+        {HELP_ITEMS.map((item) => {
+          const open = helpExpanded === item.title
+          return (
+            <View key={item.title} style={styles.helpItem}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="닫기"
-                hitSlop={8}
-                onPress={() => setHelpOpen(false)}
-                style={styles.helpCloseBtn}
+                accessibilityState={{ expanded: open }}
+                accessibilityLabel={item.title}
+                onPress={() =>
+                  setHelpExpanded((prev) =>
+                    prev === item.title ? null : item.title,
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.helpItemHeader,
+                  pressed && styles.headerIconPressed,
+                ]}
               >
-                <X size={20} color={Colors.textSecondary} weight="bold" />
-              </Pressable>
-            </View>
-            <Text style={styles.helpLead}>
-              필요할 때만 보면 돼요. 천천히 확인해 주세요.
-            </Text>
-            {HELP_ITEMS.map((item) => {
-              const open = helpExpanded === item.title
-              return (
-                <View key={item.title} style={styles.helpItem}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ expanded: open }}
-                    accessibilityLabel={item.title}
-                    onPress={() =>
-                      setHelpExpanded((prev) =>
-                        prev === item.title ? null : item.title,
-                      )
-                    }
-                    style={({ pressed }) => [
-                      styles.helpItemHeader,
-                      pressed && styles.headerIconPressed,
-                    ]}
-                  >
-                    <Text style={styles.helpItemTitle}>{item.title}</Text>
-                    <View
-                      style={{
-                        transform: [{ rotate: open ? '180deg' : '0deg' }],
-                      }}
-                    >
-                      <CaretDown
-                        size={16}
-                        color={Colors.textSecondary}
-                        weight="bold"
-                      />
-                    </View>
-                  </Pressable>
-                  {open ? (
-                    <Text style={styles.helpItemBody}>{item.body}</Text>
-                  ) : null}
+                <Text style={styles.helpItemTitle}>{item.title}</Text>
+                <View
+                  style={{
+                    transform: [{ rotate: open ? '180deg' : '0deg' }],
+                  }}
+                >
+                  <CaretDown
+                    size={16}
+                    color={Colors.textSecondary}
+                    weight="bold"
+                  />
                 </View>
-              )
-            })}
-          </Pressable>
-        </Pressable>
-      </Modal>
+              </Pressable>
+              {open ? (
+                <Text style={styles.helpItemBody}>{item.body}</Text>
+              ) : null}
+            </View>
+          )
+        })}
+      </BottomSheet>
 
-      <Modal
+      <CenterDialog
         visible={nameEditOpen}
-        transparent
-        animationType="fade"
         onRequestClose={() => setNameEditOpen(false)}
       >
-        <View style={styles.nameModalBackdrop}>
+        <Text style={styles.nameModalTitle}>이름을 바꿔볼까요?</Text>
+        <Text style={styles.nameModalLead}>
+          펫에게 불러주고 싶은 이름을 적어 주세요. (최대 {PET_NAME_MAX}자)
+        </Text>
+        <TextInput
+          style={styles.nameModalInput}
+          value={nameDraft}
+          onChangeText={(t) => setNameDraft(t.slice(0, PET_NAME_MAX))}
+          maxLength={PET_NAME_MAX}
+          placeholder={defaultPetName(petId)}
+          placeholderTextColor={Colors.textDisabled}
+          autoFocus
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            void saveNameEdit()
+          }}
+        />
+        <Text style={styles.nameModalCount}>
+          {nameDraft.trim().length}/{PET_NAME_MAX}
+        </Text>
+        <View style={styles.nameModalActions}>
           <Pressable
-            style={styles.nameModalDismiss}
+            accessibilityRole="button"
             onPress={() => setNameEditOpen(false)}
-          />
-          <View style={styles.nameModalCard}>
-            <Text style={styles.nameModalTitle}>이름을 바꿔볼까요?</Text>
-            <Text style={styles.nameModalLead}>
-              펫에게 불러주고 싶은 이름을 적어 주세요. (최대 {PET_NAME_MAX}자)
-            </Text>
-            <TextInput
-              style={styles.nameModalInput}
-              value={nameDraft}
-              onChangeText={(t) => setNameDraft(t.slice(0, PET_NAME_MAX))}
-              maxLength={PET_NAME_MAX}
-              placeholder={defaultPetName(petId)}
-              placeholderTextColor={Colors.textDisabled}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                void saveNameEdit()
-              }}
-            />
-            <Text style={styles.nameModalCount}>
-              {nameDraft.trim().length}/{PET_NAME_MAX}
-            </Text>
-            <View style={styles.nameModalActions}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setNameEditOpen(false)}
-                style={({ pressed }) => [
-                  styles.nameModalSecondary,
-                  pressed && styles.headerIconPressed,
-                ]}
-              >
-                <Text style={styles.nameModalSecondaryText}>나중에</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                disabled={
-                  nameDraft.trim().length < 1 ||
-                  nameDraft.trim() === petName ||
-                  nameSaving
-                }
-                onPress={() => {
-                  void saveNameEdit()
-                }}
-                style={({ pressed }) => [
-                  styles.nameModalPrimary,
-                  (nameDraft.trim().length < 1 ||
-                    nameDraft.trim() === petName ||
-                    nameSaving) &&
-                    styles.nameModalPrimaryDisabled,
-                  pressed && styles.headerIconPressed,
-                ]}
-              >
-                <Text style={styles.nameModalPrimaryText}>저장할게요</Text>
-              </Pressable>
-            </View>
-          </View>
+            style={({ pressed }) => [
+              styles.nameModalSecondary,
+              pressed && styles.headerIconPressed,
+            ]}
+          >
+            <Text style={styles.nameModalSecondaryText}>나중에</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            disabled={
+              nameDraft.trim().length < 1 ||
+              nameDraft.trim() === petName ||
+              nameSaving
+            }
+            onPress={() => {
+              void saveNameEdit()
+            }}
+            style={({ pressed }) => [
+              styles.nameModalPrimary,
+              (nameDraft.trim().length < 1 ||
+                nameDraft.trim() === petName ||
+                nameSaving) &&
+                styles.nameModalPrimaryDisabled,
+              pressed && styles.headerIconPressed,
+            ]}
+          >
+            <Text style={styles.nameModalPrimaryText}>저장할게요</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </CenterDialog>
     </ImageBackground>
   )
 }
@@ -1032,27 +1077,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     width: '100%',
-  },
-  helpBackdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(94, 64, 51, 0.28)',
-  },
-  helpSheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    ...Shadows.elevation,
-  },
-  helpHandle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border,
-    marginBottom: 12,
   },
   helpHeader: {
     flexDirection: 'row',
@@ -1120,6 +1144,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: Colors.surface,
   },
+  menuCircleNudge: {
+    borderWidth: 2,
+    borderColor: Colors.selected,
+    backgroundColor: Colors.creamyBeige,
+  },
   menuBadge: {
     position: 'absolute',
     top: -3,
@@ -1174,7 +1203,29 @@ const styles = StyleSheet.create({
     marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  chatCtaChip: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    ...Shadows.elevation,
+  },
+  chatCtaChipText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.primary,
   },
   petName: {
     fontSize: 16,
@@ -1183,33 +1234,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     maxWidth: 160,
   },
-  petNameEditBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.72)',
-  },
   headerIconPressed: {
     opacity: 0.88,
-  },
-  nameModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-  },
-  nameModalDismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  nameModalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 26,
-    paddingBottom: 20,
-    ...Shadows.elevation,
   },
   nameModalTitle: {
     fontSize: 18,
@@ -1395,20 +1421,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
   },
-  energyNumsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  energyNumsPressed: {
-    opacity: 0.75,
-  },
   energyNums: {
     flexDirection: 'row',
     alignItems: 'baseline',
-  },
-  energyCaret: {
-    marginLeft: 2,
-    marginTop: 1,
   },
   energyCurrent: {
     fontSize: 18,
@@ -1423,6 +1438,9 @@ const styles = StyleSheet.create({
   energyBlock: {
     width: '100%',
     marginBottom: 12,
+  },
+  energyBlockPressed: {
+    opacity: 0.88,
   },
   energyTrack: {
     width: '100%',

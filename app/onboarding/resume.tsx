@@ -30,6 +30,7 @@ import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().resume
+const DEMO_RESTORE_CODE = getOnboardingCopy().restoreCode.dummyCode
 const CODE_LEN = 8
 /** 더미 복구에도 로딩이 보이도록 */
 const RESTORE_DELAY_MS = 1400
@@ -105,6 +106,7 @@ export default function OnboardingResume() {
   const [digits, setDigits] = useState<string[]>(Array(CODE_LEN).fill(''))
   const [focused, setFocused] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [codeError, setCodeError] = useState(false)
   const inputs = useRef<(RNTextInput | null)[]>([])
 
   const code = digits.join('')
@@ -129,6 +131,7 @@ export default function OnboardingResume() {
 
   const setDigitAt = (index: number, raw: string) => {
     if (busy) return
+    setCodeError(false)
     const cleaned = raw.replace(/\D/g, '')
     if (cleaned.length === 0) {
       const next = [...digits]
@@ -178,9 +181,14 @@ export default function OnboardingResume() {
   const submitCode = async () => {
     if (!codeOk || busy) return
     setBusy(true)
+    setCodeError(false)
     inputs.current.forEach((el) => el?.blur())
     try {
       await new Promise((r) => setTimeout(r, RESTORE_DELAY_MS))
+      if (code !== DEMO_RESTORE_CODE) {
+        setCodeError(true)
+        return
+      }
       await markOnboardingCompleted()
       setStep('restored')
     } finally {
@@ -407,6 +415,10 @@ export default function OnboardingResume() {
             />
           </View>
 
+          {codeError ? (
+            <Text style={styles.codeError}>{copy.code.wrongCode}</Text>
+          ) : null}
+
           <Pressable
             accessibilityRole="button"
             disabled={busy}
@@ -519,6 +531,14 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
     marginHorizontal: 2,
     marginBottom: 2,
+  },
+  codeError: {
+    marginTop: 12,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.error,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   otpCellWrap: {
     flexGrow: 1,

@@ -10,19 +10,19 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, PawPrint } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../constants/Layout'
-import { DogExpr } from '../constants/DogExpr'
-import { PrimaryButton } from '../components/ui'
+import { Colors, Shadows } from '../../constants/Colors'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
+import { PrimaryButton } from '../../components/ui'
 import {
   ATTENDANCE_ENERGY_REWARD,
   dateKey,
   loadAttendanceKeys,
   saveAttendanceKeys,
   stampToday,
-} from '../lib/attendance'
-import { refillChatEnergy } from '../lib/chatEnergy'
-import { showToast } from '../lib/toast'
+} from '../../lib/attendance'
+import { ENERGY_ATTEND_GAIN, addEnergy } from '../../lib/petStock'
+import { showToast } from '../../lib/toast'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
@@ -98,8 +98,8 @@ export default function AttendanceScreen() {
         return
       }
       setStamped(new Set(next))
-      await refillChatEnergy()
-      showToast(`출석 완료! +${ATTENDANCE_ENERGY_REWARD} 에너지`)
+      await addEnergy(ENERGY_ATTEND_GAIN)
+      showToast(`출석 완료! +${ENERGY_ATTEND_GAIN} 에너지`)
     } finally {
       setBusy(false)
     }

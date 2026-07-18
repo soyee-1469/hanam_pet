@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Modal,
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -17,13 +16,12 @@ import {
   CalendarHeart,
   Check,
   Trash,
-  X,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { onboardingFooterStyle } from '../components/ui'
+import { ConfirmDialog, onboardingFooterStyle } from '../components/ui'
 import { showToast } from '../lib/toast'
 
 const ANON_ID_DISPLAY = 'anon_8f2c4b7e...a91'
@@ -176,58 +174,18 @@ export default function DataManageScreen() {
         </Pressable>
       </View>
 
-      <Modal
+      <ConfirmDialog
         visible={confirmOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirmOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            style={styles.modalDismiss}
-            onPress={() => setConfirmOpen(false)}
-          />
-          <View style={styles.modalCard}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="닫기"
-              hitSlop={8}
-              onPress={() => setConfirmOpen(false)}
-              style={styles.modalClose}
-            >
-              <X size={20} color={Colors.textSecondary} weight="bold" />
-            </Pressable>
-            <Text style={styles.modalTitle}>정말 삭제하시겠어요?</Text>
-            <Text style={styles.modalBody}>
-              삭제된 데이터는 복구할 수 없어요. 대화 기록, 마음일기, 자가검진
-              결과가 모두 삭제됩니다.
-            </Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setConfirmOpen(false)}
-                style={({ pressed }) => [
-                  styles.modalSecondary,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.modalSecondaryText}>계속 보관하기</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                disabled={deleting}
-                onPress={confirmDelete}
-                style={({ pressed }) => [
-                  styles.modalDanger,
-                  pressed && styles.deleteBtnPressed,
-                ]}
-              >
-                <Text style={styles.modalDangerText}>삭제하기</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        title="정말 삭제하시겠어요?"
+        body={
+          '삭제된 데이터는 복구할 수 없어요. 대화 기록, 마음일기, 자가검진 결과가 모두 삭제됩니다.'
+        }
+        cancelLabel="계속 보관하기"
+        confirmLabel="삭제하기"
+        tone="danger"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </SafeAreaView>
   )
 }
@@ -402,73 +360,5 @@ const styles = StyleSheet.create({
   },
   deleteBtnTextDisabled: {
     color: Colors.buttonDisabledText,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  modalDismiss: {
-    ...StyleSheet.absoluteFill,
-  },
-  modalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 22,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 18,
-    ...Shadows.elevation,
-  },
-  modalClose: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 10,
-    paddingRight: 28,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  modalActions: {
-    gap: 10,
-  },
-  modalSecondary: {
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.creamyBeige,
-  },
-  modalSecondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  modalDanger: {
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.error,
-  },
-  modalDangerText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 })

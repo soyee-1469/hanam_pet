@@ -8,6 +8,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.vercel/
 
 # Native
 .kotlin/
@@ -41,3 +42,4 @@ yarn-error.*
 /android
 
 .claude/
+.vercel

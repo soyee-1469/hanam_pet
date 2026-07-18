@@ -21,8 +21,6 @@ type HelpContact = {
   phoneDisplay: string
   note: string
   Icon: Icon
-  iconColor: string
-  iconBg: string
 }
 
 const CONTACTS: HelpContact[] = [
@@ -33,8 +31,6 @@ const CONTACTS: HelpContact[] = [
     phoneDisplay: '109',
     note: '24시간 자살예방 상담',
     Icon: Users,
-    iconColor: Colors.primary,
-    iconBg: '#FFF0EE',
   },
   {
     id: 'life',
@@ -43,8 +39,6 @@ const CONTACTS: HelpContact[] = [
     phoneDisplay: '1588-9191',
     note: '24시간 심리 상담',
     Icon: Phone,
-    iconColor: Colors.moodHard,
-    iconBg: '#E8F3FA',
   },
   {
     id: 'mental',
@@ -53,8 +47,6 @@ const CONTACTS: HelpContact[] = [
     phoneDisplay: '1577-0199',
     note: '24시간 정신건강 상담',
     Icon: Headset,
-    iconColor: Colors.primary,
-    iconBg: '#FFF0EE',
   },
   {
     id: 'hanam',
@@ -63,8 +55,6 @@ const CONTACTS: HelpContact[] = [
     phoneDisplay: '031-793-6552',
     note: '지역 정신건강 상담',
     Icon: Headset,
-    iconColor: Colors.primary,
-    iconBg: '#FFF0EE',
   },
 ]
 
@@ -99,8 +89,8 @@ export default function ChatHelpScreen() {
         <View style={styles.list}>
           {CONTACTS.map((c) => (
             <View key={c.id} style={styles.card}>
-              <View style={[styles.iconWrap, { backgroundColor: c.iconBg }]}>
-                <c.Icon size={22} color={c.iconColor} weight="regular" />
+              <View style={styles.iconWrap}>
+                <c.Icon size={22} color={Colors.textSecondary} weight="regular" />
               </View>
               <View style={styles.copy}>
                 <Text style={styles.name}>{c.name}</Text>
@@ -182,6 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.creamyBeige,
   },
   copy: {
     flex: 1,

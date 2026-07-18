@@ -548,13 +548,15 @@ const styles = StyleSheet.create({
   stage: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 36,
     paddingBottom: 12,
   },
   greetWrap: {
     alignItems: 'center',
     marginBottom: 8,
+    marginTop: 8,
     maxWidth: 300,
   },
   greetBubble: {
@@ -827,6 +829,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     color: Colors.textPrimary,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
   sendBtn: {
     width: 36,
@@ -835,6 +839,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.beige,
+    borderWidth: 0,
+    overflow: 'hidden',
   },
   sendBtnActive: {
     backgroundColor: Colors.primary,

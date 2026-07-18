@@ -6,10 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
+import { CaretDown, CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -20,14 +23,16 @@ import {
 } from '../../lib/petStock'
 
 type StockKind = 'food' | 'toy' | 'energy'
-
-/** 교감·돌봄 기록만 타임라인에 노출. claim은 날짜 요약으로만 */
-type HistoryCategory = 'chat' | 'meal' | 'play' | 'diary' | 'claim' | 'attend'
+type HistoryTab = 'item' | 'energy'
+type HistoryCategory = 'chat' | 'meal' | 'play' | 'diary' | 'claim' | 'attend' | 'use'
 
 type HistoryEntry = {
   id: string
+  tab: HistoryTab
   category: HistoryCategory
-  story: string
+  title: string
+  /** 탭하면 펼쳐지는 추가 멘트 */
+  note: string
   time: string
   delta: number
   kind: StockKind
@@ -36,90 +41,118 @@ type HistoryEntry = {
 type StockMap = Record<StockKind, number>
 
 const STOCK_FALLBACK: StockMap = {
-  food: 1,
+  food: 3,
   toy: 3,
-  energy: 20,
+  energy: 12,
 }
 
-const STOCK_META: { key: StockKind; label: string; max: number }[] = [
-  { key: 'food', label: '사료', max: FOOD_MAX },
-  { key: 'toy', label: '장난감', max: TOY_MAX },
-  { key: 'energy', label: '기운', max: ENERGY_MAX },
-]
+/** 데모: 오늘 돌봄으로 얻은 양 / 일일 상한 */
+const TODAY_GAIN: StockMap = { food: 1, toy: 1, energy: 12 }
+const TODAY_GAIN_MAX: StockMap = { food: 2, toy: 2, energy: 20 }
+
+const STOCK_COLS: { key: StockKind; label: string; max: number; unit: string }[] =
+  [
+    { key: 'food', label: '사료', max: FOOD_MAX, unit: '개' },
+    { key: 'toy', label: '장난감', max: TOY_MAX, unit: '개' },
+    { key: 'energy', label: '에너지', max: ENERGY_MAX, unit: '개' },
+  ]
 
 const HISTORY: HistoryEntry[] = [
   {
-    id: '1',
+    id: 'i1',
+    tab: 'item',
+    category: 'use',
+    title: '사료 주기',
+    note: '맛있게 먹고 배를 동그랗게 만들었어요.',
+    time: '2026-07-08 14:20:28',
+    delta: -1,
+    kind: 'food',
+  },
+  {
+    id: 'i2',
+    tab: 'item',
+    category: 'claim',
+    title: '장난감 받기',
+    note: '같이 놀 준비가 됐어요. 언제든 꺼내 주세요.',
+    time: '2026-07-08 14:18:14',
+    delta: 1,
+    kind: 'toy',
+  },
+  {
+    id: 'i3',
+    tab: 'item',
+    category: 'use',
+    title: '장난감 주기',
+    note: '잠깐 놀아도 기분이 확 좋아져요. 또 불러 주세요.',
+    time: '2026-07-08 10:05:12',
+    delta: -1,
+    kind: 'toy',
+  },
+  {
+    id: 'i4',
+    tab: 'item',
+    category: 'claim',
+    title: '사료 받기',
+    note: '다음에 배고플 때 바로 줄 수 있게 준비해 뒀어요.',
+    time: '2026-07-08 10:00:16',
+    delta: 1,
+    kind: 'food',
+  },
+  {
+    id: 'e1',
+    tab: 'energy',
     category: 'chat',
-    story: '몽이와 깊은 대화를 나눴어요',
+    title: '대화하기',
+    note: '오늘 나눈 이야기 덕분에 마음이 조금 가벼워졌어요. 언제든 다시 들려주세요.',
     time: '2026-07-08 14:20:28',
     delta: -1,
     kind: 'energy',
   },
   {
-    id: '2',
+    id: 'e2',
+    tab: 'energy',
     category: 'meal',
-    story: '몽이가 맛있는 식사를 했어요',
+    title: '사료 주기',
+    note: '잘 먹고 기운을 차렸어요. 챙겨 줘서 고마워요!',
     time: '2026-07-08 14:18:14',
     delta: 2,
     kind: 'energy',
   },
   {
-    id: '3',
+    id: 'e3',
+    tab: 'energy',
     category: 'play',
-    story: '함께 놀며 기운이 올랐어요',
+    title: '놀아주기',
+    note: '신나게 놀고 나니 꼬리가 멈추질 않아요. 또 놀아 줄래요?',
     time: '2026-07-08 10:05:12',
     delta: 4,
     kind: 'energy',
   },
   {
-    id: '4',
+    id: 'e4',
+    tab: 'energy',
     category: 'diary',
-    story: '마음을 적으니 몽이도 든든해해요',
+    title: '마음일기',
+    note: '적어 준 마음을 조용히 곁에서 들어줬어요. 남겨 줘서 든든해요.',
     time: '2026-07-08 10:00:16',
     delta: 2,
     kind: 'energy',
   },
   {
-    id: '5',
-    category: 'claim',
-    story: '사료를 챙겨 두었어요',
-    time: '2026-07-08 09:12:04',
-    delta: 1,
-    kind: 'food',
-  },
-  {
-    id: '6',
-    category: 'claim',
-    story: '장난감을 챙겨 두었어요',
-    time: '2026-07-08 09:12:04',
-    delta: 1,
-    kind: 'toy',
-  },
-  {
-    id: '7',
+    id: 'e5',
+    tab: 'energy',
     category: 'attend',
-    story: '오늘도 나와 줘서 반가워요',
+    title: '출석하기',
+    note: '출석해 줘서 하루가 더 특별해요. 내일도 기다려요.',
     time: '2026-07-08 08:00:16',
-    delta: 0,
+    delta: 1,
     kind: 'energy',
   },
-  {
-    id: '8',
-    category: 'meal',
-    story: '몽이에게 밥을 줬어요',
-    time: '2026-07-07 21:05:12',
-    delta: -1,
-    kind: 'food',
-  },
-  {
-    id: '9',
-    category: 'play',
-    story: '장난감으로 함께 놀았어요',
-    time: '2026-07-07 20:40:08',
-    delta: -1,
-    kind: 'toy',
-  },
+]
+
+const TABS: { key: HistoryTab; label: string }[] = [
+  { key: 'item', label: '아이템 기록' },
+  { key: 'energy', label: '에너지 기록' },
 ]
 
 function toCount(v: unknown): number {
@@ -134,93 +167,10 @@ function toCount(v: unknown): number {
   return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0
 }
 
-function parseStamp(raw: string) {
-  const m = raw.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/)
-  if (!m) return null
-  return {
-    dateKey: `${m[1]}-${m[2]}-${m[3]}`,
-    year: Number(m[1]),
-    month: Number(m[2]),
-    day: Number(m[3]),
-    hour: Number(m[4]),
-  }
-}
-
-function weekdayKo(year: number, month: number, day: number) {
-  const names = ['일', '월', '화', '수', '목', '금', '토']
-  return names[new Date(year, month - 1, day).getDay()]
-}
-
-function formatDelta(delta: number) {
-  if (delta > 0) return `+${delta}`
-  if (delta < 0) return `${delta}`
+function formatDelta(delta: number, unit: string) {
+  if (delta > 0) return `+${delta}${unit}`
+  if (delta < 0) return `${delta}${unit}`
   return null
-}
-
-/** 기록 수치 — 문장 다음, 옅게만 */
-const DELTA_MUTED = '#C4B5A8'
-
-type TimelineItem = {
-  id: string
-  story: string
-  category: HistoryCategory
-  kind: StockKind
-  delta: number
-}
-
-type DateGroup = {
-  key: string
-  title: string
-  weekday: string
-  items: TimelineItem[]
-}
-
-function buildTimeline(entries: HistoryEntry[]): DateGroup[] {
-  const byDate = new Map<
-    string,
-    {
-      meta: { year: number; month: number; day: number }
-      moments: HistoryEntry[]
-    }
-  >()
-
-  for (const entry of entries) {
-    const p = parseStamp(entry.time)
-    if (!p) continue
-    // 챙기기(claim) 로그는 리스트에 노출하지 않음
-    if (entry.category === 'claim') continue
-
-    let bucket = byDate.get(p.dateKey)
-    if (!bucket) {
-      bucket = {
-        meta: { year: p.year, month: p.month, day: p.day },
-        moments: [],
-      }
-      byDate.set(p.dateKey, bucket)
-    }
-    bucket.moments.push(entry)
-  }
-
-  const dates: DateGroup[] = []
-
-  for (const [dateKey, bucket] of byDate) {
-    if (bucket.moments.length === 0) continue
-
-    dates.push({
-      key: dateKey,
-      title: `${bucket.meta.month}월 ${bucket.meta.day}일`,
-      weekday: `${weekdayKo(bucket.meta.year, bucket.meta.month, bucket.meta.day)}요일`,
-      items: bucket.moments.map((entry) => ({
-        id: entry.id,
-        story: entry.story,
-        category: entry.category,
-        kind: entry.kind,
-        delta: entry.delta,
-      })),
-    })
-  }
-
-  return dates
 }
 
 function StockIcon({ kind, size = 26 }: { kind: StockKind; size?: number }) {
@@ -253,7 +203,12 @@ function CategoryIcon({
     case 'chat':
       return <ChatCircle size={size} color={color} weight="fill" />
     case 'meal':
-      return <StockIcon kind="food" size={20} />
+    case 'use':
+      return kind === 'toy' ? (
+        <StockIcon kind="toy" size={20} />
+      ) : (
+        <StockIcon kind="food" size={20} />
+      )
     case 'play':
       return <StockIcon kind="toy" size={20} />
     case 'diary':
@@ -271,10 +226,19 @@ function CategoryIcon({
   }
 }
 
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
+}
+
 export default function StorageScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const [stock, setStock] = useState(STOCK_FALLBACK)
+  const [tab, setTab] = useState<HistoryTab>('item')
+  const [openId, setOpenId] = useState<string | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -289,7 +253,22 @@ export default function StorageScreen() {
     }, []),
   )
 
-  const groups = useMemo(() => buildTimeline(HISTORY), [])
+  const entries = useMemo(
+    () => HISTORY.filter((e) => e.tab === tab),
+    [tab],
+  )
+
+  const switchTab = (next: HistoryTab) => {
+    if (next === tab) return
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setOpenId(null)
+    setTab(next)
+  }
+
+  const toggleNote = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setOpenId((prev) => (prev === id ? null : id))
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -306,7 +285,6 @@ export default function StorageScreen() {
         <Text style={styles.title}>보관함</Text>
         <View style={styles.sideBtn} />
       </View>
-      <Text style={styles.subtitle}>지금 가진 것과, 함께한 순간들</Text>
 
       <ScrollView
         style={styles.flex}
@@ -316,77 +294,131 @@ export default function StorageScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.stockRow}>
-          {STOCK_META.map((item) => {
-            const have = toCount(stock[item.key])
-            const ratio =
-              item.max > 0 ? Math.min(1, Math.max(0, have / item.max)) : 0
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>지금 내 보관함에 있어요</Text>
+          <View style={styles.summaryRow}>
+            {STOCK_COLS.map((col) => {
+              const have = toCount(stock[col.key])
+              return (
+                <View key={`have-${col.key}`} style={styles.summaryCol}>
+                  <View style={styles.pill}>
+                    <Text style={styles.pillText}>{col.label}</Text>
+                  </View>
+                  <Text style={styles.summaryValue}>
+                    <Text style={styles.summaryHave}>{have}</Text>
+                    {` / ${col.max}${col.unit}`}
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
+
+          <View style={styles.summaryDivider} />
+
+          <Text style={styles.summaryTitle}>
+            오늘 내 마음을 돌보고 얻었어요
+          </Text>
+          <View style={styles.summaryRow}>
+            {STOCK_COLS.map((col) => {
+              const gained = TODAY_GAIN[col.key]
+              const cap = TODAY_GAIN_MAX[col.key]
+              return (
+                <View key={`gain-${col.key}`} style={styles.summaryCol}>
+                  <View style={styles.pill}>
+                    <Text style={styles.pillText}>{col.label}</Text>
+                  </View>
+                  <Text style={styles.summaryValue}>
+                    <Text style={styles.summaryHave}>{gained}</Text>
+                    {` / ${cap}${col.unit}`}
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
+        </View>
+
+        <View style={styles.tabBar}>
+          {TABS.map((t) => {
+            const active = tab === t.key
             return (
-              <View key={item.key} style={styles.stockCell}>
-                <View style={styles.stockIconWrap}>
-                  <StockIcon kind={item.key} />
-                </View>
-                <Text style={styles.stockLabel}>{item.label}</Text>
-                <Text style={styles.stockHave}>{have}</Text>
-                <View style={styles.stockTrack}>
-                  <View
-                    style={[
-                      styles.stockFill,
-                      { width: `${Math.round(ratio * 100)}%` },
-                    ]}
-                  />
-                </View>
-              </View>
+              <Pressable
+                key={t.key}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                onPress={() => switchTab(t.key)}
+                style={({ pressed }) => [
+                  styles.tabItem,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                  {t.label}
+                </Text>
+                <View
+                  style={[styles.tabUnderline, active && styles.tabUnderlineOn]}
+                />
+              </Pressable>
             )
           })}
         </View>
-        <Text style={styles.stockHint}>
-          기운은 몽이와 대화할 때 써요. 돌보면 다시 채워져요.
-        </Text>
 
-        <View style={styles.historyBlock}>
-          <Text style={styles.sectionLabel}>함께한 기록</Text>
-
-          {groups.map((dateGroup, dateIndex) => (
-            <View
-              key={dateGroup.key}
-              style={[
-                styles.dateBlock,
-                dateIndex > 0 && styles.dateBlockSpaced,
-              ]}
-            >
-              <Text style={styles.dateLine}>
-                {dateGroup.title}
-                <Text style={styles.dateWeekday}> · {dateGroup.weekday}</Text>
-              </Text>
-
-              <View style={styles.eventBox}>
-                {dateGroup.items.map((item, index) => {
-                  const deltaLabel = formatDelta(item.delta)
-                  return (
-                    <View
-                      key={item.id}
+        <View style={styles.list}>
+          {entries.map((item, index) => {
+            const deltaLabel = formatDelta(item.delta, '개')
+            const open = openId === item.id
+            const positive = item.delta > 0
+            return (
+              <View
+                key={item.id}
+                style={index > 0 ? styles.rowDivider : undefined}
+              >
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: open }}
+                  accessibilityLabel={item.title}
+                  onPress={() => toggleNote(item.id)}
+                  style={({ pressed }) => [
+                    styles.row,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={styles.rowIcon}>
+                    <CategoryIcon category={item.category} kind={item.kind} />
+                  </View>
+                  <View style={styles.rowCopy}>
+                    <Text style={styles.rowTitle}>{item.title}</Text>
+                    <Text style={styles.rowTime}>{item.time}</Text>
+                  </View>
+                  {deltaLabel ? (
+                    <Text
                       style={[
-                        styles.eventRow,
-                        index > 0 && styles.eventRowDivider,
+                        styles.rowDelta,
+                        positive ? styles.rowDeltaPlus : styles.rowDeltaMinus,
                       ]}
                     >
-                      <View style={styles.eventIcon}>
-                        <CategoryIcon
-                          category={item.category}
-                          kind={item.kind}
-                        />
-                      </View>
-                      <Text style={styles.eventStory}>{item.story}</Text>
-                      {deltaLabel ? (
-                        <Text style={styles.eventDelta}>{deltaLabel}</Text>
-                      ) : null}
-                    </View>
-                  )
-                })}
+                      {deltaLabel}
+                    </Text>
+                  ) : null}
+                  <View
+                    style={{
+                      transform: [{ rotate: open ? '180deg' : '0deg' }],
+                    }}
+                  >
+                    <CaretDown
+                      size={14}
+                      color={Colors.textDisabled}
+                      weight="bold"
+                    />
+                  </View>
+                </Pressable>
+                {open ? (
+                  <View style={styles.noteWrap}>
+                    <Text style={styles.noteText}>{item.note}</Text>
+                  </View>
+                ) : null}
               </View>
-            </View>
-          ))}
+            )
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -406,7 +438,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: Layout.headerPaddingTop,
-    paddingBottom: 4,
+    paddingBottom: Layout.headerContentGap,
+    minHeight: 56,
   },
   sideBtn: {
     width: 40,
@@ -424,142 +457,152 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.textPrimary,
   },
-  subtitle: {
-    paddingHorizontal: Layout.screenPaddingH,
-    marginBottom: Layout.headerContentGap,
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
   },
-  stockRow: {
+  summaryCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 16,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 14,
+  },
+  summaryRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
+    justifyContent: 'space-between',
   },
-  stockCell: {
+  summaryCol: {
+    flex: 1,
     alignItems: 'center',
-    minWidth: 72,
+    gap: 8,
   },
-  stockIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
     backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
   },
-  stockLabel: {
+  pillText: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textSecondary,
-    marginBottom: 2,
   },
-  stockHave: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    lineHeight: 30,
-    marginBottom: 8,
-  },
-  stockTrack: {
-    width: 40,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: Colors.energyTrack,
-    overflow: 'hidden',
-  },
-  stockFill: {
-    height: '100%',
-    borderRadius: 2,
-    backgroundColor: Colors.selected,
-  },
-  stockHint: {
-    marginTop: 14,
+  summaryValue: {
     fontSize: 13,
     fontWeight: '500',
-    lineHeight: 18,
-    color: Colors.textDisabled,
-    textAlign: 'center',
+    color: Colors.textSecondary,
   },
-  historyBlock: {
-    marginTop: 32,
+  summaryHave: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.selected,
   },
-  sectionLabel: {
-    marginBottom: 16,
+  summaryDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.divider,
+    marginVertical: 16,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    marginTop: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.divider,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 16,
+  },
+  tabLabel: {
     fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  dateBlock: {
-    paddingBottom: 4,
-  },
-  dateBlockSpaced: {
-    marginTop: 22,
-    paddingTop: 18,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.divider,
-  },
-  dateLine: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 10,
-  },
-  dateWeekday: {
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textDisabled,
+    marginBottom: 12,
   },
-  eventBox: {
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    paddingLeft: 12,
-    paddingRight: 16,
-    paddingVertical: 2,
+  tabLabelActive: {
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
-  eventRow: {
+  tabUnderline: {
+    alignSelf: 'stretch',
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: 'transparent',
+  },
+  tabUnderlineOn: {
+    backgroundColor: Colors.primary,
+  },
+  list: {
+    marginTop: 4,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 12,
-    minHeight: 56,
+    paddingVertical: 14,
+    minHeight: 64,
   },
-  eventRowDivider: {
+  rowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
   },
-  eventIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  eventStory: {
+  rowCopy: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    lineHeight: 32,
-    includeFontPadding: false,
-    paddingRight: 8,
+    minWidth: 0,
+    gap: 4,
   },
-  eventDelta: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: DELTA_MUTED,
-    minWidth: 32,
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  rowTime: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textDisabled,
+  },
+  rowDelta: {
+    fontSize: 14,
+    fontWeight: '700',
+    minWidth: 40,
     textAlign: 'right',
-    lineHeight: 32,
-    includeFontPadding: false,
-    marginRight: 2,
+  },
+  rowDeltaPlus: {
+    color: Colors.primary,
+  },
+  rowDeltaMinus: {
+    color: Colors.textPrimary,
+  },
+  noteWrap: {
+    marginLeft: 52,
+    marginRight: 4,
+    marginTop: -4,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.creamyBeige,
+  },
+  noteText: {
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
   },
 })

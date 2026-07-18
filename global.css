@@ -2,16 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RN Web TextInput — 브라우저 기본 focus 네모 박스 제거 */
+/* RN Web — 브라우저 기본 포커스/버튼 사각 박스 제거 */
 input,
-textarea {
+textarea,
+button {
   outline: none !important;
   box-shadow: none !important;
   -webkit-tap-highlight-color: transparent;
 }
 
+input,
+textarea {
+  border: none !important;
+  background: transparent !important;
+}
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  margin: 0;
+  /* UA padding이 원형 버튼 뒤에 사각으로 남는 것 방지 */
+  padding: 0;
+}
+
 input:focus,
-textarea:focus {
+textarea:focus,
+button:focus {
   outline: none !important;
   box-shadow: none !important;
 }

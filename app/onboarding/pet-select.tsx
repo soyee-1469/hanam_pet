@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 2,
     borderColor: Colors.textPrimary,
-    shadowColor: '#5E4033',
+    shadowColor: '#7A5B45',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,

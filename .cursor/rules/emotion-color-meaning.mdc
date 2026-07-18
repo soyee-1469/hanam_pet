@@ -12,19 +12,19 @@ alwaysApply: true
 
 | 역할 | 토큰 | HEX |
 |------|------|-----|
-| 제목·본문 | `Colors.cocoa` / `textPrimary` | `#5E4033` |
+| 제목·본문 | `Colors.cocoa` / `textPrimary` | `#7A5B45` |
 | 칩·선택 상태 | `Colors.selected` | `#8A5B44` |
 | 연한 배경·면 | `Colors.creamyBeige` | `#F6EFE5` |
 | 포인트 옐로 | `Colors.accent` | `#F4C85B` |
 | Accent 연한 면 | `Colors.accentSoft` | `#FBECC4` |
-| CTA 보조 | `Colors.secondary` | `#F67C49` |
-| 메인 CTA | `Colors.primary` | `#F47B4B` |
+| CTA 보조 | `Colors.secondary` | `#FF8F7A` |
+| 메인 CTA | `Colors.primary` | `#FF8F7A` |
 
 `creamyBeige`와 `accent`는 **절대 같은 색을 쓰지 않는다.**
 
 ## 오렌지 계열 = 기분 좋음 / CTA
 
-**메인 오렌지(`Colors.primary` / `#F47B4B`)** 는
+**메인 오렌지(`Colors.primary` / `#FF8F7A`)** 는
 **긍정·기분 좋음·행동 유도**에만 쓴다.
 
 허용 예:
@@ -41,7 +41,7 @@ alwaysApply: true
 
 | 감정 | 계열 | 토큰 | HEX |
 |------|------|------|-----|
-| 좋음 | 메인 오렌지 | `Colors.moodGood` | `#F47B4B` |
+| 좋음 | 메인 오렌지 | `Colors.moodGood` | `#FF8F7A` |
 | 보통 | 노란빛 연두 | `Colors.moodOk` | `#D4E08A` |
 | 힘듦 | 스카이 블루(눈물) | `Colors.moodHard` | `#8EC5E8` |
 

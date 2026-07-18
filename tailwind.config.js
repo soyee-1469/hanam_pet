@@ -7,13 +7,13 @@ module.exports = {
       colors: {
         // Color System v3.1 — 힐링 중심 (브라운·크림 베이스)
         primary: {
-          DEFAULT: '#F47B4B',
-          pressed: '#E06A3C',
-          light: '#F7C4A3',
+          DEFAULT: '#FF8F7A',
+          pressed: '#F07864',
+          light: '#FFD0C6',
         },
         secondary: {
-          DEFAULT: '#F67C49',
-          pressed: '#E56B3A',
+          DEFAULT: '#FF8F7A',
+          pressed: '#F07864',
           light: '#FCE8C0',
         },
         accent: {
@@ -32,7 +32,7 @@ module.exports = {
           secondary: '#F5EDE6',
         },
         creamy: '#F6EFE5',
-        peach: '#F7C4A3',
+        peach: '#FFD0C6',
         sand: '#E9DCCF',
         beige: {
           DEFAULT: '#D9C7BA',
@@ -42,7 +42,7 @@ module.exports = {
           300: '#F5EDE6',
         },
         ink: {
-          DEFAULT: '#5E4033',
+          DEFAULT: '#7A5B45',
           soft: '#8E6F5C',
           disabled: '#B79A8A',
         },
@@ -51,20 +51,20 @@ module.exports = {
           divider: '#F1E9E0',
         },
         success: '#A9B69A',
-        warning: '#F67C49',
+        warning: '#FF8F7A',
         error: '#E57A72',
         coral: {
-          DEFAULT: '#F47B4B',
-          soft: '#F7C4A3',
-          deep: '#E06A3C',
+          DEFAULT: '#FF8F7A',
+          soft: '#FFD0C6',
+          deep: '#F07864',
         },
         yellow: {
           soft: '#FCE8C0',
-          energy: '#F47B4B',
+          energy: '#FF8F7A',
           mission: '#F4C85B',
         },
         cocoa: {
-          DEFAULT: '#5E4033',
+          DEFAULT: '#7A5B45',
           soft: '#8E6F5C',
           faint: '#B79A8A',
           mute: '#B79A8A',

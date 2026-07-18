@@ -6,13 +6,13 @@
  * - 브라운 45% · 크림/베이지 35% · 오렌지 15% · 옐로 5%
  *
  * Core
- * - Cocoa        #5E4033  제목·본문 (textPrimary)
+ * - Cocoa        #7A5B45  제목·본문 (textPrimary)
  * - Selected     #8A5B44  칩·선택 상태
  * - Accent       #F4C85B  따뜻한 포인트 옐로 (소량)
  * - AccentSoft   #FBECC4  Accent 연한 면
  * - CreamyBeige  #F6EFE5  연한 배경·카드 분위기 (Accent와 분리)
- * - Secondary    #F67C49  CTA 보조 오렌지
- * - Primary      #F47B4B  메인 CTA / 긍정 감정
+ * - Secondary    #FF8F7A  CTA 보조 오렌지
+ * - Primary      #FF8F7A  메인 CTA / 긍정 감정
  * - MoodOk       #D4E08A  감정「보통」
  *
  * Primary·Secondary(오렌지) 사용처
@@ -29,8 +29,8 @@
 export const Colors = {
   // —— Core brown / cream (힐링 베이스) ——
   /** 제목·본문 코코아 */
-  cocoa: '#5E4033',
-  textPrimary: '#5E4033',
+  cocoa: '#7A5B45',
+  textPrimary: '#7A5B45',
   textSecondary: '#8E6F5C',
   textDisabled: '#B79A8A',
 
@@ -43,7 +43,7 @@ export const Colors = {
   background: '#F8F4EF',
   surface: '#FFFFFF',
   surfaceSecondary: '#F5EDE6',
-  peach: '#F7C4A3',
+  peach: '#FFD0C6',
   sand: '#E9DCCF',
   beige: '#D9C7BA',
 
@@ -52,11 +52,11 @@ export const Colors = {
   accentSoft: '#FBECC4',
 
   // —— CTA / brand orange ——
-  primary: '#F47B4B',
-  primaryPressed: '#E06A3C',
-  primaryLight: '#F7C4A3',
-  secondary: '#F67C49',
-  secondaryPressed: '#E56B3A',
+  primary: '#FF8F7A',
+  primaryPressed: '#F07864',
+  primaryLight: '#FFD0C6',
+  secondary: '#FF8F7A',
+  secondaryPressed: '#F07864',
   secondaryLight: '#FCE8C0',
 
   // —— Neutral ——
@@ -70,25 +70,25 @@ export const Colors = {
 
   // Status
   success: '#A9B69A',
-  warning: '#F67C49',
+  warning: '#FF8F7A',
   error: '#E57A72',
 
   // Emotion diary
-  moodGood: '#F47B4B',
+  moodGood: '#FF8F7A',
   moodOk: '#D4E08A',
   moodHard: '#8EC5E8',
 
   // Buttons
-  buttonPrimaryBg: '#F47B4B',
+  buttonPrimaryBg: '#FF8F7A',
   buttonPrimaryText: '#FFFFFF',
   buttonSecondaryBg: '#FFFFFF',
-  buttonSecondaryText: '#5E4033',
+  buttonSecondaryText: '#7A5B45',
   buttonDisabledBg: '#E9DCCF',
   buttonDisabledText: '#B79A8A',
 
   // Energy / Progress
   /** 충분(≥900)일 때 — 긍정 보상 */
-  energyFill: '#F47B4B',
+  energyFill: '#FF8F7A',
   /** 중간·완충 필요 — 따뜻한 안내 (경고 아님) */
   energyFillMid: '#F4C85B',
   energyTrack: '#E9DCCF',

@@ -3,7 +3,7 @@ import type { AssessmentId } from '../constants/MindAssessments'
 
 const KEY = 'hp_mind_check_results'
 const SEED_KEY = `${KEY}_seeded`
-const SEED_VERSION = '3'
+const SEED_VERSION = '5'
 
 export type MindCheckResultRecord = {
   id: string
@@ -16,6 +16,13 @@ export type MindCheckResultRecord = {
 
 const DEMO_SEEDS: MindCheckResultRecord[] = [
   {
+    id: 'demo-phq-2026-07-17',
+    assessmentId: 'phq',
+    score: 20,
+    max: 36,
+    at: '2026-07-17T12:00:00.000Z',
+  },
+  {
     id: 'demo-phq-2025-07-11',
     assessmentId: 'phq',
     score: 20,
@@ -23,18 +30,11 @@ const DEMO_SEEDS: MindCheckResultRecord[] = [
     at: '2025-07-11T12:00:00.000Z',
   },
   {
-    id: 'demo-phq-2025-06-20',
-    assessmentId: 'phq',
+    id: 'demo-stress-2026-05-19',
+    assessmentId: 'stress',
     score: 12,
-    max: 36,
-    at: '2025-06-20T12:00:00.000Z',
-  },
-  {
-    id: 'demo-phq-2025-05-08',
-    assessmentId: 'phq',
-    score: 8,
-    max: 36,
-    at: '2025-05-08T12:00:00.000Z',
+    max: 33,
+    at: '2026-05-19T12:00:00.000Z',
   },
   {
     id: 'demo-stress-2025-07-03',
@@ -139,4 +139,14 @@ export function formatResultDateShort(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   return `${d.getMonth() + 1}/${d.getDate()}`
+}
+
+/** 목록용 YYYY-MM-DD */
+export function formatResultDateYmd(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }

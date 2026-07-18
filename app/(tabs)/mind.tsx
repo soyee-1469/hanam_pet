@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -11,15 +11,11 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
   CaretRight,
   Heart,
+  Lightning,
   Moon,
   Play,
   Sparkle,
   Sun,
-  ClipboardText,
-  ChartBar,
-  Headset,
-  CheckCircle,
-  RadioButton,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -32,9 +28,20 @@ import {
   type MindMoodFilter,
 } from '../../constants/MindContent'
 import {
+  formatResultDateYmd,
   getMindCheckResults,
   type MindCheckResultRecord,
 } from '../../lib/mindCheckResults'
+import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
+import {
+  finishPetTourWithComplete,
+  getPetTourStepIndex,
+  setPetTourStepIndex,
+  subscribePetTour,
+} from '../../lib/coachmarkTourState'
+import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
+import { getPetName } from '../../lib/petProfile'
 
 type TabId = 'fill' | 'check'
 
@@ -57,47 +64,23 @@ const ICON_MAP: Record<MindContent['icon'], Icon> = {
   sparkle: Sparkle,
 }
 
-const DAILY_CHECKS = [
-  { id: 'sleep', label: '오늘 충분히 잠을 잤나요?' },
-  { id: 'meal', label: '식사는 잘 하고 있나요?' },
-] as const
-
-const CHECK_ACTIONS: {
-  id: string
-  title: string
-  body: string
-  Icon: Icon
-  route: '/mind-report' | '/support'
-}[] = [
-  {
-    id: 'report',
-    title: '지나온 마음 기록',
-    body: '자가진단 결과 히스토리를 한눈에 살펴봐요',
-    Icon: ChartBar,
-    route: '/mind-report',
-  },
-  {
-    id: 'counsel',
-    title: '전문 상담 연결',
-    body: '필요할 때 상담·긴급 연락처로 바로 연결해요',
-    Icon: Headset,
-    route: '/support',
-  },
-]
-
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000
-
-function avgScorePct(list: MindCheckResultRecord[]): number | null {
-  if (list.length === 0) return null
-  const sum = list.reduce((acc, r) => {
-    const max = r.max > 0 ? r.max : 1
-    return acc + (r.score / max) * 100
-  }, 0)
-  return Math.round(sum / list.length)
+const CHECK_ICON: Record<MindCheckItem['icon'], Icon> = {
+  moon: Moon,
+  heart: Heart,
+  lightning: Lightning,
 }
+
+type MindCheckItem = (typeof MIND_CHECKS)[number]
 
 function openContent(id: string) {
   router.push({ pathname: '/mind-content', params: { id } })
+}
+
+function latestForCheck(
+  results: MindCheckResultRecord[],
+  id: MindCheckItem['id'],
+) {
+  return results.find((r) => r.assessmentId === id) ?? null
 }
 
 export default function MindScreen() {
@@ -110,11 +93,53 @@ export default function MindScreen() {
       : 'fill'
   const [tab, setTab] = useState<TabId>(initialSegment)
   const [filter, setFilter] = useState<MindMoodFilter>('all')
-  const [dailyDone, setDailyDone] = useState<Record<string, boolean>>({
-    sleep: false,
-    meal: false,
-  })
   const [results, setResults] = useState<MindCheckResultRecord[]>([])
+  const [petName, setPetName] = useState('하치')
+  const [tourIndex, setTourIndex] = useState<number | null>(
+    getPetTourStepIndex(),
+  )
+
+  const tourStep =
+    tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
+  const showMindTour = tourStep?.route === 'mind'
+  const tourHighlightCheck =
+    showMindTour && tourStep?.highlight === 'checkTool'
+
+  useEffect(() => {
+    return subscribePetTour(() => {
+      setTourIndex(getPetTourStepIndex())
+    })
+  }, [])
+
+  useEffect(() => {
+    void getPetName().then((n) => {
+      if (n) setPetName(n)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (showMindTour) setTab('check')
+  }, [showMindTour])
+
+  const finishPetTour = async () => {
+    finishPetTourWithComplete()
+    await setCoachmarkWelcomeStatus('accepted')
+    router.replace('/(tabs)')
+  }
+
+  const onPetTourNext = () => {
+    if (tourIndex == null) return
+    const next = tourIndex + 1
+    if (next < PET_TOUR_STEPS.length) {
+      const step = PET_TOUR_STEPS[next]
+      setPetTourStepIndex(next)
+      if (step.route !== 'mind') {
+        router.push(petTourHref(step.route) as never)
+      }
+      return
+    }
+    void finishPetTour()
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -135,24 +160,6 @@ export default function MindScreen() {
     if (filter === 'all') return MIND_CONTENTS
     return MIND_CONTENTS.filter((c) => c.mood === filter)
   }, [filter])
-
-  const dailyChecked = Object.values(dailyDone).filter(Boolean).length
-
-  const weekStats = useMemo(() => {
-    const now = Date.now()
-    const thisWeek = results.filter(
-      (r) => now - new Date(r.at).getTime() < WEEK_MS,
-    )
-    const lastWeek = results.filter((r) => {
-      const age = now - new Date(r.at).getTime()
-      return age >= WEEK_MS && age < WEEK_MS * 2
-    })
-    const thisPct = avgScorePct(thisWeek)
-    const lastPct = avgScorePct(lastWeek)
-    const delta =
-      thisPct != null && lastPct != null ? thisPct - lastPct : null
-    return { thisPct, delta, hasAny: results.length > 0 }
-  }, [results])
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -297,196 +304,111 @@ export default function MindScreen() {
           </>
         ) : (
           <>
-            <View style={styles.scoreCard}>
-              <Text style={styles.scoreCardTitle}>오늘의 자가검진</Text>
-              <View style={styles.dailyList}>
-                {DAILY_CHECKS.map((item) => {
-                  const on = !!dailyDone[item.id]
-                  return (
-                    <Pressable
-                      key={item.id}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: on }}
-                      onPress={() =>
-                        setDailyDone((prev) => ({
-                          ...prev,
-                          [item.id]: !prev[item.id],
-                        }))
-                      }
-                      style={styles.dailyRow}
-                    >
-                      {on ? (
-                        <CheckCircle
-                          size={22}
-                          color={Colors.taupe}
-                          weight="fill"
-                        />
-                      ) : (
-                        <RadioButton
-                          size={22}
-                          color={Colors.sand}
-                          weight="regular"
-                        />
-                      )}
-                      <Text
-                        style={[
-                          styles.dailyLabel,
-                          on && styles.dailyLabelOn,
-                        ]}
-                      >
-                        {item.label}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-              </View>
+            <View style={styles.checkNotice}>
+              <Text style={styles.checkNoticeText}>
+                자신의 증상을 직접 확인하고 작성한 자가보고식 평가 결과는
+                참고용으로, 의학적 진단을 대체하지 않아요.
+              </Text>
+            </View>
 
-              <View style={styles.scoreBlock}>
-                {weekStats.thisPct != null ? (
-                  <>
-                    <View style={styles.scoreTop}>
-                      <Text style={styles.scoreLabel}>이번 주 마음 점수</Text>
-                      <Text style={styles.scoreValue}>{weekStats.thisPct}</Text>
-                    </View>
-                    <View style={styles.scoreTrack}>
-                      <View
-                        style={[
-                          styles.scoreFill,
-                          {
-                            width: `${Math.min(100, Math.max(0, weekStats.thisPct))}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <View style={styles.compareRow}>
-                      <Text style={styles.compareLabel}>지난 주 대비</Text>
-                      <Text style={styles.compareValue}>
-                        {weekStats.delta == null
-                          ? '—'
-                          : `${weekStats.delta > 0 ? '+' : ''}${weekStats.delta}점`}
-                      </Text>
-                    </View>
-                    <Text style={styles.compareHint}>
-                      {dailyChecked}/{DAILY_CHECKS.length} 체크 · 검사 점수
-                      평균(높을수록 부담이 클 수 있어요)
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.scoreEmptyTitle}>
-                      {weekStats.hasAny
-                        ? '이번 주 검사가 아직 없어요'
-                        : '아직 검사 기록이 없어요'}
-                    </Text>
-                    <Text style={styles.scoreEmptyBody}>
-                      아래 자가검진을 하면 이번 주 점수가 여기에 모여요.
-                    </Text>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="우울 검사 시작"
-                      onPress={() =>
-                        router.push({
-                          pathname: '/mind-check-intro',
-                          params: { id: 'phq' },
-                        })
-                      }
-                      style={({ pressed }) => [
-                        styles.scoreEmptyCta,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <Text style={styles.scoreEmptyCtaText}>
-                        자가검진 하러 가기
-                      </Text>
-                      <CaretRight
-                        size={16}
+            <Text style={styles.sectionLabel}>내 마음을 들여다 봐요</Text>
+            <View style={styles.checkList}>
+              {MIND_CHECKS.map((check) => {
+                const IconComp = CHECK_ICON[check.icon]
+                const latest = latestForCheck(results, check.id)
+                const highlight =
+                  tourHighlightCheck && check.id === MIND_CHECKS[0]?.id
+                return (
+                  <Pressable
+                    key={check.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={check.title}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/mind-check-intro',
+                        params: { id: check.id },
+                      })
+                    }
+                    style={({ pressed }) => [
+                      styles.checkCard,
+                      highlight && styles.checkCardTour,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.checkIconWrap}>
+                      <IconComp
+                        size={22}
                         color={Colors.primary}
-                        weight="bold"
+                        weight="regular"
                       />
-                    </Pressable>
-                  </>
-                )}
-              </View>
-            </View>
-
-            <Text style={styles.sectionLabel}>스스로 체크하기</Text>
-            <View style={styles.listCard}>
-              {MIND_CHECKS.map((check, i) => (
-                <Pressable
-                  key={check.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={check.title}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/mind-check-intro',
-                      params: { id: check.id },
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.actionRow,
-                    i < MIND_CHECKS.length - 1 && styles.rowDivider,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.actionNum}>
-                    <ClipboardText
-                      size={18}
-                      color={Colors.selected}
-                      weight="regular"
+                    </View>
+                    <View style={styles.rowCopy}>
+                      <Text style={styles.rowTitle}>{check.title}</Text>
+                      <Text style={styles.rowMeta}>
+                        {check.code} · {check.questions}문항 · 약 {check.minutes}
+                        분
+                      </Text>
+                      <Text style={styles.checkHistory}>
+                        {latest
+                          ? `최근 평가 ${formatResultDateYmd(latest.at)}`
+                          : '검사 이력 없음'}
+                      </Text>
+                    </View>
+                    <CaretRight
+                      size={16}
+                      color={Colors.textDisabled}
+                      weight="bold"
                     />
-                  </View>
-                  <View style={styles.rowCopy}>
-                    <Text style={styles.rowTitle}>{check.title}</Text>
-                    <Text style={styles.rowMeta}>
-                      {check.sub} · 약 {check.minutes}분
-                    </Text>
-                  </View>
-                  <CaretRight
-                    size={16}
-                    color={Colors.textDisabled}
-                    weight="bold"
-                  />
-                </Pressable>
-              ))}
-            </View>
-
-            <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
-              마음을 살펴보는 방법
-            </Text>
-            <View style={styles.listCard}>
-              {CHECK_ACTIONS.map((action, i) => (
-                <Pressable
-                  key={action.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={action.title}
-                  onPress={() => router.push(action.route)}
-                  style={({ pressed }) => [
-                    styles.actionRow,
-                    i < CHECK_ACTIONS.length - 1 && styles.rowDivider,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.actionNum}>
-                    <Text style={styles.actionNumText}>{i + 1}</Text>
-                  </View>
-                  <View style={styles.rowCopy}>
-                    <Text style={styles.rowTitle}>{action.title}</Text>
-                    <Text style={styles.rowMeta}>{action.body}</Text>
-                  </View>
-                  <action.Icon
-                    size={20}
-                    color={Colors.textSecondary}
-                    weight="regular"
-                  />
-                </Pressable>
-              ))}
+                  </Pressable>
+                )
+              })}
             </View>
           </>
         )}
       </ScrollView>
+
+      {showMindTour && tourStep ? (
+        <View style={styles.coachOverlay} pointerEvents="box-none">
+          <View style={styles.coachScrim} />
+          {tourHighlightCheck ? (
+            <View
+              style={styles.tourSpotlight}
+              pointerEvents="none"
+              accessibilityElementsHidden
+            >
+              <View style={styles.checkIconWrap}>
+                <Moon size={22} color={Colors.primary} weight="regular" />
+              </View>
+              <View style={styles.rowCopy}>
+                <Text style={styles.rowTitle}>
+                  {MIND_CHECKS[0]?.title ?? '우울 평가도구'}
+                </Text>
+                <Text style={styles.rowMeta}>
+                  {MIND_CHECKS[0]
+                    ? `${MIND_CHECKS[0].code} · ${MIND_CHECKS[0].questions}문항 · 약 ${MIND_CHECKS[0].minutes}분`
+                    : ''}
+                </Text>
+              </View>
+              <CaretRight
+                size={16}
+                color={Colors.textDisabled}
+                weight="bold"
+              />
+            </View>
+          ) : null}
+          <CoachmarkTourCard
+            step={tourStep}
+            stepIndex={tourIndex ?? 0}
+            petName={petName}
+            onNext={onPetTourNext}
+            bottom={Math.max(insets.bottom, 12) + 24}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
+
 
 const styles = StyleSheet.create({
   safe: {
@@ -620,6 +542,52 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 12,
   },
+  checkNotice: {
+    backgroundColor: Colors.accentSoft,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  checkNoticeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 20,
+    color: Colors.textPrimary,
+  },
+  checkList: {
+    gap: 10,
+  },
+  checkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    ...Shadows.elevation,
+  },
+  checkCardTour: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+  },
+  checkIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.peach,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkHistory: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textDisabled,
+  },
   chipRow: {
     gap: 8,
     paddingBottom: 14,
@@ -652,6 +620,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.divider,
     overflow: 'hidden',
+    ...Shadows.elevation,
+  },
+  coachOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 28,
+  },
+  coachScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(91, 57, 39, 0.35)',
+  },
+  tourSpotlight: {
+    position: 'absolute',
+    top: 168,
+    left: Layout.screenPaddingH,
+    right: Layout.screenPaddingH,
+    zIndex: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 72,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderRadius: 18,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
     ...Shadows.elevation,
   },
   row: {

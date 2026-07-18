@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft, CaretRight, BookOpen, Plus } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, Plus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -20,6 +20,16 @@ import {
   findDiaryEntryByDate,
 } from '../../constants/diaryDemo'
 import { MoodEmoji } from '../../components/MoodEmoji'
+import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
+import {
+  finishPetTourWithComplete,
+  getPetTourStepIndex,
+  setPetTourStepIndex,
+  subscribePetTour,
+} from '../../lib/coachmarkTourState'
+import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
+import { getPetName } from '../../lib/petProfile'
 
 type DayMood = {
   day: number
@@ -76,6 +86,48 @@ export default function DiaryScreen() {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   )
   const [selectedDay, setSelectedDay] = useState(today.getDate())
+  const [petName, setPetName] = useState('하치')
+  const [tourIndex, setTourIndex] = useState<number | null>(
+    getPetTourStepIndex(),
+  )
+
+  const tourStep =
+    tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
+  const showDiaryTour = tourStep?.route === 'diary'
+  const tourHighlightWrite =
+    showDiaryTour && tourStep?.highlight === 'writeCta'
+
+  useEffect(() => {
+    return subscribePetTour(() => {
+      setTourIndex(getPetTourStepIndex())
+    })
+  }, [])
+
+  useEffect(() => {
+    void getPetName().then((n) => {
+      if (n) setPetName(n)
+    })
+  }, [])
+
+  const finishPetTour = async () => {
+    finishPetTourWithComplete()
+    await setCoachmarkWelcomeStatus('accepted')
+    router.replace('/(tabs)')
+  }
+
+  const onPetTourNext = () => {
+    if (tourIndex == null) return
+    const next = tourIndex + 1
+    if (next < PET_TOUR_STEPS.length) {
+      const step = PET_TOUR_STEPS[next]
+      setPetTourStepIndex(next)
+      if (step.route !== 'diary') {
+        router.push(petTourHref(step.route) as never)
+      }
+      return
+    }
+    void finishPetTour()
+  }
 
   const year = cursor.getFullYear()
   const month = cursor.getMonth()
@@ -145,23 +197,15 @@ export default function DiaryScreen() {
   const openDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
-    const entry = findDiaryEntryByDate(year, month + 1, day)
-    if (entry) {
-      router.push({
-        pathname: '/diary-detail',
-        params: { id: entry.id },
-      })
-      return
-    }
-    router.push({
-      pathname: '/diary-write',
-      params: {
-        year: String(year),
-        month: String(month + 1),
-        day: String(day),
-      },
-    })
   }
+
+  const selectedEntry = useMemo(() => {
+    const useToday = isFutureDay(selectedDay)
+    const y = useToday ? today.getFullYear() : year
+    const m = useToday ? today.getMonth() + 1 : month + 1
+    const d = useToday ? today.getDate() : selectedDay
+    return findDiaryEntryByDate(y, m, d)
+  }, [selectedDay, year, month, today])
 
   const openSelectedOrWrite = () => {
     const useToday = isFutureDay(selectedDay)
@@ -193,19 +237,6 @@ export default function DiaryScreen() {
           <Text style={styles.title}>마음일기</Text>
           <Text style={styles.subtitle}>하루의 감정을 남겨봐요</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="마음일기장 보기"
-          hitSlop={8}
-          onPress={() => router.push('/diary-list')}
-          style={({ pressed }) => [
-            styles.listEntryBtn,
-            pressed && styles.iconBtnPressed,
-          ]}
-        >
-          <BookOpen size={18} color={Colors.textPrimary} weight="regular" />
-          <Text style={styles.listEntryText}>일기장</Text>
-        </Pressable>
       </View>
 
       <ScrollView
@@ -332,7 +363,7 @@ export default function DiaryScreen() {
         <View style={styles.distCard}>
           <View style={styles.distHeader}>
             <Text style={styles.distTitle} numberOfLines={1}>
-              이번 달 몽이와 나눈 마음
+              이번 달 하치와 나눈 마음
             </Text>
             <Text style={styles.distCount}>{dist.count}일 기록</Text>
           </View>
@@ -390,29 +421,51 @@ export default function DiaryScreen() {
       </ScrollView>
 
       <View
-        style={[styles.ctaWrap, { paddingBottom: tabBarSpace + 12 }]}
+        style={[
+          styles.ctaWrap,
+          { paddingBottom: tabBarSpace + 12 },
+          tourHighlightWrite && styles.ctaWrapTour,
+        ]}
         collapsable={false}
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="감정 기록하기"
+          accessibilityLabel={
+            selectedEntry ? '기록 보러갈께요' : '마음을 기록할게요'
+          }
           onPress={openSelectedOrWrite}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
-          <View style={styles.cta} collapsable={false}>
-            <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-            <Text style={styles.ctaText}>
-              {findDiaryEntryByDate(
-                isFutureDay(selectedDay) ? today.getFullYear() : year,
-                isFutureDay(selectedDay) ? today.getMonth() + 1 : month + 1,
-                isFutureDay(selectedDay) ? today.getDate() : selectedDay,
-              )
-                ? '기록 보러 갈게요'
-                : '마음을 기록할게요'}
-            </Text>
+          <View
+            style={[
+              tourHighlightWrite && styles.ctaTourRing,
+            ]}
+            collapsable={false}
+          >
+            <View style={styles.cta} collapsable={false}>
+              {selectedEntry ? null : (
+                <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
+              )}
+              <Text style={styles.ctaText}>
+                {selectedEntry ? '기록 보러갈께요' : '마음을 기록할게요'}
+              </Text>
+            </View>
           </View>
         </Pressable>
       </View>
+
+      {showDiaryTour && tourStep ? (
+        <View style={styles.coachOverlay} pointerEvents="box-none">
+          <View style={styles.coachScrim} />
+          <CoachmarkTourCard
+            step={tourStep}
+            stepIndex={tourIndex ?? 0}
+            petName={petName}
+            onNext={onPetTourNext}
+            bottom={Math.max(insets.bottom, 12) + 86}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
@@ -457,23 +510,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 20,
   },
-  listEntryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  listEntryText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
   iconBtnPressed: {
     backgroundColor: Colors.divider,
   },
@@ -486,6 +522,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     backgroundColor: Colors.background,
+  },
+  ctaWrapTour: {
+    zIndex: 30,
+  },
+  coachOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 28,
+  },
+  coachScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   monthRow: {
     flexDirection: 'row',
@@ -720,6 +771,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.elevation,
+  },
+  ctaTourRing: {
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    padding: 3,
+    backgroundColor: 'rgba(255, 143, 122, 0.2)',
   },
   ctaPressed: {
     opacity: 0.92,

@@ -26,6 +26,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
 import { PrimaryButton, ScreenHeader } from '../../components/ui'
+import { BottomSheet } from '../../components/ui/AppOverlay'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
@@ -74,7 +75,14 @@ function OtpGroup({
         const i = start + offset
         const isActive = focused === i
         return (
-          <View key={i} style={styles.otpCellWrap}>
+          <View
+            key={i}
+            style={[
+              styles.otpCellWrap,
+              isActive && styles.otpCellOn,
+              digit !== '' && !isActive && styles.otpCellFilled,
+            ]}
+          >
             <TextInput
               ref={(el) => {
                 inputs.current[i] = el
@@ -87,11 +95,7 @@ function OtpGroup({
               maxLength={i === 0 ? CODE_LEN : 1}
               selectTextOnFocus
               textContentType="oneTimeCode"
-              style={[
-                styles.otpCell,
-                isActive && styles.otpCellOn,
-                digit !== '' && !isActive && styles.otpCellFilled,
-              ]}
+              style={styles.otpCell}
               accessibilityLabel={`${i + 1}번째 자리`}
             />
           </View>
@@ -196,7 +200,8 @@ export default function OnboardingResume() {
     }
   }
 
-  if (step === 'lost') {
+  if (step === 'lost' || step === 'giveUp') {
+    const g = copy.lost.giveUp
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScreenHeader title={copy.header} onBack={() => setStep('code')} />
@@ -284,19 +289,10 @@ export default function OnboardingResume() {
             <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
-    )
-  }
 
-  if (step === 'giveUp') {
-    const g = copy.lost.giveUp
-    return (
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScreenHeader title={copy.header} onBack={() => setStep('lost')} />
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.giveUpBody}
-          showsVerticalScrollIndicator={false}
+        <BottomSheet
+          visible={step === 'giveUp'}
+          onRequestClose={() => setStep('lost')}
         >
           <Text style={styles.giveUpTitle}>{g.title}</Text>
 
@@ -329,25 +325,25 @@ export default function OnboardingResume() {
               </Text>
             ))}
           </View>
-        </ScrollView>
 
-        <View style={styles.footer}>
-          <PrimaryButton
-            label={g.restart}
-            emphasized
-            onPress={() => router.replace('/onboarding/intro')}
-          />
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setStep('code')}
-            style={({ pressed }) => [
-              styles.giveUpLookAgain,
-              pressed && styles.giveUpLookAgainPressed,
-            ]}
-          >
-            <Text style={styles.giveUpLookAgainText}>{g.lookAgain}</Text>
-          </Pressable>
-        </View>
+          <View style={styles.giveUpActions}>
+            <PrimaryButton
+              label={g.restart}
+              emphasized
+              onPress={() => router.replace('/onboarding/intro')}
+            />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setStep('code')}
+              style={({ pressed }) => [
+                styles.giveUpLookAgain,
+                pressed && styles.giveUpLookAgainPressed,
+              ]}
+            >
+              <Text style={styles.giveUpLookAgainText}>{g.lookAgain}</Text>
+            </Pressable>
+          </View>
+        </BottomSheet>
       </SafeAreaView>
     )
   }
@@ -430,7 +426,6 @@ export default function OnboardingResume() {
             ]}
           >
             <Text style={styles.helpBtnText}>{copy.code.lostLink}</Text>
-            <CaretRight size={18} color={Colors.textSecondary} weight="bold" />
           </Pressable>
         </ScrollView>
 
@@ -546,14 +541,16 @@ const styles = StyleSheet.create({
     flexBasis: 0,
     minWidth: 28,
     maxWidth: 44,
-  },
-  otpCell: {
-    width: '100%',
     height: 52,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
+    overflow: 'hidden',
+  },
+  otpCell: {
+    width: '100%',
+    height: '100%',
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '800',
@@ -569,22 +566,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   helpBtn: {
-    marginTop: 22,
-    width: '100%',
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    ...Shadows.elevation,
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    marginTop: 16,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: Colors.creamyBeige,
   },
   helpBtnPressed: {
     opacity: 0.85,
@@ -593,9 +580,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   helpBtnText: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
   tipList: {
     gap: 12,
@@ -714,51 +701,51 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textDisabled,
   },
-  giveUpBody: {
-    paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 12,
-    flexGrow: 1,
-  },
   giveUpTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 20,
-    lineHeight: 32,
+    marginBottom: 16,
+    lineHeight: 30,
+    textAlign: 'center',
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingTop: 20,
-    paddingBottom: 22,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
+    marginBottom: 20,
   },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   giveUpPrivacyTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
   },
   giveUpPrivacyBody: {
-    fontSize: 14,
-    lineHeight: 24,
+    fontSize: 13,
+    lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
   giveUpPrivacyGap: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   giveUpPrivacyBold: {
     fontWeight: '800',
     color: Colors.textPrimary,
+  },
+  giveUpActions: {
+    gap: 4,
   },
   giveUpLookAgain: {
     alignItems: 'center',
@@ -769,9 +756,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   giveUpLookAgainText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
     textDecorationLine: 'underline',
   },
 })

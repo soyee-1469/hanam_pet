@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Animated,
   TextInput,
+  Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
@@ -19,9 +20,12 @@ import {
   X,
   Heart,
   CaretDown,
+  PencilSimple,
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { tabBarReserveHeight } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
+import { CatExpr } from '../../constants/OnboardingMascot'
 import { useDesignWindow } from '../../components/AppViewport'
 import {
   consumeWelcomePending,
@@ -54,17 +58,39 @@ import {
   defaultPetName,
 } from '../../lib/petProfile'
 import { showToast } from '../../lib/toast'
-import { BottomSheet, CenterDialog } from '../../components/ui'
-
-const USER = {
-  nickname: '몽이',
-}
+import { BottomSheet } from '../../components/ui'
+import { CoachmarkWelcomeSheet } from '../../components/CoachmarkWelcomeSheet'
+import { CoachmarkCompleteSheet } from '../../components/CoachmarkCompleteSheet'
+import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import {
+  getCoachmarkWelcomeStatus,
+  setCoachmarkWelcomeStatus,
+} from '../../lib/coachmarkStorage'
+import {
+  dismissHomeReceiveTip,
+  dismissHomeStockTip,
+  getHomeGuideTips,
+} from '../../lib/homeGuideTipsStorage'
+import {
+  canClaimNow,
+  getClaimMenuStatus,
+  loadPetClaimState,
+  recordPetClaim,
+  type PetClaimState,
+} from '../../lib/petClaimCooldown'
+import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
+import {
+  dismissPetTourComplete,
+  finishPetTourWithComplete,
+  getPetTourCompletePending,
+  getPetTourStepIndex,
+  setPetTourStepIndex,
+  startPetTourFromWelcome,
+  subscribePetTour,
+} from '../../lib/coachmarkTourState'
 
 const PET = {
-  name: '몽이',
-  greetingBubble: '오늘도 같이 있어줘서 고마워',
-  energy: 595,
-  energyMax: 1000,
+  name: '하치',
   foodCount: 1,
   toyCount: 3,
 }
@@ -103,19 +129,41 @@ const HEADER_MENU = [
 ] as const
 
 
-const FEED_THANKS = [
-  '맛있어요!',
-  '잘 먹을게요!',
-  '우와, 고마워요!',
-  '맘마 최고예요!',
+/** 사료 주기 완료 — 시안 메인 카피 */
+const FEED_DONE_SPEECH = {
+  mongi: '밥 먹어서 에너지가 올랐다멍!',
+  nami: '밥 먹어서 에너지가 올랐다냥!',
+} as const
+
+/** 놀아 주기 완료 — 시안 메인 카피 */
+const PLAY_DONE_SPEECH = {
+  mongi: '놀아줘서 에너지가 늘었다멍!',
+  nami: '놀아줘서 에너지가 늘었다냥!',
+} as const
+
+/** 캐릭터 탭 — 말풍선 순환 (시안) */
+const PET_TAP_LINES = [
+  '오늘 뭐해요?',
+  '배고파요',
+  '같이 놀아요!',
+  '신나요!',
+  '심심해요',
 ] as const
 
-const PLAY_THANKS = [
-  '신나요!',
-  '더 놀자!',
-  '좋아!',
-  '같이 놀아줘서 고마워!',
-] as const
+/** 사료 주기 하트 버스트 위치 */
+const HEART_BURST: {
+  top: string
+  left?: string
+  right?: string
+  size: number
+}[] = [
+  { top: '6%', left: '10%', size: 18 },
+  { top: '14%', right: '8%', size: 24 },
+  { top: '36%', left: '2%', size: 16 },
+  { top: '32%', right: '4%', size: 20 },
+  { top: '58%', left: '12%', size: 14 },
+  { top: '54%', right: '10%', size: 18 },
+]
 
 const CLAIM_FEED_LINES = [
   '우와! 좋아하는 맘마예요. 정말 기뻐할 거예요!',
@@ -123,26 +171,59 @@ const CLAIM_FEED_LINES = [
   '고마워요! 이제 맘마 줄 준비가 됐어요.',
 ] as const
 
-const CLAIM_TOY_LINES = [
-  '몽이와 놀아줄 시간이네요! 기운이 쑥쑥 차오르겠어요.',
-  '장난감이다! 같이 놀면 더 신날 거예요.',
-  '고마워요! 놀아 주기만 하면 돼요.',
-] as const
+const CLAIM_TOY_LINES = (name: string) =>
+  [
+    `${name}와 놀아줄 시간이네요! 기운이 쑥쑥 차오르겠어요.`,
+    '장난감이다! 같이 놀면 더 신날 거예요.',
+    '고마워요! 놀아 주기만 하면 돼요.',
+  ] as const
 
-const HELP_ITEMS = [
-  {
-    title: '받기 제한',
-    body: '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 제작된 건 23시 59분까지 받지 않으면 사라져요.',
-  },
-  {
-    title: '보관 한도',
-    body: '사료와 장난감은 최대 5개까지만 보관할 수 있어요.',
-  },
-  {
-    title: '돌보기',
-    body: '사료 주기·놀아 주기로 에너지를 채우고 몽이와 더 가까워질 수 있어요.',
-  },
-] as const
+function helpItems(name: string) {
+  return [
+    {
+      title: '받기 제한',
+      body: '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 제작된 사료와 장난감은 23시 59분까지 받지 않으면 사라져요.',
+    },
+    {
+      title: '보관 한도',
+      body: '사료와 장난감은 최대 5개까지만 보관할 수 있어요.',
+    },
+    {
+      title: '돌보기',
+      body: `사료 주기·놀아 주기로 에너지를 채우고 ${name}와 더 가까워질 수 있어요.`,
+    },
+  ] as const
+}
+
+const HOME_RECEIVE_TIP =
+  '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 제작된 사료와 장난감은 23시 59분까지 받지 않으면 사라져요.'
+
+const HOME_STOCK_TIP =
+  '사료와 장난감은 최대 5개까지만 보관할 수 있어요.'
+
+/** 펫 홈 헤더 — 시간대 상태 문구 (시안 콜라주) */
+function homeStatusLine(now = new Date()): string {
+  const h = now.getHours()
+  if (h < 11) return '좋은 아침이에요!'
+  if (h < 17) return '숨 한번 크게 고를까요?'
+  if (h < 21) return '오늘 하루도 수고했어요.'
+  return '편안한 밤 보내요.'
+}
+
+/** 기본 말풍선 — 헤더와 짝 */
+function homeGreetingBubble(now = new Date()): string {
+  const h = now.getHours()
+  if (h < 11) return '오늘도 같이 시작해 볼까요'
+  if (h < 17) return '잠깐 기지개도 켜봐요'
+  if (h < 21) return '이제 나랑 편하게 쉬어요'
+  return '오늘도 화이팅해요'
+}
+
+const TAB_WELCOME = {
+  title: '다시 만나서 반가워요!',
+  subtitle: '오늘도 마음을 이해하고 들여다봐요.',
+  bubble: '오늘도 화이팅해요',
+} as const
 
 type CareStockCardProps = {
   count: number
@@ -153,6 +234,8 @@ type CareStockCardProps = {
   onAcquire: () => void
   /** 0개일 때 아이콘 회색 처리 (장난감 등) */
   grayIconWhenEmpty?: boolean
+  /** 코치마크 하이라이트 */
+  tourHighlight?: boolean
 }
 
 /** 케어 CTA — creamyBeige 면 + selected 테두리 (오렌지 절제) */
@@ -164,6 +247,7 @@ function CareStockCard({
   onUse,
   onAcquire,
   grayIconWhenEmpty = false,
+  tourHighlight = false,
 }: CareStockCardProps) {
   const enabled = count > 0
   const scale = useRef(new Animated.Value(1)).current
@@ -201,6 +285,7 @@ function CareStockCard({
         style={[
           styles.stockCard,
           hovered && styles.stockCardHovered,
+          tourHighlight && styles.stockCardTour,
           { cursor: 'pointer' } as object,
         ]}
       >
@@ -225,12 +310,15 @@ function CareStockCard({
   )
 }
 
-/** 충분(≥900)만 primary — 그 외는 accent로 완충 안내 */
+/** 미션 퀵 바 — Bounding Box 전체 터치 + 수령 가능/쿨다운 */
 type MenuQuickItemProps = {
   label: string
   image: number
   bgColor: string
-  badge?: number
+  /** 받기 가능(제작 완료) */
+  ready?: boolean
+  /** 쿨다운 남은 시간 HH:MM:SS */
+  cooldownLabel?: string
   highlighted?: boolean
   circleSize: number
   iconSize: number
@@ -238,25 +326,32 @@ type MenuQuickItemProps = {
   onPress: () => void
 }
 
-/** 미션 퀵 바 — Bounding Box 전체 터치 + 수령 가능 Hover lift */
 function MenuQuickItem({
   label,
   image,
   bgColor,
-  badge,
+  ready = false,
+  cooldownLabel,
   highlighted,
   circleSize,
   iconSize,
   labelSize,
   onPress,
 }: MenuQuickItemProps) {
-  const claimable = Boolean(badge)
+  const cooling = Boolean(cooldownLabel)
   const [hovered, setHovered] = useState(false)
-  const lift = (claimable && hovered) || highlighted
+  const lift = (ready && hovered) || highlighted
 
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={
+        ready
+          ? `${label}, 제작 완료`
+          : cooling
+            ? `${label}, 남은 시간 ${cooldownLabel}`
+            : label
+      }
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
@@ -275,7 +370,9 @@ function MenuQuickItem({
               height: circleSize,
               backgroundColor: bgColor,
             },
-            highlighted && styles.menuCircleNudge,
+            ready && styles.menuCircleReady,
+            cooling && styles.menuCircleCooldown,
+            highlighted && !ready && !cooling && styles.menuCircleNudge,
           ]}
         >
           <Image
@@ -284,15 +381,21 @@ function MenuQuickItem({
             resizeMode="contain"
           />
         </View>
-        {badge ? (
-          <View style={styles.menuBadge}>
-            <Text style={styles.menuBadgeText}>{badge}</Text>
-          </View>
-        ) : null}
+        {ready ? <View style={styles.menuReadyDot} /> : null}
       </View>
       <Text style={[styles.menuLabel, { fontSize: labelSize }]} numberOfLines={1}>
         {label}
       </Text>
+      {ready ? (
+        <Text style={styles.menuReadyCaption} numberOfLines={1}>
+          제작 완료
+        </Text>
+      ) : null}
+      {cooling ? (
+        <Text style={styles.menuCooldownCaption} numberOfLines={1}>
+          {cooldownLabel}
+        </Text>
+      ) : null}
     </Pressable>
   )
 }
@@ -327,6 +430,9 @@ function LevelEnergyBlock({
         <View style={styles.energyNums}>
           <Text style={styles.energyCurrent}>{energy.toLocaleString()}</Text>
           <Text style={styles.energyMax}> / {energyMax.toLocaleString()}</Text>
+          <View style={styles.energyChevron}>
+            <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
+          </View>
         </View>
       </View>
       <View style={styles.energyTrack}>
@@ -347,22 +453,34 @@ export default function PetHomeScreen() {
   const [energy, setEnergy] = useState(20)
   const [foodCount, setFoodCount] = useState(PET.foodCount)
   const [toyCount, setToyCount] = useState(PET.toyCount)
-  const [speech, setSpeech] = useState(PET.greetingBubble)
+  const [speech, setSpeech] = useState(() => homeGreetingBubble())
   const [fxLabel, setFxLabel] = useState<string | null>(null)
   const [fxAccent, setFxAccent] = useState(false)
   const [sheetH, setSheetH] = useState(280)
   const [headerH, setHeaderH] = useState(140)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [coachWelcomeOpen, setCoachWelcomeOpen] = useState(false)
+  const [coachCompleteOpen, setCoachCompleteOpen] = useState(
+    getPetTourCompletePending(),
+  )
+  const [coachTourStep, setCoachTourStep] = useState<number | null>(
+    getPetTourStepIndex(),
+  )
   const [petId, setPetId] = useState<PetChoice>('mongi')
   const [petName, setPetNameState] = useState(PET.name)
+  const [statusLine, setStatusLine] = useState(() => homeStatusLine())
+  const [tabWelcome, setTabWelcome] = useState(false)
+  const tabHadBlurRef = useRef(false)
   const [nameEditOpen, setNameEditOpen] = useState(false)
   const [nameDraft, setNameDraft] = useState(PET.name)
   const [nameSaving, setNameSaving] = useState(false)
   const [heartsOn, setHeartsOn] = useState(false)
   const [helpExpanded, setHelpExpanded] = useState<string | null>(null)
-  /** 오늘 남은 받기 횟수 — 0이면 뱃지 숨김 */
-  const [feedClaimsLeft, setFeedClaimsLeft] = useState(1)
-  const [toyClaimsLeft, setToyClaimsLeft] = useState(1)
+  const [receiveTipOn, setReceiveTipOn] = useState(false)
+  const [stockTipOn, setStockTipOn] = useState(false)
+  const [tipsReady, setTipsReady] = useState(false)
+  const [claimState, setClaimState] = useState<PetClaimState | null>(null)
+  const [claimNow, setClaimNow] = useState(() => Date.now())
   /** 빈 재고일 때 상단 받기 메뉴 강조 */
   const [menuNudge, setMenuNudge] = useState<'feed' | 'toy' | null>(null)
   /** 케어 직후 대화로 유도 */
@@ -370,6 +488,7 @@ export default function PetHomeScreen() {
   const careBusyRef = useRef(false)
   const menuNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const chatCtaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const tapLineIndex = useRef(0)
 
   // 폰에서 헤더·캐릭터가 하단 패널에 가리지 않도록 영역 고정
   const tabBarReserve = tabBarReserveHeight(insets.bottom)
@@ -429,18 +548,23 @@ export default function PetHomeScreen() {
       Animated.sequence([
         Animated.timing(heartOpacity, {
           toValue: 1,
-          duration: 160,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(heartOpacity, {
+          toValue: 1,
+          duration: 420,
           useNativeDriver: true,
         }),
         Animated.timing(heartOpacity, {
           toValue: 0,
-          duration: 420,
+          duration: 380,
           useNativeDriver: true,
         }),
       ]),
       Animated.timing(heartLift, {
-        toValue: -28,
-        duration: 580,
+        toValue: -36,
+        duration: 980,
         useNativeDriver: true,
       }),
     ]).start(() => setHeartsOn(false))
@@ -462,7 +586,7 @@ export default function PetHomeScreen() {
         useNativeDriver: true,
       }).start(({ finished }) => {
         if (finished) {
-          setSpeech(PET.greetingBubble)
+          setSpeech(homeGreetingBubble())
           speechOpacity.setValue(1)
         }
       })
@@ -485,6 +609,49 @@ export default function PetHomeScreen() {
     }
   }, [])
 
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false
+      let cheerTimer: ReturnType<typeof setTimeout> | null = null
+
+      void (async () => {
+        const stock = await loadPetStock()
+        if (cancelled) return
+        setEnergy(stock.energy)
+        setFoodCount(stock.food)
+        setToyCount(stock.toy)
+      })()
+
+      // 다른 탭에서 돌아올 때 — 환영 헤더 + 말풍선
+      let welcomeClear: ReturnType<typeof setTimeout> | null = null
+      if (tabHadBlurRef.current) {
+        setTabWelcome(true)
+        cheerTimer = setTimeout(() => {
+          if (cancelled) return
+          if (getPetTourStepIndex() != null) return
+          showSpeech(TAB_WELCOME.bubble, 2800)
+        }, 220)
+        // 잠시 후 시간대 헤더로 복귀
+        welcomeClear = setTimeout(() => {
+          if (!cancelled) {
+            setTabWelcome(false)
+            setStatusLine(homeStatusLine())
+          }
+        }, 4200)
+      } else {
+        setStatusLine(homeStatusLine())
+        setSpeech(homeGreetingBubble())
+      }
+
+      return () => {
+        cancelled = true
+        if (cheerTimer) clearTimeout(cheerTimer)
+        if (welcomeClear) clearTimeout(welcomeClear)
+        tabHadBlurRef.current = true
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- 탭 포커스 시 재고·환영만
+    }, []),
+  )
   useEffect(() => {
     let cancelled = false
     void (async () => {
@@ -498,18 +665,114 @@ export default function PetHomeScreen() {
         return
       }
       const pending = await consumeWelcomePending()
-      if (cancelled || !pending) return
+      if (cancelled) return
       if (pending === 'resume') {
         showSpeech(getOnboardingCopy().resume.restored.homeBubble, 3600)
         return
       }
-      showSpeech('반가워! 위에서 사료 받기부터 해볼래?', 3200)
+      // cm-01-welcome: 아직 안 본 유저면 시트 우선
+      const coach = await getCoachmarkWelcomeStatus()
+      if (cancelled) return
+      if (coach === 'pending') {
+        // 홈 레이아웃 안정화 후 시트 (웹·첫 페인트 레이스 방지)
+        setTimeout(() => {
+          if (!cancelled) setCoachWelcomeOpen(true)
+        }, 450)
+        return
+      }
+      if (pending === 'fresh') {
+        showSpeech('반가워! 위에서 사료 받기부터 해볼래?', 3200)
+      }
     })()
     return () => {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 첫 진입·에너지 복귀 환영만
   }, [])
+
+  useEffect(() => {
+    return subscribePetTour(() => {
+      setCoachTourStep(getPetTourStepIndex())
+      setCoachCompleteOpen(getPetTourCompletePending())
+    })
+  }, [])
+
+  const dismissCoachWelcome = async (status: 'skipped' | 'accepted') => {
+    setCoachWelcomeOpen(false)
+    await setCoachmarkWelcomeStatus(status)
+  }
+
+  const startPetTour = () => {
+    setCoachWelcomeOpen(false)
+    startPetTourFromWelcome()
+  }
+
+  const finishPetTour = async () => {
+    finishPetTourWithComplete()
+    await setCoachmarkWelcomeStatus('accepted')
+  }
+
+  const onPetTourNext = () => {
+    if (coachTourStep == null) return
+    const next = coachTourStep + 1
+    if (next < PET_TOUR_STEPS.length) {
+      const step = PET_TOUR_STEPS[next]
+      setPetTourStepIndex(next)
+      if (step.route !== 'pet') {
+        router.push(petTourHref(step.route) as never)
+      }
+      return
+    }
+    void finishPetTour()
+  }
+
+  const tourStep =
+    coachTourStep != null ? PET_TOUR_STEPS[coachTourStep] : null
+  const showPetTour = tourStep?.route === 'pet'
+  const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
+  const showGuideTips =
+    tipsReady && !coachWelcomeOpen && !showPetTour && !coachCompleteOpen
+  const showReceiveTip = showGuideTips && receiveTipOn
+  const showStockTip = showGuideTips && stockTipOn
+
+  useEffect(() => {
+    let cancelled = false
+    void getHomeGuideTips().then((tips) => {
+      if (cancelled) return
+      setReceiveTipOn(!tips.receiveDismissed)
+      setStockTipOn(!tips.stockDismissed)
+      setTipsReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    void loadPetClaimState().then((s) => {
+      if (!cancelled) setClaimState(s)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const feedClaimStatus = claimState
+    ? getClaimMenuStatus(claimState.feed, claimNow)
+    : { kind: 'idle' as const }
+  const toyClaimStatus = claimState
+    ? getClaimMenuStatus(claimState.toy, claimNow)
+    : { kind: 'idle' as const }
+  const claimTickerOn =
+    feedClaimStatus.kind === 'cooldown' ||
+    toyClaimStatus.kind === 'cooldown'
+
+  useEffect(() => {
+    if (!claimTickerOn) return
+    const id = setInterval(() => setClaimNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [claimTickerOn])
 
   const openNameEdit = () => {
     setNameDraft(petName)
@@ -519,6 +782,10 @@ export default function PetHomeScreen() {
   const saveNameEdit = async () => {
     const trimmed = nameDraft.trim()
     if (trimmed.length < 1 || trimmed.length > PET_NAME_MAX || nameSaving) return
+    if (trimmed === petName) {
+      setNameEditOpen(false)
+      return
+    }
     setNameSaving(true)
     try {
       const next = await setPetName(trimmed)
@@ -625,26 +892,25 @@ export default function PetHomeScreen() {
         const next = await useFood(1)
         if (!next) return
         setFoodCount(next.food)
-        showSpeech(pickRandom(FEED_THANKS))
         playHearts()
         await playPetReact('eat')
+        const after = await addEnergy(gain)
+        setEnergy(after.energy)
+        await playFx(`+${gain} 에너지`, true)
+        showSpeech(FEED_DONE_SPEECH[petId], 3400)
+        showChatCta()
       } else {
         const next = await useToy(1)
         if (!next) return
         setToyCount(next.toy)
-        showSpeech(pickRandom(PLAY_THANKS))
         playHearts()
         await playPetReact('play')
+        const after = await addEnergy(gain)
+        setEnergy(after.energy)
+        await playFx(`+${gain} 에너지`, true)
+        showSpeech(PLAY_DONE_SPEECH[petId], 3400)
+        showChatCta()
       }
-
-      const after = await addEnergy(gain)
-      setEnergy(after.energy)
-      await playFx(`+${gain} 에너지`, true)
-      showSpeech(
-        `${petName}가 힘을 얻었어요! 이제 마음 편히 이야기해요.`,
-        2800,
-      )
-      showChatCta()
     } finally {
       careBusyRef.current = false
     }
@@ -656,8 +922,15 @@ export default function PetHomeScreen() {
       showSpeech('보관함이 가득해요. 먼저 맘마를 줄래요?')
       return
     }
-    if (feedClaimsLeft <= 0) {
-      showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
+    if (!claimState || !canClaimNow(claimState.feed, claimNow)) {
+      const st = claimState
+        ? getClaimMenuStatus(claimState.feed, claimNow)
+        : null
+      if (st?.kind === 'cooldown') {
+        showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
+      } else {
+        showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
+      }
       return
     }
     void (async () => {
@@ -667,7 +940,9 @@ export default function PetHomeScreen() {
         return
       }
       setFoodCount(next.food)
-      setFeedClaimsLeft((n) => Math.max(0, n - 1))
+      const claims = await recordPetClaim('feed')
+      setClaimState(claims)
+      setClaimNow(Date.now())
       setMenuNudge(null)
       showToast('사료를 받았어요')
       showSpeech(pickRandom(CLAIM_FEED_LINES), 3000)
@@ -681,8 +956,15 @@ export default function PetHomeScreen() {
       showSpeech('장난감이 충분해요. 먼저 놀아 줄래요?')
       return
     }
-    if (toyClaimsLeft <= 0) {
-      showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
+    if (!claimState || !canClaimNow(claimState.toy, claimNow)) {
+      const st = claimState
+        ? getClaimMenuStatus(claimState.toy, claimNow)
+        : null
+      if (st?.kind === 'cooldown') {
+        showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
+      } else {
+        showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
+      }
       return
     }
     void (async () => {
@@ -692,10 +974,12 @@ export default function PetHomeScreen() {
         return
       }
       setToyCount(next.toy)
-      setToyClaimsLeft((n) => Math.max(0, n - 1))
+      const claims = await recordPetClaim('toy')
+      setClaimState(claims)
+      setClaimNow(Date.now())
       setMenuNudge(null)
       showToast('장난감을 받았어요')
-      showSpeech(pickRandom(CLAIM_TOY_LINES), 3000)
+      showSpeech(pickRandom(CLAIM_TOY_LINES(petName)), 3000)
       await playFx('+1 장난감', false)
     })()
   }
@@ -718,7 +1002,37 @@ export default function PetHomeScreen() {
     void runCareAction('play')
   }
 
-  const bubbleText = speech || PET.greetingBubble
+  /** 캐릭터 탭 — 말풍선 순환 */
+  const onPetTap = () => {
+    if (showPetTour || coachWelcomeOpen || coachCompleteOpen) return
+    const next = (tapLineIndex.current + 1) % PET_TAP_LINES.length
+    tapLineIndex.current = next
+    const line = PET_TAP_LINES[next]
+    if (speechTimer.current) clearTimeout(speechTimer.current)
+    setSpeech(line)
+    speechOpacity.setValue(0)
+    Animated.timing(speechOpacity, {
+      toValue: 1,
+      duration: 180,
+      useNativeDriver: true,
+    }).start()
+    Animated.sequence([
+      Animated.timing(petScale, {
+        toValue: 0.96,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.spring(petScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 160,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }
+
+  const bubbleText = speech || homeGreetingBubble()
+  const petImage = petId === 'nami' ? CatExpr.soft : DogExpr.soft
 
   return (
     <ImageBackground
@@ -736,13 +1050,28 @@ export default function PetHomeScreen() {
         }}
       >
         <View style={styles.nicknameRow}>
-          <Text style={styles.nicknameText} numberOfLines={1}>
-            {USER.nickname}
-          </Text>
+          <View style={styles.headerCopy}>
+            {tabWelcome ? (
+              <>
+                <Text style={styles.nicknameText} numberOfLines={1}>
+                  {TAB_WELCOME.title}
+                </Text>
+                <Text style={styles.headerSubtitle} numberOfLines={2}>
+                  {TAB_WELCOME.subtitle}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.nicknameText} numberOfLines={2}>
+                {statusLine}
+              </Text>
+            )}
+          </View>
           <Pressable
             style={styles.bellBtn}
             onPress={() => router.push('/notifications')}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="알림"
           >
             <View>
               <Bell size={24} color={Colors.textPrimary} weight="light" />
@@ -751,6 +1080,24 @@ export default function PetHomeScreen() {
           </Pressable>
         </View>
 
+        {showReceiveTip ? (
+          <View style={styles.receiveTip}>
+            <Text style={styles.receiveTipText}>{HOME_RECEIVE_TIP}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="받기 안내 닫기"
+              hitSlop={8}
+              onPress={() => {
+                setReceiveTipOn(false)
+                void dismissHomeReceiveTip()
+              }}
+              style={styles.tipCloseBtn}
+            >
+              <X size={14} color={Colors.textSecondary} weight="bold" />
+            </Pressable>
+          </View>
+        ) : null}
+
         <View style={styles.menuRow}>
           {HEADER_MENU.map((item) => (
             <MenuQuickItem
@@ -758,11 +1105,18 @@ export default function PetHomeScreen() {
               label={item.label}
               image={item.image}
               bgColor={item.bgColor}
-              badge={
-                item.id === 'feed' && feedClaimsLeft > 0
-                  ? feedClaimsLeft
-                  : item.id === 'toy' && toyClaimsLeft > 0
-                    ? toyClaimsLeft
+              ready={
+                item.id === 'feed'
+                  ? feedClaimStatus.kind === 'ready'
+                  : item.id === 'toy'
+                    ? toyClaimStatus.kind === 'ready'
+                    : false
+              }
+              cooldownLabel={
+                item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
+                  ? feedClaimStatus.label
+                  : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
+                    ? toyClaimStatus.label
                     : undefined
               }
               highlighted={menuNudge === item.id}
@@ -815,28 +1169,52 @@ export default function PetHomeScreen() {
               <Animated.View
                 pointerEvents="none"
                 style={[
-                  styles.heartFx,
+                  styles.heartFxLayer,
                   {
                     opacity: heartOpacity,
                     transform: [{ translateY: heartLift }],
                   },
                 ]}
               >
-                <Heart size={22} color={Colors.primary} weight="fill" />
-                <View style={styles.heartFxSide}>
-                  <Heart size={16} color={Colors.secondary} weight="fill" />
-                </View>
+                {HEART_BURST.map((h, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.heartFxItem,
+                      {
+                        top: h.top,
+                        ...(h.left != null ? { left: h.left } : null),
+                        ...(h.right != null ? { right: h.right } : null),
+                      },
+                    ]}
+                  >
+                    <Heart
+                      size={h.size}
+                      color={Colors.primary}
+                      weight="fill"
+                    />
+                  </View>
+                ))}
               </Animated.View>
             ) : null}
-            <Animated.Image
-              source={require('../../assets/images/dog-model.png')}
-              style={{
-                width: petSize,
-                height: petSize,
-                transform: [{ scale: petScale }, { translateY: petNudgeY }],
-              }}
-              resizeMode="contain"
-            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${petName}와 인사하기`}
+              onPress={onPetTap}
+              style={({ pressed }) => [
+                pressed && styles.petPressablePressed,
+              ]}
+            >
+              <Animated.Image
+                source={petImage}
+                style={{
+                  width: petSize,
+                  height: petSize,
+                  transform: [{ scale: petScale }, { translateY: petNudgeY }],
+                }}
+                resizeMode="contain"
+              />
+            </Pressable>
           </View>
           {chatCtaOn ? (
             <Pressable
@@ -869,6 +1247,11 @@ export default function PetHomeScreen() {
             <Text style={styles.petName} numberOfLines={1}>
               {petName}
             </Text>
+            <PencilSimple
+              size={14}
+              color={Colors.textSecondary}
+              weight="bold"
+            />
           </Pressable>
         </View>
       </View>
@@ -887,7 +1270,29 @@ export default function PetHomeScreen() {
             energyMax={ENERGY_MAX}
             onPressStorage={openStorage}
           />
-          <View style={styles.actionRow}>
+          {showStockTip ? (
+            <View style={styles.stockTip}>
+              <Text style={styles.stockTipText}>{HOME_STOCK_TIP}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="보관 안내 닫기"
+                hitSlop={8}
+                onPress={() => {
+                  setStockTipOn(false)
+                  void dismissHomeStockTip()
+                }}
+                style={styles.tipCloseBtn}
+              >
+                <X size={14} color={Colors.textSecondary} weight="bold" />
+              </Pressable>
+            </View>
+          ) : null}
+          <View
+            style={[
+              styles.actionRow,
+              tourHighlightCare && styles.actionRowTour,
+            ]}
+          >
             <CareStockCard
               count={foodCount}
               icon={
@@ -899,6 +1304,7 @@ export default function PetHomeScreen() {
               acquireLabel="사료 받기"
               onUse={handleFeedPress}
               onAcquire={handleAcquireFeed}
+              tourHighlight={tourHighlightCare}
             />
             <View style={{ width: actionGap }} />
             <CareStockCard
@@ -909,10 +1315,42 @@ export default function PetHomeScreen() {
               grayIconWhenEmpty
               onUse={handlePlayPress}
               onAcquire={handleAcquireToy}
+              tourHighlight={tourHighlightCare}
             />
           </View>
         </View>
       </View>
+
+      {showPetTour && tourStep ? (
+        <View style={styles.coachOverlay} pointerEvents="box-none">
+          <View style={styles.coachScrim} />
+          <CoachmarkTourCard
+            step={tourStep}
+            stepIndex={coachTourStep ?? 0}
+            petName={petName}
+            onNext={onPetTourNext}
+            bottom={
+              Math.max(insets.bottom, 12) +
+              Math.min(sheetH, sheetMaxHeight) * 0.38
+            }
+          />
+        </View>
+      ) : null}
+
+      <CoachmarkWelcomeSheet
+        visible={coachWelcomeOpen}
+        petName={petName}
+        onSkip={() => {
+          void dismissCoachWelcome('skipped')
+        }}
+        onAccept={startPetTour}
+      />
+
+      <CoachmarkCompleteSheet
+        visible={coachCompleteOpen}
+        petName={petName}
+        onMeet={dismissPetTourComplete}
+      />
 
       <BottomSheet
         visible={helpOpen}
@@ -934,7 +1372,7 @@ export default function PetHomeScreen() {
         <Text style={styles.helpLead}>
           필요할 때만 보면 돼요. 천천히 확인해 주세요.
         </Text>
-        {HELP_ITEMS.map((item) => {
+        {helpItems(petName).map((item) => {
           const open = helpExpanded === item.title
           return (
             <View key={item.title} style={styles.helpItem}>
@@ -973,64 +1411,71 @@ export default function PetHomeScreen() {
         })}
       </BottomSheet>
 
-      <CenterDialog
+      <BottomSheet
         visible={nameEditOpen}
         onRequestClose={() => setNameEditOpen(false)}
+        sheetStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
       >
-        <Text style={styles.nameModalTitle}>이름을 바꿔볼까요?</Text>
+        <Text style={styles.nameModalTitle}>새 이름 지어주기</Text>
         <Text style={styles.nameModalLead}>
-          펫에게 불러주고 싶은 이름을 적어 주세요. (최대 {PET_NAME_MAX}자)
+          가장 어울리는 이름을 만들어 주세요.
         </Text>
-        <TextInput
-          style={styles.nameModalInput}
-          value={nameDraft}
-          onChangeText={(t) => setNameDraft(t.slice(0, PET_NAME_MAX))}
-          maxLength={PET_NAME_MAX}
-          placeholder={defaultPetName(petId)}
-          placeholderTextColor={Colors.textDisabled}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={() => {
-            void saveNameEdit()
-          }}
-        />
-        <Text style={styles.nameModalCount}>
-          {nameDraft.trim().length}/{PET_NAME_MAX}
+        <View
+          style={[
+            styles.nameModalInputWrap,
+            nameDraft.length > 0 && styles.nameModalInputWrapOn,
+          ]}
+        >
+          <TextInput
+            style={styles.nameModalInput}
+            value={nameDraft}
+            onChangeText={(t) => setNameDraft(t.slice(0, PET_NAME_MAX))}
+            maxLength={PET_NAME_MAX}
+            placeholder={defaultPetName(petId)}
+            placeholderTextColor={Colors.textDisabled}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              void saveNameEdit()
+            }}
+          />
+          <Text style={styles.nameModalCountIn}>
+            {nameDraft.length} / {PET_NAME_MAX}
+          </Text>
+        </View>
+        <Text style={styles.nameModalHint}>
+          최대 {PET_NAME_MAX}글자 이내로 만들 수 있어요.
         </Text>
         <View style={styles.nameModalActions}>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="나중에 할래요"
             onPress={() => setNameEditOpen(false)}
             style={({ pressed }) => [
               styles.nameModalSecondary,
               pressed && styles.headerIconPressed,
             ]}
           >
-            <Text style={styles.nameModalSecondaryText}>나중에</Text>
+            <Text style={styles.nameModalSecondaryText}>나중에 할래요</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            disabled={
-              nameDraft.trim().length < 1 ||
-              nameDraft.trim() === petName ||
-              nameSaving
-            }
+            accessibilityLabel="이렇게 부를게요"
+            disabled={nameDraft.trim().length < 1 || nameSaving}
             onPress={() => {
               void saveNameEdit()
             }}
             style={({ pressed }) => [
               styles.nameModalPrimary,
-              (nameDraft.trim().length < 1 ||
-                nameDraft.trim() === petName ||
-                nameSaving) &&
+              (nameDraft.trim().length < 1 || nameSaving) &&
                 styles.nameModalPrimaryDisabled,
               pressed && styles.headerIconPressed,
             ]}
           >
-            <Text style={styles.nameModalPrimaryText}>저장할게요</Text>
+            <Text style={styles.nameModalPrimaryText}>이렇게 부를게요</Text>
           </Pressable>
         </View>
-      </CenterDialog>
+      </BottomSheet>
     </ImageBackground>
   )
 }
@@ -1058,20 +1503,84 @@ const styles = StyleSheet.create({
   nicknameRow: {
     marginBottom: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  nicknameText: {
+  headerCopy: {
     flex: 1,
-    fontSize: 20,
+    minWidth: 0,
+    paddingRight: 8,
+  },
+  headerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  receiveTip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.accentSoft,
+  },
+  receiveTipText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  tipCloseBtn: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  stockTip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  stockTipText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  nicknameText: {
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
+    letterSpacing: -0.3,
   },
   bellBtn: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 1,
+    right: 1,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+    borderWidth: 1.5,
+    borderColor: Colors.background,
   },
   menuRow: {
     flexDirection: 'row',
@@ -1141,7 +1650,24 @@ const styles = StyleSheet.create({
   menuCircle: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 999,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(94, 64, 51, 0.12)',
+    backgroundColor: Colors.surface,
+  },
+  menuCircleReady: {
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    backgroundColor: Colors.surface,
+    shadowColor: Colors.accent,
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  menuCircleCooldown: {
+    borderWidth: 1.5,
+    borderColor: Colors.accent,
     backgroundColor: Colors.surface,
   },
   menuCircleNudge: {
@@ -1149,29 +1675,33 @@ const styles = StyleSheet.create({
     borderColor: Colors.selected,
     backgroundColor: Colors.creamyBeige,
   },
-  menuBadge: {
+  menuReadyDot: {
     position: 'absolute',
-    top: -3,
-    right: -3,
-    minWidth: 20,
-    minHeight: 20,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 10,
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
     borderWidth: 1.5,
     borderColor: Colors.background,
-    backgroundColor: Colors.selected,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'visible',
   },
-  menuBadgeText: {
+  menuReadyCaption: {
+    marginTop: 2,
     fontSize: 10,
     lineHeight: 12,
     fontWeight: '700',
-    color: Colors.surface,
+    color: Colors.primary,
     textAlign: 'center',
-    includeFontPadding: false,
+  },
+  menuCooldownCaption: {
+    marginTop: 2,
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: '700',
+    color: Colors.error,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
   },
   menuLabel: {
     width: '100%',
@@ -1198,6 +1728,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'visible',
+  },
+  petPressablePressed: {
+    opacity: 0.96,
   },
   petNameRow: {
     marginTop: 8,
@@ -1238,39 +1771,58 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   nameModalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     color: Colors.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.3,
     marginBottom: 8,
   },
   nameModalLead: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  nameModalInput: {
-    height: 48,
-    borderRadius: 14,
+  nameModalInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 52,
+    borderRadius: 16,
     borderWidth: 1.5,
     borderColor: Colors.border,
-    paddingHorizontal: 14,
+    paddingLeft: 16,
+    paddingRight: 14,
+    backgroundColor: Colors.surface,
+  },
+  nameModalInputWrapOn: {
+    borderColor: Colors.primary,
+  },
+  nameModalInput: {
+    flex: 1,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
     fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
-    textAlign: 'center',
-    backgroundColor: Colors.background,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
-  nameModalCount: {
-    marginTop: 8,
-    marginBottom: 18,
-    fontSize: 12,
+  nameModalCountIn: {
+    marginLeft: 8,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.textDisabled,
-    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  nameModalHint: {
+    marginTop: 10,
+    marginBottom: 22,
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   nameModalActions: {
     flexDirection: 'row',
@@ -1278,8 +1830,8 @@ const styles = StyleSheet.create({
   },
   nameModalSecondary: {
     flex: 1,
-    height: 48,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
@@ -1293,8 +1845,8 @@ const styles = StyleSheet.create({
   },
   nameModalPrimary: {
     flex: 1,
-    height: 48,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primary,
@@ -1304,7 +1856,7 @@ const styles = StyleSheet.create({
   },
   nameModalPrimaryText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.buttonPrimaryText,
   },
   careFxText: {
@@ -1319,17 +1871,12 @@ const styles = StyleSheet.create({
   careFxTextAccent: {
     color: Colors.primary,
   },
-  heartFx: {
-    position: 'absolute',
-    top: 36,
-    right: '18%',
+  heartFxLayer: {
+    ...StyleSheet.absoluteFillObject,
     zIndex: 6,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 4,
   },
-  heartFxSide: {
-    marginBottom: 8,
+  heartFxItem: {
+    position: 'absolute',
   },
   sheet: {
     position: 'absolute',
@@ -1352,18 +1899,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
   },
-  notifDot: {
-    position: 'absolute',
-    top: 1,
-    right: 1,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.background,
-  },
-  /** 레이아웃 공간 미점유 — 캐릭터 머리 위에 오버레이 */
   greetingBubble: {
     position: 'absolute',
     left: '50%',
@@ -1423,7 +1958,10 @@ const styles = StyleSheet.create({
   },
   energyNums: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
+  },
+  energyChevron: {
+    marginLeft: 2,
   },
   energyCurrent: {
     fontSize: 18,
@@ -1462,6 +2000,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
   },
+  actionRowTour: {
+    zIndex: 30,
+  },
   stockCardWrap: {
     flex: 1,
   },
@@ -1472,13 +2013,30 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.selected,
+    borderColor: 'rgba(94, 64, 51, 0.1)',
     ...Shadows.elevation,
   },
   stockCardHovered: {
+    backgroundColor: Colors.creamyBeige,
+  },
+  stockCardTour: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
     backgroundColor: Colors.surface,
+  },
+  coachOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 28,
+  },
+  coachScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   stockActionLabel: {
     fontSize: 13,

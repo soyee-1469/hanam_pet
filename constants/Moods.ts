@@ -4,8 +4,9 @@ export type MoodTone = 'good' | 'ok' | 'hard'
 export type DiaryMoodId = 'great' | 'good' | 'ok' | 'bad' | 'hard'
 
 /**
- * 감정 순서 = emoji_1 ~ emoji_5 (밝음 → 힘듦)
- * 1 기쁨 · 2 좋음 · 3 보통 · 4 걱정 · 5 슬픔(눈물)
+ * 감정 5종 (피그마 마음 기록)
+ * 1 기뻐요 · 2 슬퍼요 · 3 화가나요 · 4 걱정돼요 · 5 불편해요
+ * 에셋: 기뻐요 / 슬퍼요 / 화가나요 / 걱정되요 / 붎ㄴ해요.svg
  */
 export const DIARY_MOODS: {
   id: DiaryMoodId
@@ -17,10 +18,10 @@ export const DIARY_MOODS: {
   softBg: string
 }[] = [
   { id: 'great', label: '기뻐요', shortLabel: '기쁨', tone: 'good', emojiIndex: 1, softBg: '#FCE8DC' },
-  { id: 'good', label: '좋아요', shortLabel: '좋음', tone: 'good', emojiIndex: 2, softBg: '#FCE8DC' },
-  { id: 'ok', label: '그저그래요', shortLabel: '보통', tone: 'ok', emojiIndex: 3, softBg: '#F0E8E2' },
-  { id: 'bad', label: '걱정돼요', shortLabel: '걱정', tone: 'hard', emojiIndex: 4, softBg: '#F5E6EA' },
-  { id: 'hard', label: '슬퍼요', shortLabel: '슬픔', tone: 'hard', emojiIndex: 5, softBg: '#E4EEF5' },
+  { id: 'good', label: '슬퍼요', shortLabel: '슬픔', tone: 'hard', emojiIndex: 2, softBg: '#FCE8DC' },
+  { id: 'ok', label: '화가나요', shortLabel: '분노', tone: 'ok', emojiIndex: 3, softBg: '#FCE8DC' },
+  { id: 'bad', label: '걱정돼요', shortLabel: '걱정', tone: 'hard', emojiIndex: 4, softBg: '#FCE8DC' },
+  { id: 'hard', label: '불편해요', shortLabel: '불편', tone: 'ok', emojiIndex: 5, softBg: '#FCE8DC' },
 ]
 
 export const CHAT_EMOTION_CARDS: {
@@ -38,7 +39,7 @@ export const CHAT_EMOTION_CARDS: {
 export function emojiIndexForTone(tone: MoodTone): 1 | 2 | 3 | 4 | 5 {
   if (tone === 'good') return 1
   if (tone === 'ok') return 3
-  return 5
+  return 2
 }
 
 export const MOOD_TONES = {

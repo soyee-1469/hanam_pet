@@ -3,7 +3,7 @@ import { Phone } from 'phosphor-react-native'
 import { router } from 'expo-router'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { SecondaryButton, ScreenHeader, onboardingFooterStyle } from './ui'
+import { PrimaryButton, ScreenHeader, onboardingFooterStyle } from './ui'
 
 type NoticeItem = {
   title: string
@@ -32,15 +32,15 @@ type ChatAiNoticeProps = {
   onBack: () => void
   onConfirm: () => void
   bottomInset?: number
+  /** @deprecated 시안은 펫 이름 미사용 — 호환용 */
   petName?: string
 }
 
-/** 대화 시작 전 AI 이용 유의사항 — 오렌지 절제, Ghost CTA */
+/** 05 · AI 이용 유의사항 — 첫 대화 시작 전 */
 export function ChatAiNotice({
   onBack,
   onConfirm,
   bottomInset = 0,
-  petName = '몽이',
 }: ChatAiNoticeProps) {
   const footerPadBottom = Math.max(bottomInset, 16) + CTA_ABOVE_TAB
 
@@ -54,7 +54,7 @@ export function ChatAiNotice({
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.headline}>
-          {`${petName}와 마음을 나누기 전,\n꼭 확인해 주세요`}
+          {'대화를 시작하기 전에\n꼭 확인해 주세요'}
         </Text>
 
         <View style={styles.list}>
@@ -80,16 +80,13 @@ export function ChatAiNotice({
             pressed && styles.helpBtnPressed,
           ]}
         >
-          <Phone size={18} color={Colors.secondary} weight="fill" />
+          <Phone size={18} color={Colors.primary} weight="fill" />
           <Text style={styles.helpBtnText}>도움받을 기관 보기</Text>
         </Pressable>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: footerPadBottom }]}>
-        <SecondaryButton
-          label={`이제 ${petName}와 대화할게요`}
-          onPress={onConfirm}
-        />
+        <PrimaryButton label="확인했어요" onPress={onConfirm} />
       </View>
     </View>
   )
@@ -116,7 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   list: {
-    gap: 22,
+    gap: 24,
     marginBottom: 28,
   },
   item: {
@@ -128,7 +125,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
@@ -136,7 +133,7 @@ const styles = StyleSheet.create({
   numText: {
     fontSize: 13,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.buttonPrimaryText,
     lineHeight: 16,
   },
   itemCopy: {
@@ -162,20 +159,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     minHeight: 52,
-    borderRadius: 14,
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: Colors.secondary,
+    borderRadius: 16,
+    backgroundColor: Colors.peach,
     paddingHorizontal: 16,
   },
   helpBtnPressed: {
     opacity: 0.88,
-    backgroundColor: 'rgba(246, 124, 73, 0.06)',
   },
   helpBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.primary,
   },
   footer: {
     ...onboardingFooterStyle,

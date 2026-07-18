@@ -149,6 +149,14 @@ export default function MindCheckScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.top}>
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${Math.round(progress * 100)}%` },
+            ]}
+          />
+        </View>
         <View style={styles.headerRow}>
           <Pressable
             accessibilityRole="button"
@@ -158,25 +166,10 @@ export default function MindCheckScreen() {
           >
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
-          <View style={styles.headerCopy}>
-            <Text style={styles.toolLabel} numberOfLines={1}>
-              {assessment.title}
-            </Text>
-            <Text style={styles.exploreTitle} numberOfLines={1}>
-              {assessment.exploreTitle}
-            </Text>
-          </View>
-          <Text style={styles.counter}>
-            {index + 1} / {total}
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {assessment.title}
           </Text>
-        </View>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${Math.round(progress * 100)}%` },
-            ]}
-          />
+          <View style={styles.backBtn} />
         </View>
       </View>
 
@@ -245,10 +238,10 @@ export default function MindCheckScreen() {
 
       <ConfirmDialog
         visible={exitOpen}
-        title="검사가 아직 안 끝났어요!"
-        body="지금 나가면 진행한 응답이 초기화돼요."
-        cancelLabel="나가기"
-        confirmLabel="계속하기"
+        title="아직 마음을 다 알아보지 못했어요."
+        body="지금 나가면 지금까지 답한 기록이 사라져요. 조금만 더 힘을 내서 알아볼까요?"
+        cancelLabel="다음에 할게요"
+        confirmLabel="계속할게요"
         tone="warning"
         onCancel={confirmLeave}
         onConfirm={() => setExitOpen(false)}
@@ -269,13 +262,22 @@ const styles = StyleSheet.create({
   top: {
     paddingBottom: 4,
   },
+  progressTrack: {
+    height: 4,
+    backgroundColor: Colors.energyTrack,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: 12,
-    minHeight: 56,
+    minHeight: 52,
   },
   backBtn: {
     width: 40,
@@ -286,44 +288,12 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.85,
   },
-  headerCopy: {
+  headerTitle: {
     flex: 1,
-    minWidth: 0,
-    marginLeft: 2,
-    marginRight: 8,
-  },
-  toolLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textDisabled,
-    marginBottom: 2,
-  },
-  exploreTitle: {
-    fontSize: 18,
+    textAlign: 'center',
+    fontSize: 17,
     fontWeight: '800',
     color: Colors.textPrimary,
-  },
-  counter: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    minWidth: 48,
-    textAlign: 'right',
-    marginRight: 4,
-    alignSelf: 'flex-start',
-    marginTop: 18,
-  },
-  progressTrack: {
-    marginHorizontal: Layout.screenPaddingH,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.energyTrack,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,

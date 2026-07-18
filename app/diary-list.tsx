@@ -15,7 +15,7 @@ import {
   PencilSimple,
   TrashSimple,
 } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
@@ -40,10 +40,10 @@ export default function DiaryListScreen() {
 
   const list = useMemo(
     () =>
-      entries.filter(
-        (e) => e.month === month || e.month === 5, // 데모: 5월 기록도 함께 노출
-      ),
-    [entries, month],
+      entries
+        .filter((e) => e.year === year && e.month === month)
+        .sort((a, b) => b.day - a.day),
+    [entries, year, month],
   )
 
   const closeMenu = () => setMenuEntry(null)
@@ -143,9 +143,7 @@ export default function DiaryListScreen() {
                   pressed && styles.pressed,
                 ]}
               >
-                <View
-                  style={[styles.emojiWrap, { backgroundColor: mood.softBg }]}
-                >
+                <View style={styles.emojiWrap}>
                   <MoodEmoji index={mood.emojiIndex} size={36} />
                 </View>
                 <View style={styles.cardCopy}>
@@ -162,7 +160,7 @@ export default function DiaryListScreen() {
                       {mood.label}
                     </Text>
                   </View>
-                  <Text style={styles.cardPreview} numberOfLines={1}>
+                  <Text style={styles.cardPreview} numberOfLines={2}>
                     {entry.preview}
                   </Text>
                   <View style={styles.tagRow}>
@@ -198,14 +196,15 @@ export default function DiaryListScreen() {
       <BottomSheet
         visible={menuEntry != null}
         onRequestClose={closeMenu}
+        sheetStyle={styles.sheet}
       >
         <Text style={styles.sheetTitle}>이 날의 마음을 어떻게 할까요?</Text>
 
-        <View style={styles.sheetDivider} />
-
         {menuEntry && menuMood ? (
           <View style={styles.sheetSummary}>
-            <MoodEmoji index={menuMood.emojiIndex} size={28} />
+            <View style={styles.sheetEmojiWrap}>
+              <MoodEmoji index={menuMood.emojiIndex} size={28} />
+            </View>
             <Text style={styles.sheetSummaryDate}>
               {menuEntry.month}월 {menuEntry.day}일 {menuEntry.weekday}
             </Text>
@@ -358,16 +357,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     paddingHorizontal: 12,
     paddingVertical: 14,
     gap: 12,
-    ...Shadows.elevation,
   },
   emojiWrap: {
     width: 52,
     height: 52,
     borderRadius: 26,
+    backgroundColor: '#FCE8DC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -404,7 +403,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tag: {
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: '#FCE8DC',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -412,7 +411,7 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
   },
   moreBtn: {
     width: 28,
@@ -421,22 +420,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
+  sheet: {
+    backgroundColor: Colors.background,
+  },
   sheetTitle: {
     fontSize: 17,
     fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'center',
-    marginBottom: 14,
+    marginTop: 8,
+    marginBottom: 16,
   },
   sheetDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Colors.divider,
+    marginBottom: 4,
   },
   sheetSummary: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  sheetEmojiWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FCE8DC',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sheetSummaryDate: {
     fontSize: 15,

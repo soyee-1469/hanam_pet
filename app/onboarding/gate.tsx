@@ -16,18 +16,14 @@ import { nextGateMascot } from '../../constants/OnboardingMascot'
 import { useDesignWindow } from '../../components/AppViewport'
 
 const copy = getOnboardingCopy().gate
-const RADIUS = 16
-
 const goResume = () => router.push('/onboarding/resume')
 
 export default function OnboardingGate() {
   const { height: screenH } = useDesignWindow()
-  /** 캐릭터 존재감 ↑ — 화면 대비 커버를 조금 더 크게 */
-  const coverSize = Math.min(240, Math.round(screenH * 0.28))
+  const coverSize = Math.min(200, Math.round(screenH * 0.24))
   const coverSource = useRef(nextGateMascot('fun')).current
 
   const breath = useRef(new Animated.Value(0)).current
-  const bubbleFloat = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     const breathLoop = Animated.loop(
@@ -46,51 +42,20 @@ export default function OnboardingGate() {
         }),
       ]),
     )
-    const floatLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(bubbleFloat, {
-          toValue: 1,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bubbleFloat, {
-          toValue: 0,
-          duration: 2200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    )
     breathLoop.start()
-    floatLoop.start()
     return () => {
       breathLoop.stop()
-      floatLoop.stop()
     }
-  }, [breath, bubbleFloat])
+  }, [breath])
 
   const coverScale = breath.interpolate({
     inputRange: [0, 1],
     outputRange: [1, 1.02],
   })
-  const bubbleY = bubbleFloat.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -4],
-  })
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
-        <Animated.View
-          style={[styles.bubbleBlock, { transform: [{ translateY: bubbleY }] }]}
-        >
-          <View style={styles.bubble}>
-            <Text style={styles.bubbleText}>{copy.bubble}</Text>
-          </View>
-          <View style={styles.bubbleTail} />
-        </Animated.View>
-
         <Animated.View
           style={[styles.coverWrap, { transform: [{ scale: coverScale }] }]}
         >
@@ -124,88 +89,41 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-    overflow: 'visible',
   },
   body: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 12,
-    overflow: 'visible',
-  },
-  bubbleBlock: {
-    alignItems: 'center',
-    marginBottom: 8,
   },
   coverWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'visible',
-    marginBottom: 4,
-  },
-  bubble: {
-    maxWidth: 280,
-    backgroundColor: Colors.surface,
-    borderRadius: RADIUS,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#7A5B45',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 3,
-  },
-  bubbleTail: {
-    width: 12,
-    height: 12,
-    backgroundColor: Colors.surface,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -7,
-  },
-  bubbleText: {
-    fontSize: 13,
-    lineHeight: 20,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    textAlign: 'center',
+    marginBottom: 22,
   },
   title: {
-    marginTop: 20,
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '900',
     color: Colors.textPrimary,
-    letterSpacing: -0.8,
-    marginBottom: 2,
+    letterSpacing: -0.9,
+    marginBottom: 6,
   },
   sub: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    letterSpacing: -0.2,
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   footer: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    paddingTop: 8,
+    paddingBottom: 18,
   },
   gap: {
     height: 12,
   },
   hint: {
-    marginTop: 12,
+    marginTop: 14,
     fontSize: 12,
-    lineHeight: 17,
     fontWeight: '500',
     color: Colors.textDisabled,
     textAlign: 'center',
-    paddingHorizontal: 12,
+    lineHeight: 18,
   },
 })

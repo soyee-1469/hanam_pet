@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
+  TextInput,
   Image,
   Pressable,
   StyleSheet,
   Animated,
   Easing,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -20,6 +24,7 @@ import {
 } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import { PET_NAME_MAX } from '../../lib/petProfile'
 import { DogExpr } from '../../constants/DogExpr'
 import { Heart } from 'phosphor-react-native'
 
@@ -146,70 +151,120 @@ function PetCard({
           />
         </Animated.View>
 
-        <Text style={[styles.petName, selected && styles.petNameOn]}>
-          {pet.name}
+        <Text style={[styles.speciesName, selected && styles.speciesNameOn]}>
+          {pet.species}
         </Text>
-        <Text style={styles.petTag}>{pet.tag}</Text>
-
-        <View style={styles.traits}>
-          {pet.traits.map((trait) => (
-            <View key={trait.label} style={styles.traitChip}>
-              <Text style={styles.traitText}>
-                {trait.emoji} {trait.label}
-              </Text>
-            </View>
-          ))}
-        </View>
       </View>
     </Pressable>
   )
 }
 
 export default function OnboardingPetSelect() {
-  const [petId, setPetId] = useState<PetChoice | null>(
-    getOnboardingDraft().petId,
-  )
+  const draft = getOnboardingDraft()
+  const [petId, setPetId] = useState<PetChoice | null>(draft.petId)
+  const [petName, setPetName] = useState(draft.petName)
+  const [nameFocused, setNameFocused] = useState(false)
 
   const selectedPet = copy.pets.find((p) => p.id === petId)
-  const ctaLabel = selectedPet
-    ? copy.ctaWith(selectedPet.name)
-    : copy.cta
+  const trimmedName = petName.trim()
+  const tooShort = trimmedName.length > 0 && trimmedName.length < 2
+  const atMax = trimmedName.length >= PET_NAME_MAX
+  const nameValid = trimmedName.length >= 2 && trimmedName.length <= PET_NAME_MAX
+  const valid = petId != null && nameValid
+
+  const selectPet = (id: PetChoice) => {
+    setPetId(id)
+    const defaults = copy.pets.find((p) => p.id === id)?.name ?? ''
+    // 아직 비어 있거나 기본값(이전 선택 디폴트)만 있을 때 새 디폴트로 채움
+    const otherDefaults = copy.pets.map((p) => p.name)
+    if (!trimmedName || otherDefaults.includes(trimmedName)) {
+      setPetName(defaults)
+    }
+  }
+
+  const borderColor = tooShort
+    ? Colors.error
+    : nameFocused
+      ? Colors.primary
+      : trimmedName.length > 0
+        ? Colors.beige
+        : Colors.border
 
   const goNext = () => {
-    if (!petId) return
-    setOnboardingDraft({ petId })
-    router.push('/onboarding/profile')
+    if (!valid || !petId) return
+    setOnboardingDraft({ petId, petName: trimmedName })
+    router.push('/onboarding/restore-code')
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
 
-      <View style={styles.body}>
-        <Text style={styles.headline}>{copy.headline}</Text>
-        <Text style={styles.sub}>{copy.sub}</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+      >
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.body}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.headline}>{copy.headline}</Text>
+          <Text style={styles.sub}>{copy.sub}</Text>
 
-        <View style={styles.row}>
-          {copy.pets.map((pet) => (
-            <PetCard
-              key={pet.id}
-              pet={pet}
-              selected={petId === pet.id}
-              onSelect={() => setPetId(pet.id)}
-            />
-          ))}
+          <Text style={styles.speciesLabel}>{copy.speciesLabel}</Text>
+          <View style={styles.row}>
+            {copy.pets.map((pet) => (
+              <PetCard
+                key={pet.id}
+                pet={pet}
+                selected={petId === pet.id}
+                onSelect={() => selectPet(pet.id)}
+              />
+            ))}
+          </View>
+
+          <View style={styles.fieldBlock}>
+            <Text style={styles.nameLabel}>{copy.nameLabel}</Text>
+            <View style={[styles.inputShell, { borderColor }]}>
+              <TextInput
+                value={petName}
+                onChangeText={(t) => setPetName(t.slice(0, PET_NAME_MAX))}
+                placeholder={copy.namePlaceholder}
+                placeholderTextColor={Colors.textDisabled}
+                maxLength={PET_NAME_MAX}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={petId != null}
+                onFocus={() => setNameFocused(true)}
+                onBlur={() => setNameFocused(false)}
+                style={styles.input}
+                returnKeyType="done"
+                onSubmitEditing={goNext}
+              />
+            </View>
+            {tooShort ? (
+              <Text style={styles.hintError}>{copy.nameHintInvalid}</Text>
+            ) : atMax ? (
+              <Text style={styles.hintMax}>{copy.nameMaxHint}</Text>
+            ) : (
+              <Text style={styles.nameHint}>{copy.nameHint}</Text>
+            )}
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <ProgressDots total={ONBOARDING_STEPS} index={2} />
+          <PrimaryButton
+            label={copy.cta}
+            disabled={!valid}
+            emphasized={valid}
+            onPress={goNext}
+          />
         </View>
-      </View>
-
-      <View style={styles.footer}>
-        <ProgressDots total={ONBOARDING_STEPS} index={1} />
-        <PrimaryButton
-          label={ctaLabel}
-          disabled={!petId}
-          emphasized={!!petId}
-          onPress={goNext}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
@@ -219,11 +274,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  body: {
+  flex: {
     flex: 1,
+  },
+  body: {
+    flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 0,
-    justifyContent: 'flex-start',
+    paddingBottom: 16,
   },
   headline: {
     fontSize: 22,
@@ -238,6 +295,60 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     marginBottom: 22,
+  },
+  speciesLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textDisabled,
+    letterSpacing: 0.4,
+    marginBottom: 10,
+  },
+  fieldBlock: {
+    marginTop: 22,
+    width: '100%',
+  },
+  nameLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  inputShell: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 14,
+  },
+  input: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    paddingVertical: 0,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  nameHint: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  hintError: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.error,
+  },
+  hintMax: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textSecondary,
   },
   row: {
     flexDirection: 'row',
@@ -268,7 +379,7 @@ const styles = StyleSheet.create({
   cardOn: {
     backgroundColor: Colors.surface,
     borderWidth: 2,
-    borderColor: Colors.textPrimary,
+    borderColor: Colors.primary,
     shadowColor: '#7A5B45',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
@@ -313,40 +424,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     overflow: 'visible',
   },
-  petName: {
-    fontSize: 18,
-    fontWeight: '800',
+  speciesName: {
+    fontSize: 14,
+    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 4,
     letterSpacing: -0.3,
   },
-  petNameOn: {
-    color: Colors.textPrimary,
-  },
-  petTag: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 10,
-    letterSpacing: -0.2,
-  },
-  traits: {
-    width: '100%',
-    gap: 6,
-  },
-  traitChip: {
-    alignSelf: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: Colors.cardRecessed,
-  },
-  traitText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    letterSpacing: -0.2,
+  speciesNameOn: {
+    color: Colors.primary,
   },
   footer: {
     ...onboardingFooterStyle,

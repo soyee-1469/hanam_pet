@@ -27,9 +27,9 @@ import {
 } from '../../lib/onboardingDraft'
 import { completeOnboarding, type PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
+import { defaultPetName } from '../../lib/petProfile'
 
 const copy = getOnboardingCopy().profile
-const pets = getOnboardingCopy().petSelect.pets
 const MAX_LEN = 8
 
 const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
@@ -40,7 +40,7 @@ const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
 export default function OnboardingProfile() {
   const draft = getOnboardingDraft()
   const petId: PetChoice = draft.petId ?? 'mongi'
-  const petName = pets.find((p) => p.id === petId)?.name ?? '하치'
+  const petName = draft.petName.trim() || defaultPetName(petId)
 
   const [nickname, setNickname] = useState(draft.nickname)
   const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(draft.ageGroup)
@@ -65,9 +65,9 @@ export default function OnboardingProfile() {
     if (!valid || !ageGroup || !gender || busy) return
     setOnboardingDraft({ nickname: trimmed, ageGroup, gender })
 
-    // v2: 번호 저장 → welcome
+    // v2: 기본 정보 다음 → 펫 선택
     if (ONBOARDING_VERSION === 'v2') {
-      router.push('/onboarding/restore-code')
+      router.push('/onboarding/pet-select')
       return
     }
 
@@ -200,21 +200,23 @@ export default function OnboardingProfile() {
           </View>
         </ScrollView>
 
-        {/* 스크롤 밖에 두어 캐릭터가 잘리지 않게 */}
-        <View style={styles.cheer} pointerEvents="none">
-          <Image
-            source={PET_IMAGES[petId]}
-            style={styles.cheerPet}
-            resizeMode="contain"
-          />
-          <View style={styles.cheerBubble}>
-            <Text style={styles.cheerText}>{cheerText}</Text>
+        {/* 스크롤 밖에 두어 캐릭터가 잘리지 않게 — 펫 선택 전이면 숨김 */}
+        {draft.petId ? (
+          <View style={styles.cheer} pointerEvents="none">
+            <Image
+              source={PET_IMAGES[petId]}
+              style={styles.cheerPet}
+              resizeMode="contain"
+            />
+            <View style={styles.cheerBubble}>
+              <Text style={styles.cheerText}>{cheerText}</Text>
+            </View>
+            <Text style={styles.cheerName}>{petName}</Text>
           </View>
-          <Text style={styles.cheerName}>{petName}</Text>
-        </View>
+        ) : null}
 
         <View style={styles.footer}>
-          <ProgressDots total={ONBOARDING_STEPS} index={2} />
+          <ProgressDots total={ONBOARDING_STEPS} index={1} />
           {busy ? (
             <ActivityIndicator color={Colors.primary} />
           ) : (

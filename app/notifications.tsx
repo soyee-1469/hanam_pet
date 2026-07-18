@@ -116,11 +116,11 @@ export default function NotificationsScreen() {
               {item.icon === 'calendar' ? (
                 <CalendarBlank
                   size={22}
-                  color={Colors.textPrimary}
+                  color={Colors.primary}
                   weight="regular"
                 />
               ) : (
-                <Bell size={22} color={Colors.textPrimary} weight="regular" />
+                <Bell size={22} color={Colors.primary} weight="regular" />
               )}
             </View>
             <View style={styles.rowBody}>
@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 999,
     borderWidth: 1,
   },
@@ -211,10 +211,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   filterTextOn: {
-    color: '#FFFFFF',
+    color: Colors.buttonPrimaryText,
   },
   list: {
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
   empty: {
     textAlign: 'center',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.peach,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   rowTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 8,
     marginBottom: 6,
@@ -255,27 +255,30 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   meta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingTop: 2,
   },
   rowDate: {
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
+    fontVariant: ['tabular-nums'],
   },
   unreadDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
     backgroundColor: Colors.primary,
   },
   rowBodyText: {
     fontSize: 13,
     fontWeight: '500',
-    lineHeight: 19,
+    lineHeight: 20,
     color: Colors.textSecondary,
   },
 })

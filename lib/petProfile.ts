@@ -6,7 +6,7 @@ const PET_NAME_KEY = 'hp_pet_name'
 export const PET_NAME_MAX = 8
 
 export function defaultPetName(petId: PetChoice): string {
-  return petId === 'nami' ? '나미' : '몽이'
+  return petId === 'nami' ? '나미' : '하치'
 }
 
 export async function getPetName(petId: PetChoice = 'mongi'): Promise<string> {

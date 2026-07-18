@@ -23,9 +23,9 @@ import {
 } from '../../lib/onboardingDraft'
 import { completeOnboarding, type PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import { defaultPetName, setPetName } from '../../lib/petProfile'
 
 const copy = getOnboardingCopy().welcome
-const pets = getOnboardingCopy().petSelect.pets
 
 const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
   mongi: DogExpr.fun,
@@ -36,7 +36,7 @@ export default function OnboardingWelcome() {
   const [busy, setBusy] = useState(false)
   const draft = getOnboardingDraft()
   const petId: PetChoice = draft.petId ?? 'mongi'
-  const petName = pets.find((p) => p.id === petId)?.name ?? pets[0].name
+  const petName = draft.petName.trim() || defaultPetName(petId)
 
   const goHome = async () => {
     if (busy) return
@@ -46,6 +46,7 @@ export default function OnboardingWelcome() {
         nickname: draft.nickname || '친구',
         petId: draft.petId ?? 'mongi',
       })
+      await setPetName(petName)
       resetOnboardingDraft()
       router.replace('/(tabs)')
     } finally {
@@ -61,7 +62,7 @@ export default function OnboardingWelcome() {
           style={styles.pet}
           resizeMode="contain"
         />
-        <Text style={styles.title}>{copy.title}</Text>
+        <Text style={styles.title}>{copy.title(petName)}</Text>
         <Text style={styles.bodyText}>{copy.body(petName)}</Text>
       </View>
 

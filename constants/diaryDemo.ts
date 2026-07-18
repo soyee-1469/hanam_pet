@@ -13,7 +13,7 @@ export type DiaryEntry = {
   tags: string[]
 }
 
-/** 데모 기록 — 실제 저장 연동 전 */
+/** 데모 기록 — 피그마 일기목록 시안 기준 (실제 저장 연동 전) */
 export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
   {
     id: '1',
@@ -22,8 +22,8 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
     day: 8,
     weekday: '일요일',
     moodId: 'ok',
-    preview: '일이 너무 많아서 하루 종일 긴장하며 보냈어요.',
-    body: '일이 너무 많아서 하루 종일 긴장하며 보냈어요. 저녁이 되어서야 겨우 숨을 돌렸어요. 그래도 오늘 하루를 버텨낸 나를 조금은 칭찬해 주고 싶어요.',
+    preview: '일이 너무 많아 하루 종일 긴장한 채로 보냈다.',
+    body: '일이 너무 많아 하루 종일 긴장한 채로 보냈다. 저녁이 되어서야 겨우 숨을 돌렸어요. 그래도 오늘 하루를 버텨낸 나를 조금은 칭찬해 주고 싶어요.',
     tags: ['업무'],
   },
   {
@@ -32,9 +32,9 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
     month: 7,
     day: 6,
     weekday: '금요일',
-    moodId: 'hard',
-    preview: '생각이 많아 늦게까지 잠들지 못했어요.',
-    body: '생각이 많아 늦게까지 잠들지 못했어요. 관계에서 온 말들이 자꾸 맴돌아서 마음을 가라앉히기가 쉽지 않았어요. 그래도 이렇게 적어 보니 조금은 가벼워진 것 같아요.',
+    moodId: 'good',
+    preview: '생각이 많아 늦게까지 잠들지 못했다.',
+    body: '생각이 많아 늦게까지 잠들지 못했다. 관계에서 온 말들이 자꾸 맴돌아서 마음을 가라앉히기가 쉽지 않았어요. 그래도 이렇게 적어 보니 조금은 가벼워진 것 같아요.',
     tags: ['관계', '수면'],
   },
   {
@@ -44,40 +44,41 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
     day: 3,
     weekday: '화요일',
     moodId: 'bad',
-    preview: '잠 못 드는 밤에 조용히 마음을 들여다봤어요.',
-    body: '잠 못 드는 밤에 조용히 마음을 들여다봤어요. 걱정이 꼬리를 물었지만, 하나씩 적어 보니 내일 할 수 있는 작은 일들도 보이기 시작했어요.',
+    preview: '잠 못 드는 밤에 조용히 마음을 들여다봤다.',
+    body: '잠 못 드는 밤에 조용히 마음을 들여다봤다. 걱정이 꼬리를 물었지만, 하나씩 적어 보니 내일 할 수 있는 작은 일들도 보이기 시작했어요.',
     tags: ['수면'],
   },
   {
     id: '4',
     year: 2026,
-    month: 5,
-    day: 30,
-    weekday: '금요일',
+    month: 7,
+    day: 2,
+    weekday: '월요일',
     moodId: 'great',
-    preview: '한 주를 돌아보며 생각을 정리했어요.',
-    body: '한 주를 돌아보며 생각을 정리했어요. 작은 기쁨들이 생각보다 많았고, 그 순간들을 남겨 두니 마음이 따뜻해졌어요.',
-    tags: ['휴식'],
+    preview: '가벼운 산책 후 마음이 한결 풀렸어요.',
+    body: '가벼운 산책 후 마음이 한결 풀렸어요. 바람과 햇살이 좋았고, 그 순간을 남겨 두고 싶었어요.',
+    tags: ['운동', '취미'],
   },
   {
     id: '5',
     year: 2026,
-    month: 5,
-    day: 30,
-    weekday: '금요일',
+    month: 7,
+    day: 1,
+    weekday: '일요일',
     moodId: 'hard',
-    preview: '한 주를 돌아보며 생각을 정리했어요.',
-    body: '한 주를 돌아보며 생각을 정리했어요. 불편했던 순간도 있었지만, 그걸 알아차린 것만으로도 나에게 의미가 있었어요.',
-    tags: ['휴식'],
+    preview: '몸도 마음도 조금 불편한 하루였어요.',
+    body: '몸도 마음도 조금 불편한 하루였어요. 무리하지 않고 쉬어 가기로 했어요.',
+    tags: ['건강', '휴식'],
   },
 ]
 
+/** 목록·상세 감정 라벨 색 (시안 톤) */
 export const DIARY_MOOD_LABEL_COLOR: Record<DiaryMoodId, string> = {
   great: Colors.primary,
-  good: Colors.moodGood,
-  ok: Colors.moodOk,
+  good: Colors.moodHard,
+  ok: '#E57A72',
   bad: '#9B7EBF',
-  hard: Colors.moodHard,
+  hard: '#8FA86A',
 }
 
 export function findDiaryEntry(id: string) {

@@ -13,13 +13,11 @@ export const onboardingCopyV2 = {
   },
 
   gate: {
-    bubble: '안녕! 기다리고 있었어.\n오늘도 천천히 함께하자.',
     title: '하치 & 나미',
     sub: '마음을 돌보는 나의 펫',
-    valueLine: '이전부터 이용했다면 이어보기 번호로 계속 사용해 보세요',
     primary: '처음 방문했어요',
-    secondary: '기존 기록 불러오기',
-    hint: '가입 없이 이어보기 번호로 기록을 불러올 수 있어요',
+    secondary: '이미 함께 하고 있어요',
+    hint: '이전부터 이용했다면 이어보기 번호로 계속 사용해 보세요',
   },
 
   intro: {
@@ -27,7 +25,7 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 4장 — brand → features → privacy → help(후반). 깊은 소개는 talk 화면으로 */
+    /** 투어 4장 — brand → help → features → privacy (피그마 좌→우 순서) */
     slides: [
       {
         key: 'brand' as const,
@@ -35,19 +33,19 @@ export const onboardingCopyV2 = {
         body: '매일 스스로를 돌보는 습관을 만들고\n마음을 함께 나누어요.',
       },
       {
+        key: 'help' as const,
+        title: '힘들 땐 언제든\n도움받을 수 있어요',
+        body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n언제든지 혼자가 아니에요.',
+      },
+      {
         key: 'features' as const,
-        title: '펫과 함께 매일\n나의 마음을 돌봐요',
+        title: '펫과 함께\n매일 나의 마음을 돌봐요',
         body: '다섯 가지 방법으로 마음을 살펴요!',
       },
       {
         key: 'privacy' as const,
         title: '일기와 대화 내용을\n안전하게 보관해요',
         body: '이름 없이 익명으로 이용할 수 있어요.\n힐링펫은 마음을 돌보는 친구일 뿐, 전문 치료를 대신하지 않아요.',
-      },
-      {
-        key: 'help' as const,
-        title: '힘들 땐 언제든\n도움받을 수 있어요',
-        body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n언제든지 혼자가 아니에요.',
       },
     ],
     features: [
@@ -130,13 +128,13 @@ export const onboardingCopyV2 = {
   terms: {
     header: '약관 및 정책 동의',
     headline: '서비스 이용을 위해\n약관 및 정책에 동의해 주세요',
-    sub: '필수 항목에 동의하면 서비스를 시작할 수 있어요.',
-    allAgree: '필수 항목 모두 동의',
-    allAgreeHint: '필수 약관 3개를 한 번에 선택해요',
+    sub: '',
+    allAgree: '전체 동의',
+    allAgreeHint: '',
     footerNote:
       "아래의 '동의하고 계속하기' 버튼을 누르면 [개인정보처리방침]을 확인하거나 동의한 것으로 간주해요.",
     ctaNudge: '필수 약관에 동의해 주세요.',
-    ctaDisabled: '필수 약관 동의하기',
+    ctaDisabled: '동의하고 계속하기',
     cta: '동의하고 계속하기',
     dummyBodies: {
       service:
@@ -149,29 +147,24 @@ export const onboardingCopyV2 = {
         '마케팅 정보 수신(선택, 더미)\n\n이벤트·새 기능·마음챙김 팁 등 유용한 소식을 가끔 알려드릴 수 있어요.\n\n· 수신 거부: 설정에서 언제든 끌 수 있어요\n· 동의하지 않아도 서비스 이용에는 문제가 없어요\n\n원하지 않으면 체크하지 않아도 됩니다.',
     },
     items: [
-      { key: 'service' as const, label: '이용약관 동의', required: true },
+      { key: 'service' as const, label: '[필수] 이용약관 동의', required: true },
       {
         key: 'privacy' as const,
-        label: '개인정보 수집·이용 동의',
+        label: '[필수] 개인정보 수집·이용 동의',
         required: true,
       },
       {
         key: 'sensitive' as const,
-        label: '민감정보 수집·이용 동의',
+        label: '[필수] 민감정보 수집·이용 동의',
         required: true,
-      },
-      {
-        key: 'marketing' as const,
-        label: '마케팅 정보 수신',
-        required: false,
       },
     ],
   },
 
   profile: {
-    header: '나를 알려주세요',
+    header: '기본 정보',
     headline: '나만을 위한 맞춤 케어를 위해\n정보를 입력해 주세요',
-    sub: '언제든지 설정에서 변경할 수 있어요.',
+    sub: '이 정보는 설정 메뉴에서 언제든지 바꿀 수 있어요.',
     label: '내 닉네임',
     placeholder: '닉네임을 입력해 주세요',
     hintInvalid: '2자 이상 입력해 주세요',
@@ -182,13 +175,13 @@ export const onboardingCopyV2 = {
       { id: '20s' as const, label: '20대' },
       { id: '30s' as const, label: '30대' },
       { id: '40s' as const, label: '40대' },
-      { id: '50plus' as const, label: '50+' },
+      { id: '50plus' as const, label: '50대 이상' },
     ],
     genderLabel: '성별',
     genderOptions: [
       { id: 'female' as const, label: '여성' },
       { id: 'male' as const, label: '남성' },
-      { id: 'unspecified' as const, label: '응답 안 함' },
+      { id: 'unspecified' as const, label: '선택 안 함' },
     ],
     cheerEmpty: '닉네임이 궁금해요!',
     cheerWith: (name: string) => `반가워, ${name}!`,
@@ -215,22 +208,29 @@ export const onboardingCopyV2 = {
   },
 
   welcome: {
-    title: '저장이 완료되었어요!',
-    body: (name: string) =>
-      `이제 ${name}와 함께\n마음 여행을 시작해 볼까요?`,
-    cta: '메인 화면으로 이동',
+    title: (name: string) => `이제 ${name}와\n인사해볼까요?`,
+    body: (_name: string) =>
+      '오늘의 무료 활동이 기다리고 있어요. 배운 그대로, 편하게 시작해 보세요.',
+    cta: '시작하기',
   },
 
   petSelect: {
-    header: '펫 선택',
-    headline: '나와 함께 할 펫 친구를 골라주세요',
+    header: '추가 정보',
+    headline: '나와 함께 할\n펫 친구를 골라주세요',
     sub: '펫의 종류와 이름은 언제든지 바꿀 수 있어요.',
+    speciesLabel: '펫 친구',
+    nameLabel: '펫 이름',
+    namePlaceholder: '펫 이름을 입력해 주세요',
+    nameHint: '지어준 이름으로 앞으로 펫을 부를 거예요.',
+    nameHintInvalid: '2자 이상 입력해 주세요',
+    nameMaxHint: '최대 8글자까지 입력할 수 있어요',
     cta: '다음',
-    ctaWith: (name: string) => `${name}와 시작하기`,
+    ctaWith: (_name: string) => '다음',
     pets: [
       {
         id: 'mongi' as const,
         name: '하치',
+        species: '강아지',
         tag: '든든한 강아지 친구',
         greeting: '기다리고 있었어! 멍!',
         traits: [
@@ -241,6 +241,7 @@ export const onboardingCopyV2 = {
       {
         id: 'nami' as const,
         name: '나미',
+        species: '고양이',
         tag: '포근한 고양이 친구',
         greeting: '나랑 같이 갈래? 냥!',
         traits: [
@@ -254,10 +255,10 @@ export const onboardingCopyV2 = {
   resume: {
     header: '기록 가져오기',
     code: {
-      headline: '이전 기록을 이어가려면\n가져오기 번호를 입력해 주세요',
-      body: '처음 가입할 때 받은 8자리 번호예요.\n메모·스크린샷이나, 예전 휴대폰 앱의\n[설정 > 내 정보]에서 확인할 수 있어요.',
+      headline: '이전 기록 그대로 이어하고 싶다면\n기록 가져오기 번호를 입력해 주세요',
+      body: "첫 회원가입 때 알려 드린 8자리 가져오기 번호는 휴대폰 사진첩(갤러리)에 자동 저장된 안내 카드 또는 예전 휴대폰의 '하남이네 힐링펫' 앱 [설정 > 내 정보]에서 확인할 수 있어요.",
       placeholder: '예: 48291736',
-      lostLink: '도움이 필요하신가요?',
+      lostLink: '번호가 기억나지 않아요',
       cta: '기록 가져오기',
       ctaBusy: '불러오는 중…',
       loadingMessage: '기록을 안전하게 불러오는 중이에요',
@@ -287,20 +288,18 @@ export const onboardingCopyV2 = {
         privacyTitle: '개인정보를 묻지 않아요.',
         privacyParagraphs: [
           [
-            { text: '하남이네 힐링펫은 소중한 개인정보(이름, 연락처 등)를 일절 수집하지 않는 ' },
-            { text: '익명 서비스', bold: true },
-            { text: '예요.' },
-          ],
-          [
-            { text: '개인 식별정보와 가져오기 번호를 서버에 ' },
-            { text: '저장하지 않아', bold: true },
-            { text: ', 하남시정신건강복지센터 관리자도 번호를 ' },
-            { text: '찾아드릴 수 없어요', bold: true },
-            { text: '.' },
+            {
+              text: '하남이네 힐링펫은 소중한 개인정보(이름, 연락처 등)를 일절 수집하지 않는 익명 서비스예요.',
+            },
           ],
           [
             {
-              text: '사진첩의 번호 안내 카드나 예전 휴대폰 앱에서 번호를 찾지 못했다면, 아쉽지만 새 마음 기록을 시작해야 해요.',
+              text: '개인정보를 보호하기 위해 시스템에 개인 식별 정보를 저장하지 않으므로, 센터 관리자도 가져오기 번호를 따로 찾아드릴 수 없어요.',
+            },
+          ],
+          [
+            {
+              text: '만약 사진첩에서 번호 안내 카드나 예전 휴대폰 앱에서 번호를 찾지 못하셨다면, 기록을 가져오는 건 불가능해요. 아쉽지만 새로운 마음 기록을 시작해야 해요.',
             },
           ],
         ],

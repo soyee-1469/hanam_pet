@@ -26,9 +26,9 @@ import { showToast } from '../../lib/toast'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
-/** 데모용 — 스토리지 비어 있을 때 이번 달 일부 출석 */
+/** 데모용 — 시안 출석일 패턴 (오늘 이전만) */
 function demoKeysForMonth(year: number, month: number, today: Date): string[] {
-  const seed = [1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 19]
+  const seed = [1, 2, 3, 6, 7, 8, 10, 13, 14, 15, 16, 20, 21]
   const todayDay = today.getDate()
   return seed
     .filter((d) => d < todayDay)
@@ -132,23 +132,26 @@ export default function AttendanceScreen() {
         <View style={styles.heroCard}>
           <View style={styles.heroCopy}>
             <Text style={styles.heroTitle}>
-              {'하루에 한 번씩\n도장을 찍어주세요'}
+              {'하루에 한 번씩 도장을\n찍어주세요'}
             </Text>
             <Text style={styles.heroSub}>
-              출석하면 {ATTENDANCE_ENERGY_REWARD} 에너지를 얻을 수 있어요!
+              출석하면 {ATTENDANCE_ENERGY_REWARD} 에너지를 얻을 수 있어요! 🐾
             </Text>
             <View style={styles.energyPill}>
               <Text style={styles.energyPillText}>
-                이번 달 모은 에너지 {monthEnergy} 에너지
+                이번 달 모은 에너지{' '}
+                <Text style={styles.energyPillEm}>{monthEnergy}</Text> 에너지
               </Text>
             </View>
           </View>
-          <Image
-            source={DogExpr.fun}
-            style={styles.heroImage}
-            resizeMode="contain"
-            accessibilityLabel="펫"
-          />
+          <View style={styles.heroImageWrap}>
+            <Image
+              source={DogExpr.fun}
+              style={styles.heroImage}
+              resizeMode="contain"
+              accessibilityLabel="펫"
+            />
+          </View>
         </View>
 
         <View style={styles.calCard}>
@@ -164,8 +167,11 @@ export default function AttendanceScreen() {
           </View>
 
           <View style={styles.weekRow}>
-            {WEEKDAYS.map((w) => (
-              <Text key={w} style={styles.weekLabel}>
+            {WEEKDAYS.map((w, i) => (
+              <Text
+                key={w}
+                style={[styles.weekLabel, i === 0 && styles.weekLabelSun]}
+              >
                 {w}
               </Text>
             ))}
@@ -207,17 +213,23 @@ export default function AttendanceScreen() {
           </View>
 
           <View style={styles.stampCta}>
-            <PrimaryButton
-              label={
-                stampedToday
-                  ? '오늘은 출석 완료!'
-                  : `오늘의 도장 찍기 (+${ATTENDANCE_ENERGY_REWARD}에너지)`
-              }
-              disabled={stampedToday || busy}
-              onPress={() => {
-                void onStamp()
-              }}
-            />
+            {stampedToday ? (
+              <View
+                style={styles.doneBtn}
+                accessibilityRole="text"
+                accessibilityLabel="오늘 출석 완료"
+              >
+                <Text style={styles.doneBtnText}>오늘 출석 완료!</Text>
+              </View>
+            ) : (
+              <PrimaryButton
+                label={`출석하고 ${ATTENDANCE_ENERGY_REWARD}개 에너지 받기`}
+                disabled={busy}
+                onPress={() => {
+                  void onStamp()
+                }}
+              />
+            )}
           </View>
         </View>
       </ScrollView>
@@ -263,11 +275,10 @@ const styles = StyleSheet.create({
   heroCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.creamyBeige,
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 18,
-    ...Shadows.elevation,
   },
   heroCopy: {
     flex: 1,
@@ -275,10 +286,11 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   heroTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     color: Colors.textPrimary,
     lineHeight: 26,
+    letterSpacing: -0.3,
     marginBottom: 8,
   },
   heroSub: {
@@ -290,15 +302,28 @@ const styles = StyleSheet.create({
   },
   energyPill: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.iconFeed,
+    backgroundColor: Colors.peach,
     borderRadius: 999,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
   },
   energyPillText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  energyPillEm: {
+    fontWeight: '800',
     color: Colors.primary,
+  },
+  heroImageWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   heroImage: {
     width: 88,
@@ -345,6 +370,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textDisabled,
   },
+  weekLabelSun: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -356,15 +385,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   stampWrap: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -392,6 +421,18 @@ const styles = StyleSheet.create({
     height: 4,
   },
   stampCta: {
-    marginTop: 12,
+    marginTop: 14,
+  },
+  doneBtn: {
+    height: 54,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.creamyBeige,
+  },
+  doneBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
 })

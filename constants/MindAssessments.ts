@@ -52,7 +52,7 @@ export const ASSESSMENTS: Record<AssessmentId, AssessmentDef> = {
   phq: {
     id: 'phq',
     shortTitle: '우울 평가도구',
-    title: '우울 평가도구(NDS)',
+    title: '우울 평가도구 (NDS)',
     exploreTitle: '우울 알아보기',
     instruction: '지난 2주간의 경험을 떠올려 주세요',
     description:
@@ -82,7 +82,7 @@ export const ASSESSMENTS: Record<AssessmentId, AssessmentDef> = {
   gad: {
     id: 'gad',
     shortTitle: '불안 평가도구',
-    title: '불안 평가도구(NAS)',
+    title: '불안 평가도구 (NAS)',
     exploreTitle: '불안 알아보기',
     instruction: '지난 2주간의 경험을 떠올려 주세요',
     description:
@@ -111,7 +111,7 @@ export const ASSESSMENTS: Record<AssessmentId, AssessmentDef> = {
   stress: {
     id: 'stress',
     shortTitle: '스트레스 평가도구',
-    title: '스트레스 평가도구(NSS)',
+    title: '스트레스 평가도구 (NSS)',
     exploreTitle: '스트레스 알아보기',
     instruction: '요즘 느끼는 부담을 떠올려 주세요',
     description:
@@ -149,7 +149,7 @@ export function assessmentMaxScore(assessment: AssessmentDef): number {
   return assessment.questions.length * 3
 }
 
-/** NDS 0–36 (결과 화면: 0–9 / 10–18 / 19–27 / 28–36) */
+/** NDS 0–36 (시안: 0–8 / 9–18 / 19–28 / 29–36) */
 export const DEPRESSION_BANDS: SeverityBand[] = [
   {
     id: 'normal',
@@ -157,10 +157,10 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     shortLabel: '정상 수준',
     displayTitle: '정상',
     min: 0,
-    max: 9,
+    max: 8,
     color: '#A9B69A',
     meaning: '일상에 지장이 적은 안정적인 상태',
-    opinionTitle: '정상 (0-9점) 전문가 소견',
+    opinionTitle: '정상 (0-8점) 전문가 소견',
     opinionBody:
       '지난 2주간 우울 관련 증상이 거의 없거나 매우 가벼운 편이에요. 지금의 리듬을 잘 유지해 보세요.',
     tips: [
@@ -174,11 +174,11 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     label: '경도',
     shortLabel: '경도 수준',
     displayTitle: '경증 수준의 우울장애',
-    min: 10,
+    min: 9,
     max: 18,
     color: '#D4E08A',
     meaning: '가벼운 우울감, 셀프케어와 관찰 권장',
-    opinionTitle: '경도 (10-18점) 전문가 소견',
+    opinionTitle: '경도 (9-18점) 전문가 소견',
     opinionBody:
       '지난 2주간 가벼운 우울 느낌이 있었을 수 있어요. 일상은 유지되지만, 마음을 조금 더 살펴보면 좋아요.',
     tips: [
@@ -193,10 +193,10 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     shortLabel: '중등도 수준',
     displayTitle: '중등도 수준의 우울장애',
     min: 19,
-    max: 27,
+    max: 28,
     color: '#E8A07A',
     meaning: '일상 기능 저하, 전문 상담 권장',
-    opinionTitle: '중등도 (19-27점) 전문가 소견',
+    opinionTitle: '중등도 (19-28점) 전문가 소견',
     opinionBody:
       '지난 2주간 중등도 수준의 우울 느낌이 지속된 것으로 보여요. 의욕 저하·수면 변화 등으로 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계예요.',
     tips: [
@@ -210,11 +210,11 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     label: '중증',
     shortLabel: '중증 수준',
     displayTitle: '중증 수준의 우울장애',
-    min: 28,
+    min: 29,
     max: 36,
     color: '#E57A72',
     meaning: '즉각적인 전문 치료와 개입 필요',
-    opinionTitle: '중증 (28-36점) 전문가 소견',
+    opinionTitle: '중증 (29-36점) 전문가 소견',
     opinionBody:
       '높은 수준의 우울 관련 증상이 보여요. 혼자 견디기보다 전문 기관의 도움을 빠르게 받는 것이 중요해요.',
     tips: [
@@ -347,7 +347,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     min: 21,
     max: 33,
     color: '#E57A72',
-    meaning: '적극적인 원인 파악 및 전문적 도움 권장',
+    meaning: '적극적인 원인 파악과 전문 도움 권장',
     opinionTitle: '매우 높은 중증 (21-33점) 전문가 소견',
     opinionBody:
       '스트레스 수준이 매우 높은 편이에요. 혼자 견디기보다 원인 파악과 전문 기관의 도움을 빠르게 받는 것이 중요해요.',

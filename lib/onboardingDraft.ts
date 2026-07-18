@@ -9,6 +9,7 @@ export type OnboardingDraft = {
   ageGroup: AgeGroup | null
   gender: GenderChoice | null
   petId: PetChoice | null
+  petName: string
 }
 
 let draft: OnboardingDraft = {
@@ -16,6 +17,7 @@ let draft: OnboardingDraft = {
   ageGroup: null,
   gender: null,
   petId: null,
+  petName: '',
 }
 
 export function getOnboardingDraft(): OnboardingDraft {
@@ -27,7 +29,13 @@ export function setOnboardingDraft(partial: Partial<OnboardingDraft>): void {
 }
 
 export function resetOnboardingDraft(): void {
-  draft = { nickname: '', ageGroup: null, gender: null, petId: null }
+  draft = {
+    nickname: '',
+    ageGroup: null,
+    gender: null,
+    petId: null,
+    petName: '',
+  }
 }
 
 /** Setup flow progress after gate (terms → pet → profile → [restore] → welcome) */

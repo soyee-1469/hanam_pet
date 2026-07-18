@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
-import { CaretRight, Check } from 'phosphor-react-native'
+import { Check } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 
 type CheckRowProps = {
@@ -106,7 +106,7 @@ export function CheckRow({
             pressed && styles.pressed,
           ]}
         >
-          <CaretRight size={18} color={Colors.textDisabled} weight="bold" />
+          <Text style={styles.detailLink}>보기</Text>
         </Pressable>
       ) : null}
     </View>
@@ -209,11 +209,17 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   chevronHit: {
-    width: 44,
+    minWidth: 44,
     height: 48,
+    paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: 4,
+  },
+  detailLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textDisabled,
   },
   pressed: {
     opacity: 0.78,

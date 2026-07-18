@@ -97,7 +97,7 @@ export default function OnboardingTerms() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.headline}>{copy.headline}</Text>
-        <Text style={styles.sub}>{copy.sub}</Text>
+        {copy.sub ? <Text style={styles.sub}>{copy.sub}</Text> : null}
 
         <View style={styles.allBlock}>
           <CheckRow
@@ -106,7 +106,7 @@ export default function OnboardingTerms() {
             onToggle={toggleRequiredAll}
             emphasize
             compact
-            hint={copy.allAgreeHint}
+            hint={copy.allAgreeHint || undefined}
           />
         </View>
 
@@ -120,7 +120,6 @@ export default function OnboardingTerms() {
                 checked={checks[t.key]}
                 onToggle={() => toggle(t.key)}
                 onPressDetail={() => setSheetKey(t.key)}
-                badge="required"
               />
             ))}
           {copy.items
@@ -147,7 +146,7 @@ export default function OnboardingTerms() {
             label={allRequired ? copy.cta : copy.ctaDisabled}
             disabled={!allRequired}
             emphasized={allRequired}
-            onPress={() => router.push('/onboarding/pet-select')}
+            onPress={() => router.push('/onboarding/profile')}
             onDisabledPress={() =>
               Alert.alert('', copy.ctaNudge, [{ text: '확인' }])
             }

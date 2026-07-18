@@ -102,7 +102,10 @@ function HelpSlide({
         {copy.helpLines.map((line) => (
           <View key={line.phone} style={styles.helpCard}>
             <View style={styles.helpCardCopy}>
-              <Text style={styles.helpName}>{line.name}</Text>
+              <View style={styles.helpNameRow}>
+                <View style={styles.helpDot} />
+                <Text style={styles.helpName}>{line.name}</Text>
+              </View>
               <View style={styles.helpPhoneRow}>
                 <Phone size={14} color={Colors.primary} weight="fill" />
                 <Text style={styles.helpPhone}>{line.phoneDisplay}</Text>
@@ -187,8 +190,8 @@ export default function OnboardingIntro() {
     setIndex(Math.max(0, Math.min(SLIDES.length - 1, next)))
   }
 
-  /** 투어 다음 = 기능 토크(일기→콘텐츠→체크) → 약관 */
-  const finishTour = () => router.push('/onboarding/diary-record')
+  /** 투어 끝 = 약관 (피그마: 온보딩 → 약관) */
+  const finishTour = () => router.push('/onboarding/terms')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   const goNext = () => {
@@ -349,11 +352,23 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  helpNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  helpDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
+  },
   helpName: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 4,
   },
   helpPhoneRow: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import {
   User,
   FileText,
@@ -23,6 +23,8 @@ import {
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { getOnboardingProfile } from '../../lib/onboardingStorage'
+import { getPetName } from '../../lib/petProfile'
 
 type MenuItem = {
   id: string
@@ -116,6 +118,21 @@ function SettingsRow({
 export default function MoreScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
+  const [petName, setPetName] = useState('하치')
+
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true
+      void (async () => {
+        const profile = await getOnboardingProfile()
+        const name = await getPetName(profile?.petId ?? 'mongi')
+        if (alive) setPetName(name)
+      })()
+      return () => {
+        alive = false
+      }
+    }, []),
+  )
 
   const onMenuPress = (item: MenuItem) => {
     if (item.id === 'account') {
@@ -168,7 +185,7 @@ export default function MoreScreen() {
             <Text style={styles.profileAvatarText}>펫</Text>
           </View>
           <View style={styles.profileCopy}>
-            <Text style={styles.profileTitle}>몽이와 함께하는 중</Text>
+            <Text style={styles.profileTitle}>{petName}와 함께하는 중</Text>
             <Text style={styles.profileSub}>익명 사용자 · 가입 24일째</Text>
           </View>
           <View style={styles.levelBadge}>

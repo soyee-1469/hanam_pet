@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Tabs } from 'expo-router'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -12,6 +13,10 @@ import {
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import {
+  isTabBarOverlayLocked,
+  subscribeTabBarOverlay,
+} from '../../lib/tabBarOverlay'
 
 /** Soft tab button — navigation tab bar button props */
 type SoftTabButtonProps = {
@@ -85,6 +90,40 @@ export default function TabLayout() {
   const { bottom } = useSafeAreaInsets()
   const tabBottomPad = Math.max(bottom, 8) + Layout.tabBarExtraBottom
   const tabHeight = tabBarReserveHeight(bottom)
+  const [overlayLocked, setOverlayLocked] = useState(isTabBarOverlayLocked)
+
+  useEffect(() => {
+    return subscribeTabBarOverlay(() => {
+      setOverlayLocked(isTabBarOverlayLocked())
+    })
+  }, [])
+
+  const tabBarStyle = useMemo(
+    () =>
+      overlayLocked
+        ? {
+            display: 'none' as const,
+            height: 0,
+            overflow: 'hidden' as const,
+          }
+        : {
+            position: 'absolute' as const,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: tabHeight,
+            paddingTop: 4,
+            paddingBottom: tabBottomPad,
+            backgroundColor: Colors.cardRecessed,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: 'rgba(142, 111, 92, 0.12)',
+            elevation: 0,
+            shadowOpacity: 0,
+            shadowRadius: 0,
+            shadowOffset: { width: 0, height: 0 },
+          },
+    [overlayLocked, tabHeight, tabBottomPad],
+  )
 
   return (
     <Tabs
@@ -95,22 +134,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textDisabled,
         sceneStyle: { backgroundColor: 'transparent' },
-        tabBarStyle: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: tabHeight,
-          paddingTop: 4,
-          paddingBottom: tabBottomPad,
-          backgroundColor: Colors.cardRecessed,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: 'rgba(142, 111, 92, 0.12)',
-          elevation: 0,
-          shadowOpacity: 0,
-          shadowRadius: 0,
-          shadowOffset: { width: 0, height: 0 },
-        },
+        tabBarStyle,
         tabBarButton: (props) => (
           <SoftTabButton {...(props as SoftTabButtonProps)} />
         ),

@@ -15,11 +15,13 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, CaretRight, CaretUp, Handshake, List, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { CaretLeft, CaretUp, Lightning, List, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
+import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
+import type { PetChoice } from '../../lib/onboardingStorage'
 import {
   CHAT_ENERGY_COST,
   loadChatEnergy,
@@ -28,10 +30,17 @@ import {
 import { setEnergyCareNudge } from '../../lib/careNudge'
 import { getOnboardingProfile } from '../../lib/onboardingStorage'
 import { getPetName } from '../../lib/petProfile'
+import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
+import {
+  finishPetTourWithComplete,
+  getPetTourStepIndex,
+  setPetTourStepIndex,
+  subscribePetTour,
+} from '../../lib/coachmarkTourState'
+import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
 
 const TYPING_MS = 1800
-const DEPLETED_BUBBLE =
-  '에너지가 다 떨어졌어… 조금 채워오면 다시 이야기할 수 있어.'
 
 function petReplies(name: string) {
   return [
@@ -67,13 +76,17 @@ export default function ChatScreen() {
   const [message, setMessage] = useState('')
   const [inputFocused, setInputFocused] = useState(false)
   const [noticeDone, setNoticeDone] = useState(false)
+  const [tourIndex, setTourIndex] = useState<number | null>(
+    getPetTourStepIndex(),
+  )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [tipVisible, setTipVisible] = useState(true)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
   const [energyReady, setEnergyReady] = useState(false)
-  const [petName, setPetName] = useState('몽이')
+  const [petName, setPetName] = useState('하치')
+  const [petId, setPetId] = useState<PetChoice>('mongi')
   const greetOpacity = useRef(new Animated.Value(0)).current
   const greetLift = useRef(new Animated.Value(12)).current
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
@@ -83,6 +96,43 @@ export default function ChatScreen() {
   const composing = message.trim().length > 0
   const showComposeTip = tipVisible && composing && !typing && !depleted
   const replies = useMemo(() => petReplies(petName), [petName])
+  const petImage = petId === 'nami' ? CatExpr.soft : DogExpr.soft
+
+  const tourStep =
+    tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
+  const showChatTour = tourStep?.route === 'chat'
+  const tourHighlightComposer =
+    showChatTour && tourStep?.highlight === 'composer'
+
+  useEffect(() => {
+    return subscribePetTour(() => {
+      setTourIndex(getPetTourStepIndex())
+    })
+  }, [])
+
+  useEffect(() => {
+    if (showChatTour) setNoticeDone(true)
+  }, [showChatTour])
+
+  const finishPetTour = async () => {
+    finishPetTourWithComplete()
+    await setCoachmarkWelcomeStatus('accepted')
+    router.replace('/(tabs)')
+  }
+
+  const onPetTourNext = () => {
+    if (tourIndex == null) return
+    const next = tourIndex + 1
+    if (next < PET_TOUR_STEPS.length) {
+      const step = PET_TOUR_STEPS[next]
+      setPetTourStepIndex(next)
+      if (step.route !== 'chat') {
+        router.push(petTourHref(step.route) as never)
+      }
+      return
+    }
+    void finishPetTour()
+  }
 
   /** 유의사항 통과 직후 — 첫인사 페이드·살짝 올라옴 */
   useEffect(() => {
@@ -132,8 +182,10 @@ export default function ChatScreen() {
       })
       void (async () => {
         const profile = await getOnboardingProfile()
-        const name = await getPetName(profile?.petId ?? 'mongi')
+        const id: PetChoice = profile?.petId ?? 'mongi'
+        const name = await getPetName(id)
         if (!alive) return
+        setPetId(id)
         setPetName(name)
       })()
       return () => {
@@ -220,6 +272,39 @@ export default function ChatScreen() {
     ])
   }
 
+  const goRefillEnergy = () => {
+    void (async () => {
+      await setEnergyCareNudge()
+      router.replace('/(tabs)')
+    })()
+  }
+
+  const depletedBubble = (
+    <View style={styles.petBubbleContainer}>
+      <View style={styles.depletedBubble}>
+        <View style={styles.depletedTitleRow}>
+          <Lightning size={18} color={Colors.accent} weight="fill" />
+          <Text style={styles.depletedTitle}>에너지를 다 썼어요</Text>
+        </View>
+        <Text style={styles.depletedBody}>
+          사료를 주거나 놀아 주면 에너지가 다시 차올라요.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="에너지 채우기"
+          onPress={goRefillEnergy}
+          style={({ pressed }) => [
+            styles.depletedCta,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.depletedCtaText}>에너지 채우기</Text>
+        </Pressable>
+      </View>
+      <View style={styles.depletedTail} />
+    </View>
+  )
+
   if (!noticeDone) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -281,37 +366,34 @@ export default function ChatScreen() {
           >
             <View style={styles.greetWrap}>
               <View style={styles.greetBubble}>
-                <Text style={styles.greetMain}>오늘 마음은 어떤가요?</Text>
-                <Text style={styles.greetSub}>
-                  {petName}에게 편하게 이야기를 들려주세요.
+                <Text style={styles.greetText}>
+                  {'오늘 마음은 어떤가요?\n편하게 이야기를 들려주세요.'}
                 </Text>
               </View>
               <View style={styles.greetTail} />
             </View>
             <Image
-              source={DogExpr.soft}
+              source={petImage}
               style={styles.petIdle}
               resizeMode="contain"
               accessibilityLabel={petName}
             />
           </Animated.View>
         ) : !chatting && depleted ? (
-          <View style={styles.stage}>
-            <View style={styles.petBubbleContainer}>
-              <View style={styles.petAnswerBubble}>
-                <Text style={styles.petAnswerText}>{DEPLETED_BUBBLE}</Text>
-              </View>
-              <View style={styles.petBubbleTail} />
-            </View>
+          <View style={styles.depletedStage}>
+            <Text style={styles.stamp}>{formatStamp(new Date())}</Text>
+            {depletedBubble}
             <Image
-              source={DogExpr.soft}
+              source={petImage}
               style={styles.petIdle}
               resizeMode="contain"
               accessibilityLabel={petName}
             />
             <View style={[styles.statusPill, styles.statusPillDepleted]}>
               <View style={[styles.statusDot, styles.statusDotDepleted]} />
-              <Text style={styles.statusText}>{petName} 에너지 소진</Text>
+              <Text style={[styles.statusText, styles.statusTextDepleted]}>
+                {petName} 에너지 소진
+              </Text>
             </View>
           </View>
         ) : (
@@ -336,19 +418,22 @@ export default function ChatScreen() {
               {typing ? (
                 <View style={styles.petBubbleContainer}>
                   <View style={styles.typingBubble}>
-                    <Text style={styles.typingDots}>
-                      {'.'.repeat(dotCount)}
-                    </Text>
+                    <View style={styles.typingDotsRow}>
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <View
+                          key={i}
+                          style={[
+                            styles.typingDot,
+                            i >= dotCount && styles.typingDotDim,
+                          ]}
+                        />
+                      ))}
+                    </View>
                   </View>
                   <View style={styles.petBubbleTail} />
                 </View>
               ) : depleted ? (
-                <View style={styles.petBubbleContainer}>
-                  <View style={styles.petAnswerBubble}>
-                    <Text style={styles.petAnswerText}>{DEPLETED_BUBBLE}</Text>
-                  </View>
-                  <View style={styles.petBubbleTail} />
-                </View>
+                depletedBubble
               ) : showComposeTip ? (
                 <View style={styles.tipWrap}>
                   <View style={styles.tipBubble}>
@@ -379,7 +464,7 @@ export default function ChatScreen() {
               ) : null}
 
               <Image
-                source={DogExpr.soft}
+                source={petImage}
                 style={styles.petChat}
                 resizeMode="contain"
                 accessibilityLabel={petName}
@@ -397,7 +482,12 @@ export default function ChatScreen() {
                     depleted && styles.statusDotDepleted,
                   ]}
                 />
-                <Text style={styles.statusText}>
+                <Text
+                  style={[
+                    styles.statusText,
+                    depleted && styles.statusTextDepleted,
+                  ]}
+                >
                   {depleted
                     ? `${petName} 에너지 소진`
                     : `${petName} 실시간 공감 중`}
@@ -407,30 +497,19 @@ export default function ChatScreen() {
           </ScrollView>
         )}
 
-        <View style={[styles.composerWrap, { paddingBottom: tabBarSpace + 8 }]}>
+        <View
+          style={[
+            styles.composerWrap,
+            { paddingBottom: tabBarSpace + 8 },
+            tourHighlightComposer && styles.composerWrapTour,
+          ]}
+        >
           {depleted ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="몽이와 놀아주기"
-              onPress={() => {
-                void (async () => {
-                  await setEnergyCareNudge()
-                  router.replace('/(tabs)')
-                })()
-              }}
-              style={({ pressed }) => [
-                styles.energyBar,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.energyBarLabel}>
-                {petName}가 잠시 쉬고 싶대요
+            <View style={styles.energyInsufficient}>
+              <Text style={styles.energyInsufficientText}>
+                에너지가 부족해요
               </Text>
-              <View style={styles.energyBarCta}>
-                <Text style={styles.energyBarCtaText}>몽이와 놀아주기</Text>
-                <CaretRight size={16} color={Colors.primary} weight="bold" />
-              </View>
-            </Pressable>
+            </View>
           ) : (
             <>
               {chatting ? (
@@ -443,13 +522,9 @@ export default function ChatScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <View style={styles.helpIcon}>
-                    <Handshake
-                      size={20}
-                      color={Colors.textPrimary}
-                      weight="regular"
-                    />
-                  </View>
+                  <Text style={styles.helpEmoji} accessibilityElementsHidden>
+                    🤝
+                  </Text>
                   <View style={styles.helpCopy}>
                     <Text style={styles.helpTitle}>
                       혼자 견디지 않아도 괜찮아요
@@ -460,7 +535,7 @@ export default function ChatScreen() {
                   </View>
                   <CaretUp
                     size={16}
-                    color={Colors.textDisabled}
+                    color={Colors.buttonPrimaryText}
                     weight="bold"
                   />
                 </Pressable>
@@ -470,6 +545,7 @@ export default function ChatScreen() {
                 style={[
                   styles.composer,
                   inputFocused && styles.composerFocused,
+                  tourHighlightComposer && styles.composerTour,
                 ]}
               >
                 <TextInput
@@ -511,6 +587,19 @@ export default function ChatScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      {showChatTour && tourStep ? (
+        <View style={styles.coachOverlay} pointerEvents="box-none">
+          <View style={styles.coachScrim} />
+          <CoachmarkTourCard
+            step={tourStep}
+            stepIndex={tourIndex ?? 0}
+            petName={petName}
+            onNext={onPetTourNext}
+            bottom={Math.max(insets.bottom, 12) + 80}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
@@ -550,24 +639,30 @@ const styles = StyleSheet.create({
   stage: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 36,
-    paddingBottom: 12,
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+  depletedStage: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   greetWrap: {
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 8,
-    maxWidth: 300,
+    marginBottom: 4,
+    maxWidth: 280,
   },
   greetBubble: {
     backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    borderRadius: 22,
+    paddingHorizontal: 22,
+    paddingVertical: 18,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
   },
   greetTail: {
     width: 14,
@@ -575,28 +670,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     transform: [{ rotate: '45deg' }],
     marginTop: -8,
   },
-  greetMain: {
-    fontSize: 17,
+  greetText: {
+    fontSize: 16,
     lineHeight: 24,
     fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  greetSub: {
-    marginTop: 6,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
   petIdle: {
-    width: 220,
-    height: 220,
+    width: 240,
+    height: 240,
   },
   chatContent: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -616,7 +703,7 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     maxWidth: '82%',
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.accentSoft,
     borderRadius: 18,
     borderBottomRightRadius: 6,
     paddingHorizontal: 14,
@@ -630,7 +717,7 @@ const styles = StyleSheet.create({
   },
   petBlock: {
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 20,
     paddingBottom: 8,
   },
   petBubbleContainer: {
@@ -641,50 +728,60 @@ const styles = StyleSheet.create({
   },
   petAnswerBubble: {
     alignSelf: 'stretch',
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    backgroundColor: Colors.cardRecessed,
+    borderRadius: 22,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
+    ...Shadows.elevation,
   },
   petAnswerText: {
     fontSize: 15,
-    lineHeight: 23,
+    lineHeight: 24,
     fontWeight: '500',
     color: Colors.textPrimary,
+    textAlign: 'center',
   },
   petBubbleTail: {
     width: 14,
     height: 14,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.cardRecessed,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     transform: [{ rotate: '45deg' }],
     marginTop: -8,
   },
   typingBubble: {
-    minWidth: 72,
+    minWidth: 88,
     backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    borderRadius: 20,
+    paddingHorizontal: 22,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  typingDots: {
-    fontSize: 22,
-    lineHeight: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: 2,
+  typingDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.textPrimary,
+  },
+  typingDotDim: {
+    opacity: 0.22,
   },
   tipWrap: {
     alignItems: 'center',
-    maxWidth: 280,
-    marginBottom: 4,
+    maxWidth: 260,
+    marginBottom: 8,
   },
   tipBubble: {
     flexDirection: 'row',
@@ -693,7 +790,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.textPrimary,
     borderRadius: 16,
     paddingLeft: 14,
-    paddingRight: 10,
+    paddingRight: 8,
     paddingVertical: 12,
   },
   tipText: {
@@ -717,19 +814,19 @@ const styles = StyleSheet.create({
     marginTop: -6,
   },
   petChat: {
-    width: 160,
-    height: 160,
+    width: 200,
+    height: 200,
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 8,
+    marginTop: 10,
     backgroundColor: Colors.surface,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
     borderColor: Colors.primaryLight,
     ...Shadows.elevation,
   },
@@ -748,6 +845,9 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '700',
+    color: Colors.primary,
+  },
+  statusTextDepleted: {
     color: Colors.textSecondary,
   },
   composerWrap: {
@@ -756,46 +856,100 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     gap: 10,
   },
-  energyBar: {
+  composerWrapTour: {
+    zIndex: 30,
+  },
+  coachOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 28,
+  },
+  coachScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(91, 57, 39, 0.35)',
+  },
+  depletedBubble: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.cardRecessed,
+    borderRadius: 22,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    gap: 12,
+    ...Shadows.elevation,
+  },
+  depletedTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 6,
+  },
+  depletedTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  depletedBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  depletedCta: {
+    alignSelf: 'stretch',
+    minHeight: 48,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  depletedCtaText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.buttonPrimaryText,
+  },
+  depletedTail: {
+    width: 14,
+    height: 14,
+    backgroundColor: Colors.cardRecessed,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+    transform: [{ rotate: '45deg' }],
+    marginTop: -8,
+  },
+  energyInsufficient: {
     minHeight: 52,
-    paddingHorizontal: 18,
     borderRadius: 999,
     backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
   },
-  energyBarLabel: {
-    fontSize: 14,
+  energyInsufficientText: {
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.textSecondary,
-  },
-  energyBarCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  energyBarCtaText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.primary,
   },
   helpCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.accentSoft,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  helpIcon: {
-    width: 36,
-    height: 36,
+    backgroundColor: Colors.primary,
     borderRadius: 18,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  helpEmoji: {
+    fontSize: 22,
+    lineHeight: 26,
   },
   helpCopy: {
     flex: 1,
@@ -804,12 +958,13 @@ const styles = StyleSheet.create({
   helpTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: Colors.buttonPrimaryText,
   },
   helpSub: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: Colors.buttonPrimaryText,
+    opacity: 0.92,
   },
   composer: {
     flexDirection: 'row',
@@ -824,6 +979,10 @@ const styles = StyleSheet.create({
   },
   composerFocused: {
     borderColor: Colors.selected,
+  },
+  composerTour: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
   },
   input: {
     flex: 1,

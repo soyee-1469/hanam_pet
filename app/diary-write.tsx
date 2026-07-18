@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
-import { CaretLeft, Heart } from 'phosphor-react-native'
+import { CaretDown, CaretLeft, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
@@ -30,6 +30,7 @@ const NOTE_MIN_H = 132
 const NOTE_MAX_H = 260
 
 const TAGS = ['업무', '건강', '수면', '운동', '취미', '관계', '가족', '기타'] as const
+const TAGS_COLLAPSED = 5
 const WEEKDAY_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 const NOTE_MAX_LEN = 500
 
@@ -104,7 +105,9 @@ export default function DiaryWriteScreen() {
   )
   const [saved, setSaved] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
+  const [tagsExpanded, setTagsExpanded] = useState(false)
   const allowLeave = useRef(false)
+  const visibleTags = tagsExpanded ? TAGS : TAGS.slice(0, TAGS_COLLAPSED)
 
   const petOpacity = useRef(new Animated.Value(1)).current
   const petScale = useRef(new Animated.Value(1)).current
@@ -427,7 +430,7 @@ export default function DiaryWriteScreen() {
 
           <Text style={styles.sectionTitle}>무엇 때문에 그런 마음이 들었나요?</Text>
           <View style={styles.tagWrap}>
-            {TAGS.map((t) => {
+            {visibleTags.map((t) => {
               const selected = tags.includes(t)
               return (
                 <Pressable
@@ -442,13 +445,29 @@ export default function DiaryWriteScreen() {
                     style={[styles.tag, selected && styles.tagOn]}
                     collapsable={false}
                   >
-                    <Text style={[styles.tagText, selected && styles.tagTextOn]}>
+                    <Text
+                      style={[styles.tagText, selected && styles.tagTextOn]}
+                      numberOfLines={1}
+                    >
                       {t}
                     </Text>
                   </View>
                 </Pressable>
               )
             })}
+            {!tagsExpanded && TAGS.length > TAGS_COLLAPSED ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="태그 더보기"
+                onPress={() => setTagsExpanded(true)}
+                style={({ pressed }) => [
+                  styles.tagExpand,
+                  pressed && styles.pressedSoft,
+                ]}
+              >
+                <CaretDown size={16} color={Colors.textDisabled} weight="bold" />
+              </Pressable>
+            ) : null}
           </View>
 
           <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
@@ -561,6 +580,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,
+    textAlign: 'center',
     marginBottom: 16,
   },
   petAsk: {
@@ -664,10 +684,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tag: {
+    height: 36,
     marginRight: 8,
     marginBottom: 8,
     paddingHorizontal: 14,
-    paddingVertical: 10,
     borderRadius: 999,
     backgroundColor: Colors.surface,
     borderWidth: 1,
@@ -683,9 +703,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textSecondary,
+    lineHeight: 18,
   },
   tagTextOn: {
     color: '#FFFFFF',
+  },
+  tagExpand: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   noteWrap: {
     position: 'relative',

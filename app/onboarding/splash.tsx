@@ -50,7 +50,7 @@ export default function OnboardingSplash() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#FED391',
   },
   body: {
     flex: 1,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     width: 148,
     height: 148,
     borderRadius: 74,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(245, 213, 200, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 22,
@@ -72,12 +72,12 @@ const styles = StyleSheet.create({
     height: 88,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '900',
     color: Colors.textPrimary,
-    letterSpacing: -0.6,
+    letterSpacing: -0.9,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sub: {
     fontSize: 14,

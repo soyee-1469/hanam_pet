@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretDown, CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
+import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -31,8 +31,10 @@ type HistoryEntry = {
   tab: HistoryTab
   category: HistoryCategory
   title: string
-  /** 탭하면 펼쳐지는 추가 멘트 */
+  /** 탭하면 펼쳐지는 추가 멘트 (아이템 등) */
   note: string
+  /** 항상 노출되는 ※ 안내 (에너지 한도 등) */
+  footnote?: string
   time: string
   delta: number
   kind: StockKind
@@ -42,8 +44,8 @@ type StockMap = Record<StockKind, number>
 
 const STOCK_FALLBACK: StockMap = {
   food: 3,
-  toy: 3,
-  energy: 12,
+  toy: 2,
+  energy: 48,
 }
 
 /** 데모: 오늘 돌봄으로 얻은 양 / 일일 상한 */
@@ -57,6 +59,7 @@ const STOCK_COLS: { key: StockKind; label: string; max: number; unit: string }[]
     { key: 'energy', label: '에너지', max: ENERGY_MAX, unit: '개' },
   ]
 
+/** 시안 my-activity-items-tab */
 const HISTORY: HistoryEntry[] = [
   {
     id: 'i1',
@@ -71,19 +74,19 @@ const HISTORY: HistoryEntry[] = [
   {
     id: 'i2',
     tab: 'item',
-    category: 'claim',
-    title: '장난감 받기',
-    note: '같이 놀 준비가 됐어요. 언제든 꺼내 주세요.',
+    category: 'play',
+    title: '놀아 주기',
+    note: '잠깐 놀아도 기분이 확 좋아져요. 또 불러 주세요.',
     time: '2026-07-08 14:18:14',
-    delta: 1,
+    delta: -1,
     kind: 'toy',
   },
   {
     id: 'i3',
     tab: 'item',
-    category: 'use',
-    title: '장난감 주기',
-    note: '잠깐 놀아도 기분이 확 좋아져요. 또 불러 주세요.',
+    category: 'play',
+    title: '놀아 주기',
+    note: '신나게 놀고 나니 꼬리가 멈추질 않아요.',
     time: '2026-07-08 10:05:12',
     delta: -1,
     kind: 'toy',
@@ -92,9 +95,19 @@ const HISTORY: HistoryEntry[] = [
     id: 'i4',
     tab: 'item',
     category: 'claim',
+    title: '장난감 받기',
+    note: '같이 놀 준비가 됐어요. 언제든 꺼내 주세요.',
+    time: '2026-07-08 10:00:16',
+    delta: 1,
+    kind: 'toy',
+  },
+  {
+    id: 'i5',
+    tab: 'item',
+    category: 'claim',
     title: '사료 받기',
     note: '다음에 배고플 때 바로 줄 수 있게 준비해 뒀어요.',
-    time: '2026-07-08 10:00:16',
+    time: '2026-07-08 08:00:16',
     delta: 1,
     kind: 'food',
   },
@@ -102,8 +115,8 @@ const HISTORY: HistoryEntry[] = [
     id: 'e1',
     tab: 'energy',
     category: 'chat',
-    title: '대화하기',
-    note: '오늘 나눈 이야기 덕분에 마음이 조금 가벼워졌어요. 언제든 다시 들려주세요.',
+    title: '대화 하기',
+    note: '오늘 나눈 이야기 덕분에 마음이 조금 가벼워졌어요.',
     time: '2026-07-08 14:20:28',
     delta: -1,
     kind: 'energy',
@@ -113,7 +126,9 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'meal',
     title: '사료 주기',
-    note: '잘 먹고 기운을 차렸어요. 챙겨 줘서 고마워요!',
+    note: '잘 먹고 기운을 차렸어요.',
+    footnote:
+      '※ 총 보유 에너지가 가득 차서 나머지 2개는 적립되지 않았어요. (최대 50개)',
     time: '2026-07-08 14:18:14',
     delta: 2,
     kind: 'energy',
@@ -122,8 +137,8 @@ const HISTORY: HistoryEntry[] = [
     id: 'e3',
     tab: 'energy',
     category: 'play',
-    title: '놀아주기',
-    note: '신나게 놀고 나니 꼬리가 멈추질 않아요. 또 놀아 줄래요?',
+    title: '놀아 주기',
+    note: '신나게 놀고 나니 꼬리가 멈추질 않아요.',
     time: '2026-07-08 10:05:12',
     delta: 4,
     kind: 'energy',
@@ -132,8 +147,8 @@ const HISTORY: HistoryEntry[] = [
     id: 'e4',
     tab: 'energy',
     category: 'diary',
-    title: '마음일기',
-    note: '적어 준 마음을 조용히 곁에서 들어줬어요. 남겨 줘서 든든해요.',
+    title: '마음일기 작성',
+    note: '적어 준 마음을 조용히 곁에서 들어줬어요.',
     time: '2026-07-08 10:00:16',
     delta: 2,
     kind: 'energy',
@@ -142,10 +157,12 @@ const HISTORY: HistoryEntry[] = [
     id: 'e5',
     tab: 'energy',
     category: 'attend',
-    title: '출석하기',
-    note: '출석해 줘서 하루가 더 특별해요. 내일도 기다려요.',
+    title: '출석 도장',
+    note: '출석해 줘서 하루가 더 특별해요.',
+    footnote:
+      '※ 하루 최대 보상 한도를 채워서 에너지가 적립되지 않았어요.',
     time: '2026-07-08 08:00:16',
-    delta: 1,
+    delta: 0,
     kind: 'energy',
   },
 ]
@@ -170,7 +187,7 @@ function toCount(v: unknown): number {
 function formatDelta(delta: number, unit: string) {
   if (delta > 0) return `+${delta}${unit}`
   if (delta < 0) return `${delta}${unit}`
-  return null
+  return `0${unit}`
 }
 
 function StockIcon({ kind, size = 26 }: { kind: StockKind; size?: number }) {
@@ -193,10 +210,15 @@ function StockIcon({ kind, size = 26 }: { kind: StockKind; size?: number }) {
 function CategoryIcon({
   category,
   kind,
+  energyTab = false,
 }: {
   category: HistoryCategory
   kind: StockKind
+  energyTab?: boolean
 }) {
+  if (energyTab || kind === 'energy') {
+    return <Lightning size={20} color={Colors.accent} weight="fill" />
+  }
   const color = Colors.selected
   const size = 18
   switch (category) {
@@ -367,6 +389,8 @@ export default function StorageScreen() {
             const deltaLabel = formatDelta(item.delta, '개')
             const open = openId === item.id
             const positive = item.delta > 0
+            const zero = item.delta === 0
+            const isEnergy = tab === 'energy'
             return (
               <View
                 key={item.id}
@@ -376,42 +400,46 @@ export default function StorageScreen() {
                   accessibilityRole="button"
                   accessibilityState={{ expanded: open }}
                   accessibilityLabel={item.title}
-                  onPress={() => toggleNote(item.id)}
+                  onPress={() => {
+                    if (item.footnote) return
+                    toggleNote(item.id)
+                  }}
                   style={({ pressed }) => [
                     styles.row,
-                    pressed && styles.pressed,
+                    pressed && !item.footnote && styles.pressed,
                   ]}
                 >
-                  <View style={styles.rowIcon}>
-                    <CategoryIcon category={item.category} kind={item.kind} />
+                  <View
+                    style={[
+                      styles.rowIcon,
+                      isEnergy && styles.rowIconEnergy,
+                    ]}
+                  >
+                    <CategoryIcon
+                      category={item.category}
+                      kind={item.kind}
+                      energyTab={isEnergy}
+                    />
                   </View>
                   <View style={styles.rowCopy}>
                     <Text style={styles.rowTitle}>{item.title}</Text>
                     <Text style={styles.rowTime}>{item.time}</Text>
                   </View>
-                  {deltaLabel ? (
-                    <Text
-                      style={[
-                        styles.rowDelta,
-                        positive ? styles.rowDeltaPlus : styles.rowDeltaMinus,
-                      ]}
-                    >
-                      {deltaLabel}
-                    </Text>
-                  ) : null}
-                  <View
-                    style={{
-                      transform: [{ rotate: open ? '180deg' : '0deg' }],
-                    }}
+                  <Text
+                    style={[
+                      styles.rowDelta,
+                      positive && styles.rowDeltaPlus,
+                      !positive && !zero && styles.rowDeltaMinus,
+                      zero && styles.rowDeltaZero,
+                    ]}
                   >
-                    <CaretDown
-                      size={14}
-                      color={Colors.textDisabled}
-                      weight="bold"
-                    />
-                  </View>
+                    {deltaLabel}
+                  </Text>
                 </Pressable>
-                {open ? (
+                {item.footnote ? (
+                  <Text style={styles.footnote}>{item.footnote}</Text>
+                ) : null}
+                {open && !item.footnote ? (
                   <View style={styles.noteWrap}>
                     <Text style={styles.noteText}>{item.note}</Text>
                   </View>
@@ -503,7 +531,7 @@ const styles = StyleSheet.create({
   summaryHave: {
     fontSize: 16,
     fontWeight: '800',
-    color: Colors.selected,
+    color: Colors.primary,
   },
   summaryDivider: {
     height: StyleSheet.hairlineWidth,
@@ -512,7 +540,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginTop: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
@@ -533,8 +561,8 @@ const styles = StyleSheet.create({
   },
   tabUnderline: {
     alignSelf: 'stretch',
-    height: 2,
-    borderRadius: 1,
+    height: 2.5,
+    borderRadius: 2,
     backgroundColor: 'transparent',
   },
   tabUnderlineOn: {
@@ -547,40 +575,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 14,
-    minHeight: 64,
+    paddingVertical: 16,
+    minHeight: 68,
   },
   rowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
   },
   rowIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  rowIconEnergy: {
+    borderRadius: 22,
+    backgroundColor: Colors.accentSoft,
+  },
   rowCopy: {
     flex: 1,
     minWidth: 0,
-    gap: 4,
+    gap: 5,
   },
   rowTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   rowTime: {
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
+    fontVariant: ['tabular-nums'],
   },
   rowDelta: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    minWidth: 40,
+    minWidth: 48,
     textAlign: 'right',
   },
   rowDeltaPlus: {
@@ -589,10 +623,23 @@ const styles = StyleSheet.create({
   rowDeltaMinus: {
     color: Colors.textPrimary,
   },
-  noteWrap: {
-    marginLeft: 52,
+  rowDeltaZero: {
+    color: Colors.textSecondary,
+  },
+  footnote: {
+    marginLeft: 56,
     marginRight: 4,
-    marginTop: -4,
+    marginTop: -8,
+    marginBottom: 12,
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+    color: Colors.textDisabled,
+  },
+  noteWrap: {
+    marginLeft: 56,
+    marginRight: 4,
+    marginTop: -6,
     marginBottom: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,

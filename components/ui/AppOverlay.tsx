@@ -1,14 +1,20 @@
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import {
   Modal,
   View,
   Pressable,
   StyleSheet,
+  Platform,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Colors, Shadows } from '../../constants/Colors'
+import {
+  acquireTabBarOverlay,
+  releaseTabBarOverlay,
+} from '../../lib/tabBarOverlay'
 
 /** 전체 오버레이 공통 — 팝업·시트 모두 동일 틴트 */
 export const OVERLAY_SCRIM = 'rgba(91, 57, 39, 0.35)'
@@ -19,6 +25,16 @@ type ShellProps = {
   /** 배경 탭. false면 무시 */
   onBackdropPress?: (() => void) | false
   children: ReactNode
+}
+
+function useTabBarCoverWhileVisible(visible: boolean) {
+  useEffect(() => {
+    if (!visible) return
+    acquireTabBarOverlay()
+    return () => {
+      releaseTabBarOverlay()
+    }
+  }, [visible])
 }
 
 /**
@@ -32,6 +48,7 @@ export function CenterDialog({
   children,
   cardStyle,
 }: ShellProps & { cardStyle?: StyleProp<ViewStyle> }) {
+  useTabBarCoverWhileVisible(visible)
   const handleBackdrop =
     onBackdropPress === false
       ? undefined
@@ -42,6 +59,8 @@ export function CenterDialog({
       visible={visible}
       transparent
       animationType="fade"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
       onRequestClose={onRequestClose}
     >
       <View style={styles.centerRoot}>
@@ -70,6 +89,7 @@ export function BottomSheet({
   sheetStyle?: StyleProp<ViewStyle>
   showHandle?: boolean
 }) {
+  useTabBarCoverWhileVisible(visible)
   const insets = useSafeAreaInsets()
   const handleBackdrop =
     onBackdropPress === false
@@ -81,6 +101,8 @@ export function BottomSheet({
       visible={visible}
       transparent
       animationType="slide"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
       onRequestClose={onRequestClose}
     >
       <View style={styles.sheetRoot}>
@@ -110,9 +132,12 @@ const styles = StyleSheet.create({
     backgroundColor: OVERLAY_SCRIM,
     justifyContent: 'center',
     paddingHorizontal: 28,
+    ...(Platform.OS === 'web'
+      ? ({ position: 'fixed', inset: 0, zIndex: 10000 } as object)
+      : null),
   },
   dismissFill: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
   },
   centerCard: {
     backgroundColor: Colors.surface,
@@ -126,6 +151,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: OVERLAY_SCRIM,
+    ...(Platform.OS === 'web'
+      ? ({ position: 'fixed', inset: 0, zIndex: 10000 } as object)
+      : null),
   },
   sheetDismiss: {
     flex: 1,

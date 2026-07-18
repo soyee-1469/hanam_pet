@@ -63,30 +63,40 @@ export const MIND_CONTENTS: MindContent[] = [
 ]
 
 export type MindCheckItem = {
-  id: string
+  id: 'phq' | 'gad' | 'stress'
+  /** 목록 짧은 제목 */
   title: string
-  sub: string
+  /** NDS / NAS / NSS */
+  code: string
+  questions: number
   minutes: number
+  icon: 'moon' | 'heart' | 'lightning'
 }
 
 export const MIND_CHECKS: MindCheckItem[] = [
   {
     id: 'phq',
-    title: '우울 평가도구(NDS)',
-    sub: '지난 2주간의 기분을 살펴봐요',
+    title: '우울 평가도구',
+    code: 'NDS',
+    questions: 12,
     minutes: 5,
+    icon: 'moon',
   },
   {
     id: 'gad',
-    title: '불안 평가도구(NAS)',
-    sub: '걱정과 긴장 정도를 확인해요',
+    title: '불안 평가도구',
+    code: 'NAS',
+    questions: 11,
     minutes: 4,
+    icon: 'heart',
   },
   {
     id: 'stress',
-    title: '스트레스 평가도구(NSS)',
-    sub: '지금 느끼는 부담을 가볍게 점검해요',
-    minutes: 3,
+    title: '스트레스 평가도구',
+    code: 'NSS',
+    questions: 11,
+    minutes: 4,
+    icon: 'lightning',
   },
 ]
 

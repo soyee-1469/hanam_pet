@@ -13,26 +13,36 @@ import {
   Easing,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams, useNavigation } from 'expo-router'
 import { CaretLeft, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { DIARY_MOODS, type DiaryMoodId } from '../constants/Moods'
+import { findDiaryEntry } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { showToast } from '../lib/toast'
 
 const MOTION_MS = 200
 const easeOut = Easing.out(Easing.cubic)
 const NOTE_MIN_H = 132
 const NOTE_MAX_H = 260
 
-const TAGS = ['업무', '관계', '건강', '수면', '애정'] as const
+const TAGS = ['업무', '건강', '수면', '운동', '취미', '관계', '가족', '기타'] as const
 const WEEKDAY_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+const NOTE_MAX_LEN = 500
 
 const PET_IDLE = {
   image: DogExpr.soft,
-  main: '오늘 감정을 눌러줘.',
-  sub: '천천히 골라도 괜찮아.',
+  main: '어떤 하루를 보냈어요?',
+  sub: '오늘 있었던 일, 마음 편하게 적어봐요.',
+}
+
+const PET_EDIT = {
+  image: DogExpr.soft,
+  main: '다시 적어볼까?',
+  sub: '마음에 남는 부분을 고쳐도 좋아요.',
 }
 
 const PET_BY_MOOD: Record<
@@ -41,45 +51,60 @@ const PET_BY_MOOD: Record<
 > = {
   great: {
     image: DogExpr.fun,
-    main: '와, 그렇게 좋았구나!',
-    sub: '그 기분 더 들려줄래?',
+    main: '기쁜 하루였구나!',
+    sub: '그 순간을 더 남겨볼래?',
   },
   good: {
-    image: DogExpr.wink,
-    main: '좋은 하루였구나.',
-    sub: '웃는 네 모습, 나도 기뻐.',
+    image: DogExpr.soft,
+    main: '슬픈 마음이 있었구나…',
+    sub: '천천히 적어봐도 괜찮아.',
   },
   ok: {
-    image: DogExpr.soft,
-    main: '잔잔한 하루였구나.',
-    sub: '그냥 있어도 괜찮아.',
+    image: DogExpr.tired,
+    main: '화가 났던 일이 있었구나.',
+    sub: '여기 앉아 있을게.',
   },
   bad: {
-    image: DogExpr.tired,
-    main: '조금 힘들었구나…',
-    sub: '천천히 말해도 괜찮아.',
+    image: DogExpr.soft,
+    main: '걱정되는 일이 있었구나.',
+    sub: '조금만 나눠줘도 좋아.',
   },
   hard: {
-    image: DogExpr.soft,
-    main: '많이 걱정됐구나.',
-    sub: '여기 앉아 있을게. 혼자가 아니야.',
+    image: DogExpr.tired,
+    main: '불편한 마음이 있었구나.',
+    sub: '편하게 적어봐.',
   },
 }
 
 export default function DiaryWriteScreen() {
   const insets = useSafeAreaInsets()
-  const params = useLocalSearchParams<{ year?: string; month?: string; day?: string }>()
+  const navigation = useNavigation()
+  const params = useLocalSearchParams<{
+    id?: string
+    year?: string
+    month?: string
+    day?: string
+  }>()
+  const existing = params.id ? findDiaryEntry(String(params.id)) : undefined
+  const isEdit = !!existing
+
   const now = new Date()
-  const year = Number(params.year) || now.getFullYear()
-  const month = Number(params.month) || now.getMonth() + 1
-  const day = Number(params.day) || now.getDate()
+  const year = existing?.year ?? (Number(params.year) || now.getFullYear())
+  const month = existing?.month ?? (Number(params.month) || now.getMonth() + 1)
+  const day = existing?.day ?? (Number(params.day) || now.getDate())
   const date = useMemo(() => new Date(year, month - 1, day), [year, month, day])
 
-  const [moodId, setMoodId] = useState<DiaryMoodId | null>(null)
-  const [tags, setTags] = useState<string[]>(['업무'])
-  const [note, setNote] = useState('')
-  const [noteHeight, setNoteHeight] = useState(NOTE_MIN_H)
+  const [moodId, setMoodId] = useState<DiaryMoodId | null>(
+    existing?.moodId ?? null,
+  )
+  const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
+  const [note, setNote] = useState(existing?.body ?? '')
+  const [noteHeight, setNoteHeight] = useState(
+    existing?.body ? Math.min(NOTE_MAX_H, NOTE_MIN_H + 40) : NOTE_MIN_H,
+  )
   const [saved, setSaved] = useState(false)
+  const [exitOpen, setExitOpen] = useState(false)
+  const allowLeave = useRef(false)
 
   const petOpacity = useRef(new Animated.Value(1)).current
   const petScale = useRef(new Animated.Value(1)).current
@@ -89,7 +114,9 @@ export default function DiaryWriteScreen() {
   const moodScales = useRef(
     DIARY_MOODS.reduce(
       (acc, m) => {
-        acc[m.id] = new Animated.Value(1)
+        acc[m.id] = new Animated.Value(
+          existing?.moodId === m.id ? 1.25 : 1,
+        )
         return acc
       },
       {} as Record<DiaryMoodId, Animated.Value>
@@ -104,12 +131,57 @@ export default function DiaryWriteScreen() {
       {} as Record<DiaryMoodId, Animated.Value>
     )
   ).current
+  const skipPetAnim = useRef(isEdit)
 
-  const pet = moodId ? PET_BY_MOOD[moodId] : PET_IDLE
+  const pet = moodId
+    ? PET_BY_MOOD[moodId]
+    : isEdit
+      ? PET_EDIT
+      : PET_IDLE
   const dateLabel = `${year}년 ${month}월 ${day}일 ${WEEKDAY_KO[date.getDay()]}`
+
+  const isDirty = useMemo(() => {
+    if (saved) return false
+    if (isEdit && existing) {
+      const sameMood = moodId === existing.moodId
+      const sameNote = note === existing.body
+      const sameTags =
+        tags.length === existing.tags.length &&
+        tags.every((t) => existing.tags.includes(t))
+      return !(sameMood && sameNote && sameTags)
+    }
+    return moodId != null || note.trim().length > 0 || tags.length > 0
+  }, [saved, isEdit, existing, moodId, note, tags])
+
+  const requestLeave = () => {
+    if (!isDirty || allowLeave.current) {
+      router.back()
+      return
+    }
+    setExitOpen(true)
+  }
+
+  const confirmLeave = () => {
+    allowLeave.current = true
+    setExitOpen(false)
+    router.back()
+  }
+
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (!isDirty || allowLeave.current || saved) return
+      e.preventDefault()
+      setExitOpen(true)
+    })
+    return unsub
+  }, [navigation, isDirty, saved])
 
   useEffect(() => {
     if (!moodId) return
+    if (skipPetAnim.current) {
+      skipPetAnim.current = false
+      return
+    }
     petOpacity.setValue(0.35)
     petScale.setValue(0.92)
     Animated.parallel([
@@ -230,7 +302,16 @@ export default function DiaryWriteScreen() {
         }),
       ]),
     ]).start(() => {
-      setTimeout(() => router.back(), 900)
+      setTimeout(() => {
+        if (isEdit) {
+          showToast('일기 내용을 고쳤어요')
+          allowLeave.current = true
+          router.back()
+        } else {
+          allowLeave.current = true
+          router.replace('/diary-done')
+        }
+      }, 400)
     })
   }
 
@@ -251,7 +332,7 @@ export default function DiaryWriteScreen() {
             accessibilityRole="button"
             accessibilityLabel="뒤로"
             hitSlop={8}
-            onPress={() => router.back()}
+            onPress={requestLeave}
             style={({ pressed }) => [
               styles.backBtn,
               { cursor: 'pointer' } as object,
@@ -260,7 +341,7 @@ export default function DiaryWriteScreen() {
           >
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
-          <Text style={styles.title}>감정 기록</Text>
+          <Text style={styles.title}>{isEdit ? '마음 수정' : '마음 기록'}</Text>
           <View style={styles.backBtn} />
         </View>
 
@@ -294,12 +375,17 @@ export default function DiaryWriteScreen() {
             </View>
             <View style={styles.speech}>
               <Text style={styles.speechMain}>
-                {saved ? '오늘도 이야기해줘서 고마워.' : pet.main}
+                {saved
+                  ? isEdit
+                    ? '잘 고쳐줬어. 고마워.'
+                    : '오늘도 이야기해줘서 고마워.'
+                  : pet.main}
               </Text>
               {!saved ? <Text style={styles.speechSub}>{pet.sub}</Text> : null}
             </View>
           </View>
 
+          <Text style={styles.sectionTitle}>오늘 마음은 어땠나요?</Text>
           <View style={styles.moodRow}>
             {DIARY_MOODS.map((m) => {
               const selected = moodId === m.id
@@ -336,10 +422,7 @@ export default function DiaryWriteScreen() {
             })}
           </View>
 
-          <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>무슨 일이 있었나요?</Text>
-            <Text style={styles.sectionHint}>(중복 선택 가능)</Text>
-          </View>
+          <Text style={styles.sectionTitle}>무엇 때문에 그런 마음이 들었나요?</Text>
           <View style={styles.tagWrap}>
             {TAGS.map((t) => {
               const selected = tags.includes(t)
@@ -365,26 +448,31 @@ export default function DiaryWriteScreen() {
             })}
           </View>
 
-          <TextInput
-            style={[
-              styles.note,
-              { height: Math.max(NOTE_MIN_H, noteHeight) },
-            ]}
-            value={note}
-            onChangeText={setNote}
-            multiline
-            textAlignVertical="top"
-            placeholder={
-              '오늘 있었던 일을 편하게 적어보세요.\n한 줄만 적어도 몽이는 전부 다 들어줄게요.'
-            }
-            placeholderTextColor={Colors.textDisabled}
-            onContentSizeChange={(e) => {
-              const h = e.nativeEvent.contentSize.height
-              setNoteHeight(
-                Math.min(Math.max(NOTE_MIN_H, h + 28), NOTE_MAX_H)
-              )
-            }}
-          />
+          <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
+          <View style={styles.noteWrap}>
+            <TextInput
+              style={[
+                styles.note,
+                { height: Math.max(NOTE_MIN_H, noteHeight) },
+              ]}
+              value={note}
+              onChangeText={(t) => setNote(t.slice(0, NOTE_MAX_LEN))}
+              multiline
+              maxLength={NOTE_MAX_LEN}
+              textAlignVertical="top"
+              placeholder="이 감정이나 순간을 기억하도록 무슨 일이 있었는지 편하게 기록해 보세요."
+              placeholderTextColor={Colors.textDisabled}
+              onContentSizeChange={(e) => {
+                const h = e.nativeEvent.contentSize.height
+                setNoteHeight(
+                  Math.min(Math.max(NOTE_MIN_H, h + 28), NOTE_MAX_H)
+                )
+              }}
+            />
+            <Text style={styles.noteCount}>
+              {note.length}/{NOTE_MAX_LEN}자
+            </Text>
+          </View>
         </ScrollView>
 
         <View
@@ -393,7 +481,7 @@ export default function DiaryWriteScreen() {
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="기록 저장하기"
+            accessibilityLabel={isEdit ? '이대로 수정할게요' : '이대로 기록할게요'}
             disabled={!moodId || saved}
             onPress={save}
             style={({ pressed }) => [
@@ -403,12 +491,30 @@ export default function DiaryWriteScreen() {
           >
             <View style={styles.saveBtn} collapsable={false}>
               <Text style={styles.saveText}>
-                {saved ? '저장되었어요' : '기록 저장하기'}
+                {saved
+                  ? isEdit
+                    ? '수정되었어요'
+                    : '저장되었어요'
+                  : isEdit
+                    ? '이대로 수정할게요'
+                    : '이대로 기록할게요'}
               </Text>
             </View>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={exitOpen}
+        tone="warning"
+        title="작성 중인 일기가 있어요"
+        body="지금 나가면 이제까지 적은 마음의 기록이 사라져요."
+        cancelLabel="나갈래요"
+        confirmLabel="계속 쓸게요"
+        onCancel={confirmLeave}
+        onConfirm={() => setExitOpen(false)}
+        onBackdropPress={() => setExitOpen(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -502,7 +608,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 28,
     paddingHorizontal: 2,
-    paddingTop: 12,
+    paddingTop: 4,
     overflow: 'visible',
   },
   moodItem: {
@@ -547,16 +653,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
-  },
-  sectionHint: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textDisabled,
+    marginBottom: 12,
   },
   tagWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   tag: {
     marginRight: 8,
@@ -571,8 +673,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagOn: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.selected,
+    borderColor: Colors.selected,
   },
   tagText: {
     fontSize: 14,
@@ -580,7 +682,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   tagTextOn: {
-    color: Colors.buttonPrimaryText,
+    color: '#FFFFFF',
+  },
+  noteWrap: {
+    position: 'relative',
+    marginBottom: 8,
   },
   note: {
     width: '100%',
@@ -591,11 +697,19 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 14,
+    paddingBottom: 28,
     fontSize: 15,
     lineHeight: 22,
     color: Colors.textPrimary,
     includeFontPadding: false,
+  },
+  noteCount: {
+    position: 'absolute',
+    right: 14,
+    bottom: 10,
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textDisabled,
   },
   footer: {
     flexShrink: 0,

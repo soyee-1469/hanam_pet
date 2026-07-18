@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Tabs } from 'expo-router'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -9,8 +10,19 @@ import {
   GearSix,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+
+/** Soft tab button — navigation tab bar button props */
+type SoftTabButtonProps = {
+  children: ReactNode
+  style?: object
+  onPress?: (e: unknown) => void
+  onLongPress?: (e: unknown) => void
+  accessibilityState?: { selected?: boolean }
+  accessibilityLabel?: string
+  testID?: string
+}
 
 function SoftTabButton({
   children,
@@ -20,7 +32,7 @@ function SoftTabButton({
   accessibilityState,
   accessibilityLabel,
   testID,
-}: BottomTabBarButtonProps) {
+}: SoftTabButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -51,7 +63,11 @@ function TabIcon({
   return (
     <View style={styles.tabItem}>
       <View style={styles.tabIconWrap}>
-        <IconComponent size={22} color={color} weight={focused ? 'fill' : 'light'} />
+        <IconComponent
+          size={18}
+          color={color}
+          weight={focused ? 'fill' : 'light'}
+        />
       </View>
       <Text
         numberOfLines={1}
@@ -67,8 +83,8 @@ function TabIcon({
 
 export default function TabLayout() {
   const { bottom } = useSafeAreaInsets()
-  const tabBottomPad = Math.max(bottom, 8) + 5
-  const tabHeight = 72 + tabBottomPad
+  const tabBottomPad = Math.max(bottom, 8) + Layout.tabBarExtraBottom
+  const tabHeight = tabBarReserveHeight(bottom)
 
   return (
     <Tabs
@@ -85,22 +101,26 @@ export default function TabLayout() {
           right: 0,
           bottom: 0,
           height: tabHeight,
-          paddingTop: 8,
+          paddingTop: 4,
           paddingBottom: tabBottomPad,
-          backgroundColor: Colors.surface,
-          borderTopWidth: 0,
-          ...Shadows.elevation,
-          shadowOffset: { width: 0, height: -2 },
-          elevation: 8,
+          backgroundColor: Colors.cardRecessed,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: 'rgba(142, 111, 92, 0.12)',
+          elevation: 0,
+          shadowOpacity: 0,
+          shadowRadius: 0,
+          shadowOffset: { width: 0, height: 0 },
         },
-        tabBarButton: (props) => <SoftTabButton {...props} />,
+        tabBarButton: (props) => (
+          <SoftTabButton {...(props as SoftTabButtonProps)} />
+        ),
         tabBarItemStyle: {
           flex: 1,
           paddingHorizontal: 0,
         },
         tabBarIconStyle: {
           width: '100%',
-          height: 52,
+          height: 38,
         },
       }}
     >
@@ -121,13 +141,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="diary"
         options={{
-          title: '감정일기',
+          title: '마음일기',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               IconComponent={CalendarHeart}
               color={String(color)}
               focused={focused}
-              label="감정일기"
+              label="마음일기"
             />
           ),
         }}
@@ -184,19 +204,19 @@ const styles = StyleSheet.create({
     minWidth: 68,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 2,
+    paddingTop: 0,
   },
   tabIconWrap: {
-    height: 36,
-    width: 36,
+    height: 24,
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabLabel: {
     width: '100%',
-    marginTop: 4,
-    fontSize: 11,
-    lineHeight: 14,
+    marginTop: 1,
+    fontSize: 10,
+    lineHeight: 12,
     textAlign: 'center',
   },
   tabLabelActive: {

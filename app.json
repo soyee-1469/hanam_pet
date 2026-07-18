@@ -8,7 +8,11 @@
     "scheme": "healingpet",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "기록 가져오기 번호를 사진첩에 저장하기 위해 사진 접근이 필요해요.",
+        "NSPhotoLibraryAddUsageDescription": "기록 가져오기 번호를 사진첩에 저장하기 위해 사진 접근이 필요해요."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,6 +36,14 @@
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#F5EDE3"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "기록 가져오기 번호를 사진첩에 저장하기 위해 사진 접근이 필요해요.",
+          "savePhotosPermission": "기록 가져오기 번호를 사진첩에 저장하기 위해 사진 접근이 필요해요.",
+          "isAccessMediaLocationEnabled": false
         }
       ]
     ],

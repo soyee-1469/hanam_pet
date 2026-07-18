@@ -40,15 +40,11 @@ export default function OnboardingWelcome() {
 
   const goHome = async () => {
     if (busy) return
-    if (!draft.nickname || !draft.petId) {
-      router.replace('/onboarding/profile')
-      return
-    }
     setBusy(true)
     try {
       await completeOnboarding({
-        nickname: draft.nickname,
-        petId: draft.petId,
+        nickname: draft.nickname || '친구',
+        petId: draft.petId ?? 'mongi',
       })
       resetOnboardingDraft()
       router.replace('/(tabs)')

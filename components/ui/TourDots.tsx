@@ -42,15 +42,19 @@ const styles = StyleSheet.create({
     height: 16,
   },
   bar: {
-    height: 6,
-    borderRadius: 3,
+    height: 7,
+    borderRadius: 4,
   },
   barOff: {
-    width: 12,
-    backgroundColor: '#E2E8F0',
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.sand,
   },
   barOn: {
-    width: 32,
-    backgroundColor: Colors.taupe,
+    width: 22,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
   },
 })

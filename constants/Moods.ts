@@ -7,15 +7,17 @@ export type DiaryMoodId = 'great' | 'good' | 'ok' | 'bad' | 'hard'
 export const DIARY_MOODS: {
   id: DiaryMoodId
   label: string
+  /** 분포 레전드용 짧은 이름 */
+  shortLabel: string
   tone: MoodTone
   emojiIndex: 1 | 2 | 3 | 4 | 5
   softBg: string
 }[] = [
-  { id: 'great', label: '최고야', tone: 'good', emojiIndex: 1, softBg: '#FCE8DC' },
-  { id: 'good', label: '좋아', tone: 'good', emojiIndex: 2, softBg: '#E8F0E0' },
-  { id: 'ok', label: '그저그래', tone: 'ok', emojiIndex: 3, softBg: '#F0E8E2' },
-  { id: 'bad', label: '좋지않아', tone: 'hard', emojiIndex: 4, softBg: '#F5E6EA' },
-  { id: 'hard', label: '힘들어', tone: 'hard', emojiIndex: 5, softBg: '#F8E4E2' },
+  { id: 'great', label: '기뻐요', shortLabel: '기쁨', tone: 'good', emojiIndex: 1, softBg: '#FCE8DC' },
+  { id: 'good', label: '슬퍼요', shortLabel: '슬픔', tone: 'hard', emojiIndex: 2, softBg: '#E4EEF5' },
+  { id: 'ok', label: '화가나요', shortLabel: '분노', tone: 'ok', emojiIndex: 3, softBg: '#F0E8E2' },
+  { id: 'bad', label: '걱정돼요', shortLabel: '걱정', tone: 'hard', emojiIndex: 4, softBg: '#F5E6EA' },
+  { id: 'hard', label: '불편해요', shortLabel: '불편', tone: 'hard', emojiIndex: 5, softBg: '#E8F0E0' },
 ]
 
 export const CHAT_EMOTION_CARDS: {

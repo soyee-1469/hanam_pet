@@ -5,9 +5,9 @@ import { onboardingCopyV2 } from './copy.v2'
 export type OnboardingCopy = typeof onboardingCopyV1 | typeof onboardingCopyV2
 export type TermKeyV1 = (typeof onboardingCopyV1.terms.items)[number]['key']
 
-/** 현재 활성 온보딩 카피 */
-export function getOnboardingCopy() {
-  return ONBOARDING_VERSION === 'v2' ? onboardingCopyV2 : onboardingCopyV1
+/** 현재 활성 온보딩 카피 (프로젝트는 v2 고정) */
+export function getOnboardingCopy(): typeof onboardingCopyV2 {
+  return ONBOARDING_VERSION === 'v2' ? onboardingCopyV2 : onboardingCopyV2
 }
 
 /** @deprecated getOnboardingCopy() 사용 권장 — 활성 버전 스냅샷 */

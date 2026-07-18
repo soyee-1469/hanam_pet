@@ -16,7 +16,8 @@
  * - MoodOk       #D4E08A  감정「보통」
  *
  * Primary·Secondary(오렌지) 사용처
- * 1) Primary 버튼  2) 선택 탭/네비  3) 에너지 바  4) 기분 좋음
+ * 1) Primary 버튼  2) 선택 탭/네비  3) 에너지 바(충분·≥900만)  4) 기분 좋음
+ * 에너지 중간·완충 안내는 Accent — Primary로 ‘부족 경고’처럼 보이지 않게
  * 칩·필터 선택 상태는 Selected(브라운) — 오렌지 금지
  *
  * 감정 색
@@ -86,7 +87,10 @@ export const Colors = {
   buttonDisabledText: '#B79A8A',
 
   // Energy / Progress
+  /** 충분(≥900)일 때 — 긍정 보상 */
   energyFill: '#F47B4B',
+  /** 중간·완충 필요 — 따뜻한 안내 (경고 아님) */
+  energyFillMid: '#F4C85B',
   energyTrack: '#E9DCCF',
 
   // Soft recessed card

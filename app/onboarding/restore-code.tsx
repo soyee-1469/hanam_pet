@@ -4,8 +4,6 @@ import {
   Text,
   Image,
   StyleSheet,
-  Animated,
-  Easing,
   Pressable,
   ActivityIndicator,
   type ImageSourcePropType,
@@ -22,9 +20,12 @@ import {
   ScreenHeader,
   onboardingFooterStyle,
 } from '../../components/ui'
+import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
+import { PhotoPermissionDeniedDialog } from '../../components/PhotoPermissionDeniedDialog'
 import { ONBOARDING_STEPS, getOnboardingDraft } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import { showToast } from '../../lib/toast'
 
 const copy = getOnboardingCopy().restoreCode
 
@@ -39,44 +40,21 @@ export default function OnboardingRestoreCode() {
   const draft = getOnboardingDraft()
   const petId: PetChoice = draft.petId ?? 'mongi'
 
-  const [toastVisible, setToastVisible] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [permSheetOpen, setPermSheetOpen] = useState(false)
+  const [deniedOpen, setDeniedOpen] = useState(false)
   /** 4/5 → 저장 직후 5번째 하트까지 채운 뒤 팝 */
   const [progressIndex, setProgressIndex] = useState(3)
   const [popLast, setPopLast] = useState(false)
 
-  const toastOpacity = useRef(new Animated.Value(0)).current
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didNavigate = useRef(false)
 
   useEffect(() => {
     return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current)
       if (navTimer.current) clearTimeout(navTimer.current)
     }
   }, [])
-
-  const showCopiedToast = () => {
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    setToastVisible(true)
-    toastOpacity.setValue(0)
-    Animated.timing(toastOpacity, {
-      toValue: 1,
-      duration: 180,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start()
-    toastTimer.current = setTimeout(() => {
-      Animated.timing(toastOpacity, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }).start(({ finished }) => {
-        if (finished) setToastVisible(false)
-      })
-    }, 1800)
-  }
 
   const copyCode = async () => {
     try {
@@ -84,7 +62,7 @@ export default function OnboardingRestoreCode() {
     } catch {
       // ignore clipboard failures
     }
-    showCopiedToast()
+    showToast(copy.copiedToast)
   }
 
   const goWelcome = useCallback(() => {
@@ -97,28 +75,48 @@ export default function OnboardingRestoreCode() {
     router.push('/onboarding/welcome')
   }, [])
 
-  const saveAndCelebrate = async () => {
+  const finishSave = async (toastMsg?: string) => {
     if (saving) return
-    if (!draft.nickname || !draft.petId) {
-      router.replace('/onboarding/profile')
-      return
-    }
-
     setSaving(true)
     try {
       await Clipboard.setStringAsync(copy.dummyCode)
     } catch {
       // ignore
     }
+    if (toastMsg) showToast(toastMsg)
 
-    // 마지막 하트 채우기 + 팝 → 환영 화면
     setProgressIndex(4)
     setPopLast(true)
 
-    // 하트 팝이 끝나지 않아도 일정 시간 후 반드시 이동
     navTimer.current = setTimeout(() => {
       goWelcome()
     }, SAVE_NAV_DELAY_MS)
+  }
+
+  /** CTA → 권한 안내 시트 */
+  const onPressSave = () => {
+    if (saving) return
+    setPermSheetOpen(true)
+  }
+
+  /** 다른 방법 = 클립보드만 저장하고 진행 */
+  const saveOtherWay = () => {
+    setPermSheetOpen(false)
+    void finishSave(copy.copiedToast)
+  }
+
+  /** 알겠어요 → 권한 안내 후 저장 (클립보드). 네이티브 사진첩 모듈은 웹 SSR에서 깨져 보류 */
+  const requestPhotoPermission = async () => {
+    setPermSheetOpen(false)
+    await finishSave(
+      '번호가 클립보드에 복사됐어요. 스크린샷으로도 보관해 주세요.',
+    )
+  }
+
+  /** 권한 없이도 이어서 진행 (클립보드) */
+  const continueWithoutPhoto = () => {
+    setDeniedOpen(false)
+    void finishSave(copy.copiedToast)
   }
 
   return (
@@ -128,58 +126,43 @@ export default function OnboardingRestoreCode() {
         onBack={saving ? undefined : () => router.back()}
       />
 
-      {saving ? (
-        <View style={styles.savingBody}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.savingText}>{copy.savingMessage}</Text>
-        </View>
-      ) : (
-        <View style={styles.body}>
-          <Text style={styles.headline}>{copy.headline}</Text>
-          <Text style={styles.sub}>{copy.body}</Text>
+      <View style={styles.body}>
+        <Text style={styles.headline}>{copy.headline}</Text>
+        <Text style={styles.sub}>{copy.body}</Text>
 
-          <View style={styles.codeBlock}>
-            <Image
-              source={PET_IMAGES[petId]}
-              style={styles.peekPet}
-              resizeMode="contain"
-              accessibilityLabel="선택한 펫"
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="번호 복사"
-              onPress={() => {
-                void copyCode()
-              }}
-              style={({ pressed }) => [
-                styles.codeCard,
-                pressed && styles.codePressed,
-              ]}
-            >
-              <Text style={styles.codeLabel}>{copy.codeLabel}</Text>
-              <View style={styles.codeRow}>
-                <Text style={styles.codeValue}>
-                  {`${copy.dummyCode.slice(0, 4)} ${copy.dummyCode.slice(4)}`}
-                </Text>
-                <View style={styles.copyIconWrap}>
-                  <Copy size={18} color={Colors.textSecondary} weight="bold" />
-                </View>
+        <View style={styles.codeBlock}>
+          <Image
+            source={PET_IMAGES[petId]}
+            style={styles.peekPet}
+            resizeMode="contain"
+            accessibilityLabel="선택한 펫"
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="번호 복사"
+            disabled={saving}
+            onPress={() => {
+              void copyCode()
+            }}
+            style={({ pressed }) => [
+              styles.codeCard,
+              pressed && styles.codePressed,
+            ]}
+          >
+            <Text style={styles.codeLabel}>{copy.codeLabel}</Text>
+            <View style={styles.codeRow}>
+              <Text style={styles.codeValue}>
+                {`${copy.dummyCode.slice(0, 4)} ${copy.dummyCode.slice(4)}`}
+              </Text>
+              <View style={styles.copyIconWrap}>
+                <Copy size={18} color={Colors.textSecondary} weight="bold" />
               </View>
-            </Pressable>
-          </View>
-
-          <Text style={styles.tip}>{copy.tip}</Text>
+            </View>
+          </Pressable>
         </View>
-      )}
 
-      {toastVisible && !saving ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[styles.toast, { opacity: toastOpacity }]}
-        >
-          <Text style={styles.toastText}>{copy.copiedToast}</Text>
-        </Animated.View>
-      ) : null}
+        <Text style={styles.tip}>{copy.tip}</Text>
+      </View>
 
       <View style={styles.footer}>
         <ProgressDots
@@ -197,12 +180,23 @@ export default function OnboardingRestoreCode() {
           <PrimaryButton
             label={copy.cta}
             emphasized
-            onPress={() => {
-              void saveAndCelebrate()
-            }}
+            onPress={onPressSave}
           />
         )}
       </View>
+
+      <PhotoPermissionSheet
+        visible={permSheetOpen}
+        onAllow={() => {
+          void requestPhotoPermission()
+        }}
+        onOtherWay={saveOtherWay}
+      />
+
+      <PhotoPermissionDeniedDialog
+        visible={deniedOpen}
+        onClose={continueWithoutPhoto}
+      />
     </SafeAreaView>
   )
 }
@@ -216,20 +210,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 0,
-  },
-  savingBody: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    gap: 18,
-  },
-  savingText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
   },
   headline: {
     fontSize: 22,
@@ -305,21 +285,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#555555',
     textAlign: 'center',
-  },
-  toast: {
-    position: 'absolute',
-    top: 100,
-    alignSelf: 'center',
-    backgroundColor: Colors.textPrimary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    zIndex: 10,
-  },
-  toastText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.surface,
   },
   footer: {
     ...onboardingFooterStyle,

@@ -28,7 +28,8 @@ alwaysApply: true
 **긍정·기분 좋음·행동 유도**에만 쓴다.
 
 허용 예:
-- Primary CTA, 선택 탭, 에너지 바
+- Primary CTA, 선택 탭
+- 에너지 바 **충분(≥900)** 시만 Primary — 중간·완충은 `accent` / `energyFillMid`
 - 감정일기 **좋음** (`Colors.moodGood`)
 - 감정일기 **「감정 기록하기」** 버튼
 

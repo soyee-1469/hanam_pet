@@ -6,8 +6,7 @@ import { Colors } from '../../constants/Colors'
 type ProgressDotsProps = {
   total: number
   index: number
-  /** 커스텀 감성 문구 — 있으면 숫자 아래 두 번째 줄로 표시 */
-  label?: string
+  /** false면 숫자(N / total)도 숨기고 하트만 표시 */
   showLabel?: boolean
   placement?: 'footer' | 'header'
   /**
@@ -18,11 +17,10 @@ type ProgressDotsProps = {
   onPopComplete?: () => void
 }
 
-/** Phosphor Heart progress — 숫자·감성 문구 위, 하트 아래 */
+/** Phosphor Heart progress — 숫자 위, 하트 아래 */
 export function ProgressDots({
   total,
   index,
-  label,
   showLabel = true,
   placement = 'footer',
   popLast = false,
@@ -30,7 +28,6 @@ export function ProgressDots({
 }: ProgressDotsProps) {
   const step = Math.min(total, Math.max(1, index + 1))
   const fraction = `${step} / ${total}`
-  const mood = label ?? nudgeMood(step, total)
   const popScale = useRef(new Animated.Value(1)).current
   const popRan = useRef(false)
 
@@ -64,10 +61,7 @@ export function ProgressDots({
       ]}
     >
       {showLabel ? (
-        <View style={styles.labelBlock}>
-          <Text style={styles.fraction}>{fraction}</Text>
-          <Text style={styles.mood}>{mood}</Text>
-        </View>
+        <Text style={styles.fraction}>{fraction}</Text>
       ) : null}
       <View style={styles.row} accessibilityRole="progressbar">
         {Array.from({ length: total }, (_, i) => {
@@ -98,14 +92,6 @@ export function ProgressDots({
   )
 }
 
-function nudgeMood(step: number, total: number) {
-  if (step >= total) return '준비가 끝났어요!'
-  if (step === total - 1) return '거의 다 왔어요!'
-  if (step >= Math.ceil(total / 2)) return '절반을 넘었어요!'
-  if (step === 1) return '차근차근 시작해요'
-  return '잘하고 있어요'
-}
-
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
@@ -124,23 +110,11 @@ const styles = StyleSheet.create({
   heart: {
     marginHorizontal: 5,
   },
-  labelBlock: {
-    marginBottom: 10,
-    alignItems: 'center',
-    paddingHorizontal: 8,
-  },
   fraction: {
+    marginBottom: 10,
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: 0.4,
-  },
-  mood: {
-    marginTop: 3,
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    letterSpacing: 0.2,
   },
 })

@@ -5,17 +5,17 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft, CaretRight, List, Plus } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, BookOpen, Plus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout } from '../../constants/Layout'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
   DIARY_MOODS,
   type DiaryMoodId,
 } from '../../constants/Moods'
+import { DIARY_DEMO_ENTRIES } from '../../constants/diaryDemo'
 import { MoodEmoji } from '../../components/MoodEmoji'
 
 type DayMood = {
@@ -25,13 +25,13 @@ type DayMood = {
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
-/** 막대 세그먼트용 파스텔 (5종) */
+/** 막대 세그먼트용 파스텔 (5종) — 기쁨·슬픔·분노·걱정·불편 */
 const BAR_COLOR: Record<DiaryMoodId, string> = {
-  great: '#F7D7B8',
-  good: '#F5E3A8',
-  ok: '#E4EBB8',
-  bad: '#D4E0F0',
-  hard: '#C5DFF0',
+  great: '#F5E3A8',
+  good: '#C5DFF0',
+  ok: '#F7D7B8',
+  bad: '#E0D4F0',
+  hard: '#E4EBB8',
 }
 
 function moodMeta(id: DiaryMoodId) {
@@ -97,7 +97,7 @@ function monthFeedback(good: number, ok: number, hard: number) {
 
 export default function DiaryScreen() {
   const insets = useSafeAreaInsets()
-  const tabBarSpace = 72 + Math.max(insets.bottom, 8) + 5
+  const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const today = useMemo(() => new Date(), [])
   const [cursor, setCursor] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1)
@@ -137,13 +137,21 @@ export default function DiaryScreen() {
     })
     const chips = DIARY_MOODS.filter((m) => counts[m.id] > 0).map((m) => ({
       id: m.id,
+      label: m.label,
       emojiIndex: m.emojiIndex,
       count: counts[m.id],
       barColor: BAR_COLOR[m.id],
     }))
+    const legend = DIARY_MOODS.map((m) => ({
+      id: m.id,
+      label: m.shortLabel,
+      barColor: BAR_COLOR[m.id],
+      count: counts[m.id],
+    }))
     return {
       count: moods.length,
       chips,
+      legend,
       comment: monthFeedback(good, ok, hard),
     }
   }, [moods])
@@ -158,22 +166,45 @@ export default function DiaryScreen() {
     return t > startOfDay(today)
   }
 
+  const openDay = (day: number) => {
+    if (isFutureDay(day)) return
+    setSelectedDay(day)
+    const entry = DIARY_DEMO_ENTRIES.find(
+      (e) => e.year === year && e.month === month + 1 && e.day === day,
+    )
+    if (entry) {
+      router.push({
+        pathname: '/diary-detail',
+        params: { id: entry.id },
+      })
+      return
+    }
+    router.push({
+      pathname: '/diary-write',
+      params: {
+        year: String(year),
+        month: String(month + 1),
+        day: String(day),
+      },
+    })
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>감정일기</Text>
+        <Text style={styles.title}>마음일기</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="메뉴"
+          accessibilityLabel="마음일기장 보기"
           hitSlop={8}
-          onPress={() => Alert.alert('메뉴', '더미: 감정일기 메뉴입니다.')}
+          onPress={() => router.push('/diary-list')}
           style={({ pressed }) => [
-            styles.iconBtn,
-            { cursor: 'pointer' } as object,
+            styles.listEntryBtn,
             pressed && styles.iconBtnPressed,
           ]}
         >
-          <List size={24} color={Colors.textSecondary} weight="regular" />
+          <BookOpen size={18} color={Colors.textPrimary} weight="regular" />
+          <Text style={styles.listEntryText}>일기장</Text>
         </Pressable>
       </View>
 
@@ -248,10 +279,13 @@ export default function DiaryScreen() {
                       <View key={`d-${day}`} style={styles.dayCell}>
                         <Pressable
                           accessibilityRole="button"
+                          accessibilityLabel={
+                            mood
+                              ? `${day}일 마음일기 보기`
+                              : `${day}일 마음일기 쓰기`
+                          }
                           disabled={future}
-                          onPress={() => {
-                            if (!future) setSelectedDay(day)
-                          }}
+                          onPress={() => openDay(day)}
                           style={({ pressed }) => [
                             styles.dayPressable,
                             !future && ({ cursor: 'pointer' } as object),
@@ -263,7 +297,7 @@ export default function DiaryScreen() {
                             style={[
                               styles.dayInner,
                               isToday && styles.dayToday,
-                              selected && !isToday && styles.daySelected,
+                              selected && styles.daySelected,
                             ]}
                           >
                             <Text
@@ -313,20 +347,45 @@ export default function DiaryScreen() {
                     styles.distSeg,
                     { flex: chip.count, backgroundColor: chip.barColor },
                   ]}
-                />
+                >
+                  {chip.count > 0 ? (
+                    <Text style={styles.distSegNum}>{chip.count}</Text>
+                  ) : null}
+                </View>
               ))
             )}
           </View>
 
-          {/* 스펙트럼 양끝만 — 좋음(1) ↔ 힘듦(5) */}
           {dist.count > 0 ? (
-            <View style={styles.chipRow}>
-              <MoodEmoji index={1} size={18} />
-              <MoodEmoji index={5} size={18} />
+            <View style={styles.legendRow}>
+              {dist.legend.map((item) => (
+                <View key={item.id} style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendSwatch,
+                      { backgroundColor: item.barColor },
+                    ]}
+                  />
+                  <Text style={styles.legendLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
           ) : null}
 
           <Text style={styles.feedback}>{dist.comment}</Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="기록한 마음일기 전체 보기"
+            onPress={() => router.push('/diary-list')}
+            style={({ pressed }) => [
+              styles.listLinkRow,
+              pressed && styles.iconBtnPressed,
+            ]}
+          >
+            <Text style={styles.listLinkText}>기록한 마음 모아보기</Text>
+            <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
+          </Pressable>
         </View>
       </ScrollView>
 
@@ -352,7 +411,7 @@ export default function DiaryScreen() {
         >
           <View style={styles.cta} collapsable={false}>
             <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-            <Text style={styles.ctaText}>감정 기록하기</Text>
+            <Text style={styles.ctaText}>마음을 기록할게요</Text>
           </View>
         </Pressable>
       </View>
@@ -387,6 +446,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
+  },
+  listEntryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  listEntryText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   iconBtnPressed: {
     backgroundColor: Colors.divider,
@@ -492,14 +567,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     overflow: 'visible',
   },
-  /** Today — soft yellow fill only, no stroke */
+  /** Today — soft yellow fill; border may come from daySelected */
   dayToday: {
-    borderWidth: 0,
-    borderColor: 'transparent',
     backgroundColor: Colors.accentSoft,
   },
-  /** Selected (not today) — Primary Stroke only */
+  /** Selected — Primary Stroke */
   daySelected: {
+    borderWidth: 1.5,
     borderColor: Colors.primary,
   },
   dayNum: {
@@ -563,7 +637,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   distBar: {
-    height: 8,
+    height: 28,
     borderRadius: 999,
     overflow: 'hidden',
     flexDirection: 'row',
@@ -571,17 +645,39 @@ const styles = StyleSheet.create({
   },
   distSeg: {
     height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 22,
+  },
+  distSegNum: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   distEmpty: {
     backgroundColor: Colors.sand,
   },
-  chipRow: {
-    marginTop: 12,
+  legendRow: {
+    marginTop: 14,
     flexDirection: 'row',
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
+    gap: 10,
+    rowGap: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 20,
+    gap: 5,
+  },
+  legendSwatch: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
+  },
+  legendLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
   feedback: {
     marginTop: 12,
@@ -589,6 +685,20 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
+  },
+  listLinkRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.divider,
+  },
+  listLinkText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   cta: {
     height: 54,

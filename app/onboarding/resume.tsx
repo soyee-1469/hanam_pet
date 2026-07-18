@@ -20,7 +20,6 @@ import {
   DeviceMobile,
   Images,
   Lock,
-  WarningCircle,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -294,14 +293,33 @@ export default function OnboardingResume() {
           <Text style={styles.giveUpTitle}>{g.title}</Text>
 
           <View style={styles.giveUpCard}>
-            <View style={styles.giveUpWarnBadge}>
-              <WarningCircle size={28} color={Colors.secondary} weight="fill" />
-            </View>
             <View style={styles.giveUpPrivacyRow}>
-              <Lock size={18} color={Colors.sage} weight="fill" />
+              <Lock size={18} color={Colors.cocoa} weight="regular" />
               <Text style={styles.giveUpPrivacyTitle}>{g.privacyTitle}</Text>
             </View>
-            <Text style={styles.giveUpPrivacyBody}>{g.privacyBody}</Text>
+            {g.privacyParagraphs.map((parts, i) => (
+              <Text
+                key={i}
+                style={[
+                  styles.giveUpPrivacyBody,
+                  i < g.privacyParagraphs.length - 1 &&
+                    styles.giveUpPrivacyGap,
+                ]}
+              >
+                {parts.map((part, j) => (
+                  <Text
+                    key={j}
+                    style={
+                      'bold' in part && part.bold
+                        ? styles.giveUpPrivacyBold
+                        : undefined
+                    }
+                  >
+                    {part.text}
+                  </Text>
+                ))}
+              </Text>
+            ))}
           </View>
         </ScrollView>
 
@@ -693,24 +711,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 18,
     paddingTop: 20,
-    paddingBottom: 18,
+    paddingBottom: 22,
     borderWidth: 1,
     borderColor: Colors.divider,
-  },
-  giveUpWarnBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
   },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 16,
   },
   giveUpPrivacyTitle: {
     flex: 1,
@@ -720,9 +729,16 @@ const styles = StyleSheet.create({
   },
   giveUpPrivacyBody: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: '500',
     color: Colors.textSecondary,
+  },
+  giveUpPrivacyGap: {
+    marginBottom: 16,
+  },
+  giveUpPrivacyBold: {
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   giveUpLookAgain: {
     alignItems: 'center',

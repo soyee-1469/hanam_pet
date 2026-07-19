@@ -52,7 +52,7 @@ export const ASSESSMENTS: Record<AssessmentId, AssessmentDef> = {
   phq: {
     id: 'phq',
     shortTitle: '우울 평가도구',
-    title: '우울 평가도구 (NDS)',
+    title: '우울 평가도구(NDS)',
     exploreTitle: '우울 알아보기',
     instruction: '지난 2주간의 경험을 떠올려 주세요',
     description:
@@ -111,7 +111,7 @@ export const ASSESSMENTS: Record<AssessmentId, AssessmentDef> = {
   stress: {
     id: 'stress',
     shortTitle: '스트레스 평가도구',
-    title: '스트레스 평가도구 (NSS)',
+    title: '스트레스 평가도구(NSS)',
     exploreTitle: '스트레스 알아보기',
     instruction: '요즘 느끼는 부담을 떠올려 주세요',
     description:
@@ -149,7 +149,7 @@ export function assessmentMaxScore(assessment: AssessmentDef): number {
   return assessment.questions.length * 3
 }
 
-/** NDS 0–36 (시안: 0–8 / 9–18 / 19–28 / 29–36) */
+/** NDS 0–36 (시안: 0–8 / 9–18 / 19–28 / 29–36) · 파스텔 초록/노랑/주황/핑크 */
 export const DEPRESSION_BANDS: SeverityBand[] = [
   {
     id: 'normal',
@@ -171,14 +171,14 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
   },
   {
     id: 'mild',
-    label: '경도',
-    shortLabel: '경도 수준',
+    label: '경증',
+    shortLabel: '경증 수준',
     displayTitle: '경증 수준의 우울장애',
     min: 9,
     max: 18,
-    color: '#D4E08A',
+    color: '#E5C76B',
     meaning: '가벼운 우울감, 셀프케어와 관찰 권장',
-    opinionTitle: '경도 (9-18점) 전문가 소견',
+    opinionTitle: '경증 (9-18점) 전문가 소견',
     opinionBody:
       '지난 2주간 가벼운 우울 느낌이 있었을 수 있어요. 일상은 유지되지만, 마음을 조금 더 살펴보면 좋아요.',
     tips: [
@@ -212,7 +212,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 우울장애',
     min: 29,
     max: 36,
-    color: '#C4847E',
+    color: '#E09A96',
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (29-36점) 전문가 소견',
     opinionBody:
@@ -301,7 +301,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
   },
 ]
 
-/** NSS 0–33 (11문항 × 3점) — 3구간 */
+/** NSS 0–33 (11문항 × 3점) — 3구간 (0–10 / 11–20 / 21–33) · 초록/노랑/핑크 */
 export const STRESS_BANDS: SeverityBand[] = [
   {
     id: 'normal',
@@ -323,8 +323,8 @@ export const STRESS_BANDS: SeverityBand[] = [
   },
   {
     id: 'mild',
-    label: '중등도',
-    shortLabel: '경도 수준',
+    label: '중등도 이상',
+    shortLabel: '중등도 이상',
     displayTitle: '중등도 이상의 스트레스',
     min: 11,
     max: 20,
@@ -341,13 +341,13 @@ export const STRESS_BANDS: SeverityBand[] = [
   },
   {
     id: 'severe',
-    label: '중증',
-    shortLabel: '중증 수준',
+    label: '매우 높은 중증',
+    shortLabel: '매우 높은 중증',
     displayTitle: '매우 높은 중증 스트레스',
     min: 21,
     max: 33,
     color: '#C4847E',
-    meaning: '적극적인 원인 파악과 전문 도움 권장',
+    meaning: '적극적인 원인 파악 및 전문적 도움 권장',
     opinionTitle: '매우 높은 중증 (21-33점) 전문가 소견',
     opinionBody:
       '스트레스 수준이 매우 높은 편이에요. 혼자 견디기보다 원인 파악과 전문 기관의 도움을 빠르게 받는 것이 중요해요.',

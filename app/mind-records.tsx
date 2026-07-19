@@ -19,6 +19,7 @@ import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { ConfirmDialog } from '../components/ui'
 import { showToast } from '../lib/toast'
+import { clearDiaryRecords } from '../lib/diaryRecords'
 import { clearMindCheckResults } from '../lib/mindCheckResults'
 
 type ActionKind = 'check' | 'diary'
@@ -75,6 +76,8 @@ export default function MindRecordsScreen() {
     void (async () => {
       if (action.id === 'check') {
         await clearMindCheckResults()
+      } else if (action.id === 'diary') {
+        await clearDiaryRecords()
       }
       setDone((prev) => ({ ...prev, [action.id]: true }))
       setPending(null)

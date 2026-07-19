@@ -20,7 +20,6 @@ import {
 } from '../constants/MindAssessments'
 import {
   formatResultDate,
-  formatResultDateShort,
   getMindCheckResults,
   type MindCheckResultRecord,
 } from '../lib/mindCheckResults'
@@ -88,32 +87,6 @@ export default function MindReportScreen() {
     () => records.filter((r) => r.assessmentId === tab),
     [records, tab],
   )
-
-  const dist = useMemo(() => {
-    const counts: Record<string, number> = {}
-    bands.forEach((b) => {
-      counts[b.id] = 0
-    })
-    list.forEach((r) => {
-      const b = getSeverityBand(r.score, tab)
-      counts[b.id] = (counts[b.id] ?? 0) + 1
-    })
-    return bands.map((b) => ({
-      id: b.id,
-      label: b.label,
-      count: counts[b.id] ?? 0,
-      color: SEG_PASTEL[b.id] ?? Colors.creamyBeige,
-    }))
-  }, [list, bands, tab])
-
-  const trend = useMemo(() => {
-    const chronological = [...list].sort(
-      (a, b) => new Date(a.at).getTime() - new Date(b.at).getTime(),
-    )
-    return chronological.slice(-6)
-  }, [list])
-
-  const maxScore = bands[bands.length - 1]?.max ?? 36
 
   const openDetail = (item: MindCheckResultRecord) => {
     router.push({
@@ -267,78 +240,6 @@ export default function MindReportScreen() {
             )
           })
         )}
-
-        {list.length > 0 ? (
-          <View style={styles.chartCard}>
-            <View style={styles.chartHeader}>
-              <Text style={styles.chartTitle}>최근 점수 추이</Text>
-              <Text style={styles.chartCount}>{trend.length}회</Text>
-            </View>
-
-            <View style={styles.bars}>
-              {trend.map((item) => {
-                const band = getSeverityBand(item.score, tab)
-                const h = Math.max(
-                  8,
-                  Math.round((item.score / maxScore) * 100),
-                )
-                return (
-                  <View key={item.id} style={styles.barCol}>
-                    <Text style={styles.barScore}>{item.score}</Text>
-                    <View style={styles.barTrack}>
-                      <View
-                        style={[
-                          styles.barFill,
-                          {
-                            height: `${h}%`,
-                            backgroundColor:
-                              SEG_PASTEL[band.id] ?? Colors.peach,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.barDay}>
-                      {formatResultDateShort(item.at)}
-                    </Text>
-                  </View>
-                )
-              })}
-            </View>
-
-            <View style={styles.distBar}>
-              {dist.every((d) => d.count === 0) ? (
-                <View style={[styles.distSeg, { flex: 1, backgroundColor: SEG_EMPTY }]} />
-              ) : (
-                dist
-                  .filter((d) => d.count > 0)
-                  .map((d) => (
-                    <View
-                      key={d.id}
-                      style={[
-                        styles.distSeg,
-                        { flex: d.count, backgroundColor: d.color },
-                      ]}
-                    >
-                      <Text style={styles.distSegNum}>{d.count}</Text>
-                    </View>
-                  ))
-              )}
-            </View>
-            <View style={styles.legendRow}>
-              {dist.map((d) => (
-                <View key={d.id} style={styles.legendItem}>
-                  <View
-                    style={[styles.legendSwatch, { backgroundColor: d.color }]}
-                  />
-                  <Text style={styles.legendLabel}>{d.label}</Text>
-                </View>
-              ))}
-            </View>
-            <Text style={styles.chartHint}>
-              마음일기처럼 구간별 분포와 최근 점수 흐름을 함께 살펴볼 수 있어요.
-            </Text>
-          </View>
-        ) : null}
       </ScrollView>
     </SafeAreaView>
   )
@@ -541,114 +442,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textSecondary,
-  },
-  chartCard: {
-    marginTop: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    ...Shadows.elevation,
-  },
-  chartHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  chartTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  chartCount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  bars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 120,
-    marginBottom: 16,
-    gap: 8,
-  },
-  barCol: {
-    flex: 1,
-    alignItems: 'center',
-    height: '100%',
-  },
-  barScore: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  barTrack: {
-    flex: 1,
-    width: '70%',
-    maxWidth: 28,
-    borderRadius: 8,
-    backgroundColor: Colors.energyTrack,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  barFill: {
-    width: '100%',
-    borderRadius: 8,
-    minHeight: 8,
-  },
-  barDay: {
-    marginTop: 6,
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textDisabled,
-  },
-  distBar: {
-    flexDirection: 'row',
-    height: 28,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 10,
-  },
-  distSeg: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 20,
-  },
-  distSegNum: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  legendRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 10,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendSwatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
-  },
-  legendLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  chartHint: {
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 18,
-    color: Colors.textDisabled,
   },
 })

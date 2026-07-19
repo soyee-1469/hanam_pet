@@ -15,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Fonts } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
@@ -378,7 +377,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   cheerText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 13,
     color: Colors.textPrimary,
     textAlign: 'center',

@@ -1,6 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
 type CoachmarkTourCardProps = {
@@ -102,24 +101,24 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.primary,
   },
   page: {
     fontSize: 13,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textDisabled,
   },
   title: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 8,
     letterSpacing: -0.3,
   },
   body: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: 18,
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
   },
   nextText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.surface,
   },
   pressed: {

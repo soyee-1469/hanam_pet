@@ -1,7 +1,6 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
 import {
   HELP_CONTACTS,
@@ -91,7 +90,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     lineHeight: 26,
     letterSpacing: -0.2,
@@ -99,15 +98,19 @@ const styles = StyleSheet.create({
   },
   lead: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
   },
   scroll: {
+    // Cap height so the sheet fits content, but never collapses to 0 on web.
+    flexGrow: 0,
+    flexShrink: 1,
     maxHeight: 360,
     marginBottom: 8,
   },
   list: {
+    flexGrow: 0,
     gap: 10,
     paddingBottom: 4,
   },
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   phoneRow: {
@@ -152,13 +155,13 @@ const styles = StyleSheet.create({
   },
   phone: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.selected,
     letterSpacing: -0.2,
   },
   note: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     lineHeight: 17,
     color: Colors.textSecondary,
   },
@@ -174,7 +177,7 @@ const styles = StyleSheet.create({
   },
   connectText: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.surface,
   },
   closeLink: {
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   },
   closeLinkText: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
     textDecorationLine: 'underline',
   },

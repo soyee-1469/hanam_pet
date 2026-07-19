@@ -138,7 +138,9 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textDisabled,
-        sceneStyle: { backgroundColor: 'transparent' },
+        // Opaque scenes so inactive tabs (e.g. home welcome Modal) cannot
+        // sit under / steal taps from the focused tab on web.
+        sceneStyle: { backgroundColor: Colors.background },
         tabBarStyle,
         tabBarButton: (props) => (
           <SoftTabButton {...(props as SoftTabButtonProps)} />

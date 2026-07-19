@@ -3,60 +3,72 @@ import {
   View,
   Text,
   Pressable,
-  Alert,
   StyleSheet,
   ScrollView,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import {
-  User,
-  FileText,
-  Headset,
-  Database,
-  Info,
-  SignOut,
-  XSquare,
-  CaretRight,
-  CalendarHeart,
-} from 'phosphor-react-native'
-import type { Icon } from 'phosphor-react-native'
+import Constants from 'expo-constants'
+import { CaretRight } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 
-type MenuItem = {
+type RowKind = 'link' | 'version'
+
+type SettingsRowItem = {
   id: string
   title: string
-  sub?: string
-  Icon: Icon
-  danger?: boolean
+  kind?: RowKind
+  /** version row trailing label */
+  trailing?: string
 }
 
-const MENU_GROUPS: MenuItem[][] = [
-  [
-    { id: 'account', title: '계정', sub: '닉네임 변경', Icon: User },
-    { id: 'guide', title: '이용 안내', sub: '약관·정책·라이선스', Icon: FileText },
-  ],
-  [
-    { id: 'support', title: '고객 지원', sub: '상담·긴급 연락처', Icon: Headset },
-    {
-      id: 'data',
-      title: '데이터 관리',
-      sub: '식별자 확인·데이터 삭제',
-      Icon: Database,
-    },
-    {
-      id: 'records',
-      title: '마음 기록 관리',
-      sub: '일기·검사 삭제',
-      Icon: CalendarHeart,
-    },
-    { id: 'app', title: '앱 정보', sub: '버전 1.0.0', Icon: Info },
-  ],
-  [
-    { id: 'logout', title: '로그아웃', Icon: SignOut },
-    { id: 'withdraw', title: '계정 탈퇴', Icon: XSquare, danger: true },
-  ],
+type SettingsSection = {
+  id: string
+  title?: string
+  rows: SettingsRowItem[]
+}
+
+const APP_VERSION =
+  Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '1.4.0'
+
+const SECTIONS: SettingsSection[] = [
+  {
+    id: 'profile',
+    title: '내 정보',
+    rows: [
+      { id: 'recovery', title: '내 기록 가져오기 번호' },
+      { id: 'nickname', title: '내 닉네임' },
+    ],
+  },
+  {
+    id: 'records',
+    title: '기록 관리',
+    rows: [
+      { id: 'new-chat', title: '새로운 대화 시작하기' },
+      { id: 'new-diary', title: '새로운 마음일기 쓰기' },
+      { id: 'new-mind', title: '새로운 마음 살피기' },
+    ],
+  },
+  {
+    id: 'guide',
+    title: '이용 안내',
+    rows: [
+      { id: 'terms', title: '이용약관' },
+      { id: 'privacy', title: '개인정보처리방침' },
+      { id: 'oss', title: '오픈소스 라이선스' },
+      {
+        id: 'version',
+        title: `앱 버전 ${APP_VERSION}`,
+        kind: 'version',
+        trailing: '최신 버전',
+      },
+    ],
+  },
+  {
+    id: 'support',
+    rows: [{ id: 'support', title: '고객 지원' }],
+  },
 ]
 
 function SettingsRow({
@@ -64,11 +76,29 @@ function SettingsRow({
   isLast,
   onPress,
 }: {
-  item: MenuItem
+  item: SettingsRowItem
   isLast: boolean
-  onPress: () => void
+  onPress?: () => void
 }) {
   const [hovered, setHovered] = useState(false)
+  const isVersion = item.kind === 'version'
+
+  if (isVersion) {
+    return (
+      <View
+        style={[styles.row, !isLast && styles.rowDivider]}
+        accessibilityRole="text"
+        accessibilityLabel={`${item.title}, ${item.trailing ?? ''}`}
+      >
+        <Text style={styles.rowTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        {item.trailing ? (
+          <Text style={styles.rowTrailing}>{item.trailing}</Text>
+        ) : null}
+      </View>
+    )
+  }
 
   return (
     <Pressable
@@ -87,26 +117,9 @@ function SettingsRow({
           hovered && styles.rowHover,
         ]}
       >
-        <View style={styles.rowIcon}>
-          <item.Icon
-            size={22}
-            color={item.danger ? Colors.error : Colors.textPrimary}
-            weight="regular"
-          />
-        </View>
-        <View style={styles.rowCopy}>
-          <Text
-            style={[styles.rowTitle, item.danger && styles.rowTitleDanger]}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Text>
-          {item.sub ? (
-            <Text style={styles.rowSub} numberOfLines={1}>
-              {item.sub}
-            </Text>
-          ) : null}
-        </View>
+        <Text style={styles.rowTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
         <CaretRight size={16} color={Colors.textDisabled} weight="bold" />
       </View>
     </Pressable>
@@ -117,64 +130,87 @@ export default function MoreScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
 
-  const onMenuPress = (item: MenuItem) => {
-    if (item.id === 'account') {
-      router.push('/account')
-      return
+  const onRowPress = (id: string) => {
+    switch (id) {
+      case 'recovery':
+        router.push('/recovery-code')
+        return
+      case 'nickname':
+        router.push('/account')
+        return
+      case 'new-chat':
+        router.push({ pathname: '/record-reset', params: { kind: 'chat' } })
+        return
+      case 'new-diary':
+        router.push({ pathname: '/record-reset', params: { kind: 'diary' } })
+        return
+      case 'new-mind':
+        router.push({ pathname: '/record-reset', params: { kind: 'mind' } })
+        return
+      case 'terms':
+        router.push({ pathname: '/guide-doc', params: { id: 'terms' } })
+        return
+      case 'privacy':
+        router.push({ pathname: '/guide-doc', params: { id: 'privacy' } })
+        return
+      case 'oss':
+        router.push({ pathname: '/guide-doc', params: { id: 'oss' } })
+        return
+      case 'support':
+        router.push('/support')
+        return
+      default:
+        return
     }
-    if (item.id === 'guide') {
-      router.push('/guide')
-      return
-    }
-    if (item.id === 'data') {
-      router.push('/data-manage')
-      return
-    }
-    if (item.id === 'records') {
-      router.push('/mind-records')
-      return
-    }
-    if (item.id === 'support') {
-      router.push('/support')
-      return
-    }
-    if (item.id === 'logout') {
-      Alert.alert('로그아웃', '로그아웃할까요?', [
-        { text: '취소', style: 'cancel' },
-        { text: '로그아웃', style: 'destructive' },
-      ])
-      return
-    }
-    if (item.id === 'withdraw') {
-      router.push('/withdraw')
-      return
-    }
-    Alert.alert(item.title, '더미 화면입니다.')
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>설정</Text>
-        <Text style={styles.subtitle}>계정과 이용 안내를 관리해요</Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace + 16 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: tabBarSpace + 24 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        {MENU_GROUPS.map((group, gi) => (
-          <View key={gi} style={styles.card}>
-            {group.map((item, ii) => (
-              <SettingsRow
-                key={item.id}
-                item={item}
-                isLast={ii === group.length - 1}
-                onPress={() => onMenuPress(item)}
-              />
-            ))}
+        {SECTIONS.map((section) => (
+          <View key={section.id} style={styles.section}>
+            {section.title ? (
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            ) : null}
+            <View style={styles.card}>
+              {section.rows.map((row, i) => (
+                <SettingsRow
+                  key={row.id}
+                  item={row}
+                  isLast={i === section.rows.length - 1}
+                  onPress={
+                    row.kind === 'version'
+                      ? undefined
+                      : () => onRowPress(row.id)
+                  }
+                />
+              ))}
+            </View>
           </View>
         ))}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="회원탈퇴"
+          onPress={() => router.push('/withdraw')}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.withdrawBtn,
+            pressed && styles.rowPressed,
+          ]}
+        >
+          <Text style={styles.withdrawText}>회원탈퇴</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   )
@@ -185,26 +221,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
-  },
   header: {
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     paddingHorizontal: Layout.screenPaddingH,
   },
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    gap: 12,
+    gap: 20,
+  },
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    marginLeft: 4,
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   card: {
     backgroundColor: Colors.surface,
@@ -217,44 +255,43 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 64,
-    paddingHorizontal: 16,
+    minHeight: 56,
+    paddingHorizontal: 18,
     paddingVertical: 14,
+    gap: 10,
   },
   rowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
   rowPressed: {
-    opacity: 0.9,
+    opacity: 0.88,
   },
   rowHover: {
     backgroundColor: Colors.surfaceSecondary,
   },
-  rowIcon: {
-    width: 28,
-    height: 28,
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rowCopy: {
+  rowTitle: {
     flex: 1,
     minWidth: 0,
-    marginRight: 8,
-  },
-  rowTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
-  rowTitleDanger: {
-    color: Colors.error,
+  rowTrailing: {
+    flexShrink: 0,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  rowSub: {
-    marginTop: 3,
-    fontSize: 13,
-    fontWeight: '500',
+  withdrawBtn: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 4,
+  },
+  withdrawText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
 })

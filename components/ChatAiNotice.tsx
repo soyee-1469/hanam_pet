@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { Fonts } from '../constants/Typography'
 import { PrimaryButton, ScreenHeader, onboardingFooterStyle } from './ui'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
@@ -117,7 +116,6 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   headline: {
-    fontFamily: Fonts.uiBold,
     fontSize: 22,
     fontWeight: '700',
     color: Colors.cocoa,
@@ -126,7 +124,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   lead: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -152,7 +149,6 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   numText: {
-    fontFamily: Fonts.uiBold,
     fontSize: 13,
     fontWeight: '700',
     color: Colors.selected,
@@ -163,7 +159,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   itemTitle: {
-    fontFamily: Fonts.uiBold,
     fontSize: 16,
     fontWeight: '700',
     color: Colors.cocoa,
@@ -171,7 +166,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   itemBody: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -193,7 +187,6 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   helpBtnText: {
-    fontFamily: Fonts.uiSemiBold,
     fontSize: 15,
     fontWeight: '600',
     color: Colors.selected,

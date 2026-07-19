@@ -10,7 +10,6 @@ import {
 } from 'react-native'
 import { X } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
-import { Fonts } from '../../constants/Typography'
 import { BottomSheet } from './AppOverlay'
 import { PrimaryButton } from './Button'
 
@@ -126,7 +125,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     paddingRight: 8,
   },
@@ -146,13 +145,13 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 14,
     lineHeight: 22,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
   },
   scrollHint: {
     marginTop: 20,
     fontSize: 12,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textDisabled,
     textAlign: 'center',
   },

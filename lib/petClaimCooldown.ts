@@ -6,10 +6,8 @@ const KEY = 'hp_pet_claim_cooldown_v1'
 /** 하루 최대 수령 횟수 (시안·안내 문구) */
 export const CLAIM_MAX_PER_DAY = 2
 
-/** 수령 후 다음 제작까지 — 사료·장난감 공통 4시간 (DEV는 검수용 단축) */
-const CLAIM_COOLDOWN_MS = __DEV__
-  ? 3 * 60 * 1000
-  : 4 * 60 * 60 * 1000
+/** 수령 후 다음 제작까지 — 사료·장난감 공통 4시간 */
+const CLAIM_COOLDOWN_MS = 4 * 60 * 60 * 1000
 
 export const FEED_COOLDOWN_MS = CLAIM_COOLDOWN_MS
 export const TOY_COOLDOWN_MS = CLAIM_COOLDOWN_MS

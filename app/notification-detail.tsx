@@ -5,7 +5,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { Bell, CalendarBlank, CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { Fonts } from '../constants/Typography'
 import {
   getNotificationById,
   markNotificationRead,
@@ -124,7 +123,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
@@ -142,7 +140,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     color: Colors.textSecondary,
   },
@@ -167,13 +164,11 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     color: Colors.textDisabled,
   },
   title: {
     fontSize: 22,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.3,
@@ -181,7 +176,6 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 15,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     lineHeight: 24,
     color: Colors.textSecondary,

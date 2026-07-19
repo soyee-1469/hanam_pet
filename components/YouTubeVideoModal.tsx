@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { X, ArrowSquareOut } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { OVERLAY_SCRIM } from './ui/AppOverlay'
 import {
   extractYoutubeVideoId,
@@ -216,7 +215,7 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 16,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.cocoa,
     lineHeight: 22,
     paddingTop: 4,
@@ -256,7 +255,7 @@ const styles = StyleSheet.create({
   },
   fallbackText: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
   },
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
   },
   youtubeBtnText: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.selected,
   },
   pressed: {

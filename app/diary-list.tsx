@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -19,12 +19,16 @@ import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
-  DIARY_DEMO_ENTRIES,
   DIARY_MOOD_LABEL_COLOR,
   type DiaryEntry,
 } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { BottomSheet, ConfirmDialog } from '../components/ui'
+import {
+  hydrateDiaryRecords,
+  listDiaryEntries,
+  subscribeDiaryRecords,
+} from '../lib/diaryRecords'
 import { showToast } from '../lib/toast'
 
 function moodMeta(id: DiaryEntry['moodId']) {
@@ -34,9 +38,14 @@ function moodMeta(id: DiaryEntry['moodId']) {
 export default function DiaryListScreen() {
   const [year] = useState(2026)
   const [month] = useState(7)
-  const [entries, setEntries] = useState(DIARY_DEMO_ENTRIES)
+  const [entries, setEntries] = useState<DiaryEntry[]>(() => listDiaryEntries())
   const [menuEntry, setMenuEntry] = useState<DiaryEntry | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  useEffect(() => {
+    void hydrateDiaryRecords().then(() => setEntries(listDiaryEntries()))
+    return subscribeDiaryRecords(() => setEntries(listDiaryEntries()))
+  }, [])
 
   const list = useMemo(
     () =>
@@ -203,9 +212,7 @@ export default function DiaryListScreen() {
         {menuEntry && menuMood ? (
           <View style={styles.sheetSummary}>
             <View style={styles.sheetMoodLeft}>
-              <View style={styles.sheetEmojiWrap}>
-                <MoodEmoji index={menuMood.emojiIndex} size={28} />
-              </View>
+              <MoodEmoji index={menuMood.emojiIndex} size={28} />
               <Text
                 style={[
                   styles.sheetMoodLabel,
@@ -457,14 +464,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     flexShrink: 1,
-  },
-  sheetEmojiWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FCE8DC',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   sheetMoodLabel: {
     fontSize: 15,

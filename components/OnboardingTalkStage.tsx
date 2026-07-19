@@ -1,6 +1,5 @@
 import { View, Text, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 
 type OnboardingTalkStageProps = {
   image: ImageSourcePropType
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   bubbleText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 15,
     color: Colors.textPrimary,
     lineHeight: 24,

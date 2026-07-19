@@ -16,7 +16,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/Colors'
-import { Fonts } from '../../constants/Typography'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
   ONBOARDING_STEPS,
@@ -423,7 +422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubbleText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 11,
     color: Colors.surface,
     textAlign: 'center',

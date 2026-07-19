@@ -16,11 +16,11 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
 import { CaretDown, CaretLeft, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { DIARY_MOODS, type DiaryMoodId } from '../constants/Moods'
-import { DIARY_MOOD_LABEL_COLOR, findDiaryEntry } from '../constants/diaryDemo'
+import { DIARY_MOOD_LABEL_COLOR } from '../constants/diaryDemo'
+import { findDiaryEntry } from '../lib/diaryRecords'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../lib/toast'
@@ -409,8 +409,7 @@ export default function DiaryWriteScreen() {
                 >
                   <Animated.View
                     style={[
-                      styles.moodCircle,
-                      selected && styles.moodCircleOn,
+                      styles.moodEmoji,
                       {
                         transform: [
                           { translateY: moodLifts[m.id] },
@@ -622,14 +621,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   speechMain: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 16,
     lineHeight: 22,
     color: Colors.textPrimary,
   },
   speechSub: {
     marginTop: 4,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     fontSize: 13,
     lineHeight: 18,
     color: Colors.textSecondary,
@@ -647,20 +646,9 @@ const styles = StyleSheet.create({
     width: 62,
     overflow: 'visible',
   },
-  moodCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  moodEmoji: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.background,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    overflow: 'hidden',
-  },
-  moodCircleOn: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.background,
   },
   moodLabel: {
     marginTop: 8,

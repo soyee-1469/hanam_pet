@@ -15,11 +15,13 @@ import {
   DIARY_MOODS,
   type DiaryMoodId,
 } from '../../constants/Moods'
+import { DIARY_MOOD_LABEL_COLOR } from '../../constants/diaryDemo'
 import {
-  DIARY_MOOD_LABEL_COLOR,
   diaryMoodsForMonth,
   findDiaryEntryByDate,
-} from '../../constants/diaryDemo'
+  hydrateDiaryRecords,
+  subscribeDiaryRecords,
+} from '../../lib/diaryRecords'
 import { MoodEmoji } from '../../components/MoodEmoji'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
@@ -89,10 +91,17 @@ export default function DiaryScreen() {
   const tourHighlightWrite =
     showDiaryTour && tourStep?.highlight === 'writeCta'
 
+  const [diaryEpoch, setDiaryEpoch] = useState(0)
+
   useEffect(() => {
     return subscribePetTour(() => {
       setTourIndex(getPetTourStepIndex())
     })
+  }, [])
+
+  useEffect(() => {
+    void hydrateDiaryRecords().then(() => setDiaryEpoch((n) => n + 1))
+    return subscribeDiaryRecords(() => setDiaryEpoch((n) => n + 1))
   }, [])
 
   useEffect(() => {
@@ -125,7 +134,7 @@ export default function DiaryScreen() {
   const month = cursor.getMonth()
   const moods = useMemo(
     () => diaryMoodsForMonth(year, month + 1, today),
-    [year, month, today],
+    [year, month, today, diaryEpoch],
   )
   const moodMap = useMemo(() => {
     const map = new Map<number, DayMood>()
@@ -197,7 +206,7 @@ export default function DiaryScreen() {
     const m = useToday ? today.getMonth() + 1 : month + 1
     const d = useToday ? today.getDate() : selectedDay
     return findDiaryEntryByDate(y, m, d)
-  }, [selectedDay, year, month, today])
+  }, [selectedDay, year, month, today, diaryEpoch])
 
   const openSelectedOrWrite = () => {
     const useToday = isFutureDay(selectedDay)
@@ -377,22 +386,17 @@ export default function DiaryScreen() {
 
           {dist.count > 0 ? (
             <View style={styles.legendRow}>
-              {dist.legend
-                .filter((item) => item.count > 0)
-                .map((item) => (
-                  <View key={item.id} style={styles.legendItem}>
-                    <View
-                      style={[
-                        styles.legendSwatch,
-                        { backgroundColor: item.swatchColor },
-                      ]}
-                    />
-                    <Text style={styles.legendLabel}>
-                      {item.label}{' '}
-                      <Text style={styles.legendCount}>{item.count}</Text>
-                    </Text>
-                  </View>
-                ))}
+              {dist.legend.map((item) => (
+                <View key={item.id} style={styles.legendItem}>
+                  <View
+                    style={[
+                      styles.legendSwatch,
+                      { backgroundColor: item.swatchColor },
+                    ]}
+                  />
+                  <Text style={styles.legendLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
           ) : null}
 
@@ -727,11 +731,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textSecondary,
-  },
-  legendCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textPrimary,
   },
   feedback: {
     marginTop: 12,

@@ -12,7 +12,6 @@ import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, CheckCircle, Lightning, PawPrint } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
-import { Fonts } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { PrimaryButton } from '../../components/ui'
 import {
@@ -331,7 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
@@ -354,7 +353,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     lineHeight: 26,
     letterSpacing: -0.4,
@@ -362,7 +361,7 @@ const styles = StyleSheet.create({
   },
   heroSub: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
     marginBottom: 14,
@@ -379,11 +378,11 @@ const styles = StyleSheet.create({
   },
   energyPillText: {
     fontSize: 12,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   energyPillEm: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.accent,
   },
   heroImageWrap: {
@@ -417,7 +416,7 @@ const styles = StyleSheet.create({
   },
   calMonth: {
     fontSize: 16,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
@@ -429,7 +428,7 @@ const styles = StyleSheet.create({
   },
   calCountText: {
     fontSize: 12,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   weekRow: {
@@ -440,7 +439,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
   },
   weekLabelSun: {
@@ -487,15 +486,15 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 14,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   dayTextToday: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.selected,
   },
   dayTextFuture: {
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
   },
   legendRow: {
@@ -528,7 +527,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 11,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
   },
   stampCta: {
@@ -543,11 +542,11 @@ const styles = StyleSheet.create({
   },
   ctaHintText: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
   },
   ctaHintEm: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.accent,
   },
   doneBtn: {
@@ -561,7 +560,7 @@ const styles = StyleSheet.create({
   },
   doneBtnText: {
     fontSize: 16,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
 })

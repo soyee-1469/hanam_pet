@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Fonts } from '../constants/Typography'
 import { subscribeToast } from '../lib/toast'
 
 const SHOW_MS = 2200
@@ -107,7 +106,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
   },

@@ -2,7 +2,6 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Trash, Warning } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
-import { Fonts } from '../../constants/Typography'
 import { CenterDialog } from './AppOverlay'
 
 type ConfirmTone = 'danger' | 'warning'
@@ -101,7 +100,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 26,
@@ -109,7 +108,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
     textAlign: 'center',
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   danger: {
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.buttonPrimaryText,
   },
   pressed: {

@@ -1,7 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Copy } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
 import { PrimaryButton } from './ui'
 import { getOnboardingCopy } from '../lib/onboarding'
@@ -57,14 +56,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
   },
   body: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
@@ -77,7 +76,7 @@ const styles = StyleSheet.create({
   },
   altText: {
     fontSize: 14,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textDisabled,
   },
   pressed: {

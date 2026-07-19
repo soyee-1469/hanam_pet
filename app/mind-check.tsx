@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
 import { CaretLeft, Check } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { getAssessment } from '../constants/MindAssessments'
 import { ConfirmDialog } from '../components/ui'
@@ -149,14 +149,6 @@ export default function MindCheckScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.top}>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${Math.round(progress * 100)}%` },
-            ]}
-          />
-        </View>
         <View style={styles.headerRow}>
           <Pressable
             accessibilityRole="button"
@@ -166,10 +158,28 @@ export default function MindCheckScreen() {
           >
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {assessment.title}
+
+          <View style={styles.headerTitles}>
+            <Text style={styles.toolLabel} numberOfLines={1}>
+              {assessment.title}
+            </Text>
+            <Text style={styles.exploreTitle} numberOfLines={1}>
+              {assessment.exploreTitle}
+            </Text>
+          </View>
+
+          <Text style={styles.progressCount} accessibilityLabel={`${index + 1} / ${total}`}>
+            {index + 1} / {total}
           </Text>
-          <View style={styles.backBtn} />
+        </View>
+
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${Math.round(progress * 100)}%` },
+            ]}
+          />
         </View>
       </View>
 
@@ -260,51 +270,69 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   top: {
+    paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 4,
-  },
-  progressTrack: {
-    height: 4,
-    backgroundColor: Colors.energyTrack,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.primary,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
     paddingTop: Layout.headerPaddingTop,
-    paddingBottom: 12,
-    minHeight: 52,
+    paddingBottom: 14,
+    gap: 4,
   },
   backBtn: {
     width: 40,
     height: 40,
+    marginLeft: -8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: {
     opacity: 0.85,
   },
-  headerTitle: {
+  headerTitles: {
     flex: 1,
-    textAlign: 'center',
-    fontSize: 17,
+    minWidth: 0,
+    paddingRight: 8,
+  },
+  toolLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.textDisabled,
+    marginBottom: 2,
+  },
+  exploreTitle: {
+    fontSize: 20,
     fontWeight: '800',
     color: Colors.textPrimary,
   },
+  progressCount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    paddingTop: 2,
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: Colors.energyTrack,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+  },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 28,
+    paddingTop: 24,
     paddingBottom: 20,
   },
   instruction: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   question: {
     fontSize: 22,
@@ -337,7 +365,7 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: Colors.taupe,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,

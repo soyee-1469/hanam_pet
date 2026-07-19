@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -16,10 +16,8 @@ import {
 } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { Fonts } from '../constants/Typography'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
-  DIARY_DEMO_ENTRIES,
   DIARY_MOOD_LABEL_COLOR,
   type DiaryEntry,
 } from '../constants/diaryDemo'
@@ -31,6 +29,7 @@ import {
   PrimaryButton,
   onboardingFooterStyle,
 } from '../components/ui'
+import { findDiaryEntry, hydrateDiaryRecords } from '../lib/diaryRecords'
 import { showToast } from '../lib/toast'
 
 function moodMeta(id: DiaryEntry['moodId']) {
@@ -42,10 +41,15 @@ export default function DiaryDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [epoch, setEpoch] = useState(0)
+
+  useEffect(() => {
+    void hydrateDiaryRecords().then(() => setEpoch((n) => n + 1))
+  }, [])
 
   const entry = useMemo(
-    () => (id ? DIARY_DEMO_ENTRIES.find((e) => e.id === id) : undefined),
-    [id],
+    () => (id ? findDiaryEntry(id) : undefined),
+    [id, epoch],
   )
 
   if (!entry) {
@@ -140,9 +144,7 @@ export default function DiaryDetailScreen() {
         </Text>
 
         <View style={styles.moodBlock}>
-          <View style={styles.moodWash}>
-            <MoodEmoji index={mood.emojiIndex} size={64} />
-          </View>
+          <MoodEmoji index={mood.emojiIndex} size={64} />
           <Text style={[styles.moodLabel, { color: moodColor }]}>
             {mood.label}
           </Text>
@@ -182,9 +184,7 @@ export default function DiaryDetailScreen() {
         <View style={styles.sheetDivider} />
         <View style={styles.sheetSummary}>
           <View style={styles.sheetMoodLeft}>
-            <View style={styles.sheetEmojiWash}>
-              <MoodEmoji index={mood.emojiIndex} size={28} />
-            </View>
+            <MoodEmoji index={mood.emojiIndex} size={28} />
             <Text style={[styles.sheetMoodLabel, { color: moodColor }]}>
               {mood.label}
             </Text>
@@ -260,7 +260,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   missingTitle: {
-    fontFamily: Fonts.uiBold,
     fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
@@ -268,7 +267,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   missingBody: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 14,
     fontWeight: '500',
     lineHeight: 22,
@@ -296,7 +294,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontFamily: Fonts.uiBold,
     fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
@@ -307,7 +304,6 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   date: {
-    fontFamily: Fonts.uiSemiBold,
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textSecondary,
@@ -320,16 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     gap: 14,
   },
-  moodWash: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   moodLabel: {
-    fontFamily: Fonts.uiBold,
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.3,
@@ -348,7 +335,6 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   tagText: {
-    fontFamily: Fonts.uiSemiBold,
     fontSize: 13,
     fontWeight: '600',
     color: Colors.textSecondary,
@@ -363,7 +349,6 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   bodyText: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 16,
     fontWeight: '500',
     color: Colors.textPrimary,
@@ -378,7 +363,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   sheetTitle: {
-    fontFamily: Fonts.uiBold,
     fontSize: 17,
     fontWeight: '700',
     color: Colors.textPrimary,
@@ -403,22 +387,12 @@ const styles = StyleSheet.create({
     gap: 6,
     flexShrink: 1,
   },
-  sheetEmojiWash: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   sheetMoodLabel: {
-    fontFamily: Fonts.uiBold,
     fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.1,
   },
   sheetSummaryDate: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -445,7 +419,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   actionTitle: {
-    fontFamily: Fonts.uiBold,
     fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
@@ -454,7 +427,6 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
   actionDesc: {
-    fontFamily: Fonts.uiMedium,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,

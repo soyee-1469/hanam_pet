@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { CaretLeft } from 'phosphor-react-native'
-import * as Clipboard from 'expo-clipboard'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
@@ -22,15 +21,12 @@ import { getOnboardingProfile, NICKNAME_MAX } from '../lib/onboardingStorage'
 import { showToast } from '../lib/toast'
 
 const FALLBACK_NICKNAME = '몽이지킴이'
-const ANON_ID_DISPLAY = 'anon_8f2c...a91'
-const ANON_ID_FULL = 'anon_8f2c9d4e1b7a91'
 const NICKNAME_KEY = 'hp_nickname'
 
 export default function AccountScreen() {
   const [nickname, setNickname] = useState(FALLBACK_NICKNAME)
   const [savedNickname, setSavedNickname] = useState(FALLBACK_NICKNAME)
   const [focused, setFocused] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -53,17 +49,6 @@ export default function AccountScreen() {
     : focused || dirty
       ? Colors.primary
       : Colors.border
-
-  const copyAnonId = async () => {
-    try {
-      await Clipboard.setStringAsync(ANON_ID_FULL)
-      setCopied(true)
-      showToast('클립보드에 복사되었어요')
-      setTimeout(() => setCopied(false), 1600)
-    } catch {
-      Alert.alert('복사 실패', '잠시 후 다시 시도해 주세요.')
-    }
-  }
 
   const save = async () => {
     if (!canSave || saving) return
@@ -106,13 +91,6 @@ export default function AccountScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.profileBlock}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>프로필</Text>
-            </View>
-            <Text style={styles.status}>익명으로 안전하게 이용 중</Text>
-          </View>
-
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>닉네임</Text>
             <View style={[styles.inputShell, { borderColor }]}>
@@ -138,28 +116,6 @@ export default function AccountScreen() {
             {tooShort ? (
               <Text style={styles.errorHint}>닉네임은 2글자 이상이어야 해요.</Text>
             ) : null}
-          </View>
-
-          <View style={styles.anonCard}>
-            <View style={styles.anonCopy}>
-              <Text style={styles.anonLabel}>익명 식별자</Text>
-              <Text style={styles.anonId}>{ANON_ID_DISPLAY}</Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="익명 식별자 복사"
-              onPress={() => {
-                void copyAnonId()
-              }}
-              style={({ pressed }) => [
-                styles.copyBtn,
-                pressed && styles.copyBtnPressed,
-              ]}
-            >
-              <Text style={styles.copyBtnText}>
-                {copied ? '복사됨' : '복사'}
-              </Text>
-            </Pressable>
           </View>
         </ScrollView>
 
@@ -217,31 +173,8 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 8,
     paddingBottom: 16,
-  },
-  profileBlock: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-  },
-  status: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
   },
   fieldBlock: {
     marginBottom: 20,
@@ -289,42 +222,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Colors.error,
-  },
-  anonCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  anonCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  anonLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  anonId: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  copyBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  copyBtnPressed: {
-    opacity: 0.7,
-  },
-  copyBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.primary,
   },
   footer: {
     ...onboardingFooterStyle,

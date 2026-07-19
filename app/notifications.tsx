@@ -13,7 +13,6 @@ import { Bell, CalendarBlank, CaretLeft } from 'phosphor-react-native'
 import { OVERLAY_SCRIM } from '../components/ui/AppOverlay'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { Fonts } from '../constants/Typography'
 import {
   DEMO_NOTIFICATIONS,
   getNotificationActionHref,
@@ -414,7 +413,6 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
@@ -427,7 +425,6 @@ const styles = StyleSheet.create({
   },
   markAllText: {
     fontSize: 14,
-    fontFamily: Fonts.uiSemiBold,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
@@ -462,7 +459,6 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 13,
-    fontFamily: Fonts.uiSemiBold,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
@@ -479,7 +475,6 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 8,
     fontSize: 13,
-    fontFamily: Fonts.uiSemiBold,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
@@ -499,14 +494,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 17,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 8,
   },
   emptyBody: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     lineHeight: 20,
     color: Colors.textSecondary,
@@ -563,19 +556,16 @@ const styles = StyleSheet.create({
   rowTitle: {
     flex: 1,
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
   rowTitleRead: {
-    fontFamily: Fonts.uiSemiBold,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
   rowDate: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     color: Colors.textDisabled,
     fontVariant: ['tabular-nums'],
@@ -592,7 +582,6 @@ const styles = StyleSheet.create({
   },
   rowBodyText: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     lineHeight: 20,
     color: Colors.textSecondary,
@@ -641,13 +630,11 @@ const styles = StyleSheet.create({
   },
   modalDate: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     color: Colors.textDisabled,
   },
   modalTitle: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
     lineHeight: 26,
@@ -655,7 +642,6 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
@@ -678,7 +664,6 @@ const styles = StyleSheet.create({
   },
   modalSecondaryText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
@@ -700,7 +685,6 @@ const styles = StyleSheet.create({
   },
   modalPrimaryText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
     fontWeight: '700',
     color: Colors.buttonPrimaryText,
   },

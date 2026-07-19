@@ -15,7 +15,6 @@ import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
-import { Fonts } from '../../constants/Typography'
 import {
   ENERGY_DAILY_EARN_CAP,
   ENERGY_MAX,
@@ -42,6 +41,8 @@ type HistoryEntry = {
   time: string
   delta: number
   kind: StockKind
+  /** 펼침 시 추가 사실 안내 (한도·부분 적립 등). 감성 멘트 금지 */
+  detail?: string
 }
 
 type StockMap = Record<StockKind, number>
@@ -133,6 +134,7 @@ const HISTORY: HistoryEntry[] = [
     time: '2026-07-08 14:18:14',
     delta: 2,
     kind: 'energy',
+    detail: `보유 에너지 한도(최대 ${ENERGY_MAX}개)로 나머지 2개는 적립되지 않았어요.`,
   },
   {
     id: 'e3',
@@ -160,6 +162,7 @@ const HISTORY: HistoryEntry[] = [
     time: '2026-07-08 08:00:16',
     delta: 0,
     kind: 'energy',
+    detail: `하루 적립 한도(${ENERGY_DAILY_EARN_CAP}개)를 채워 에너지가 적립되지 않았어요.`,
   },
 ]
 
@@ -193,6 +196,53 @@ function formatHistoryTime(raw: string) {
   const month = Number(m[2])
   const day = Number(m[3])
   return `${month}월 ${day}일 ${m[4]}:${m[5]}`
+}
+
+/** 펼침 본문 — 증감 설명 (감성 멘트 없음) */
+function historyDeltaExplain(item: HistoryEntry): string {
+  const n = Math.abs(item.delta)
+  if (item.tab === 'energy') {
+    switch (item.category) {
+      case 'chat':
+        return `대화에 에너지 ${n}개를 사용했어요`
+      case 'meal':
+        return item.delta === 0
+          ? '사료 주기 보상이 적립되지 않았어요'
+          : `사료 주기로 에너지 ${item.delta}개를 얻었어요`
+      case 'play':
+        return item.delta === 0
+          ? '놀아 주기 보상이 적립되지 않았어요'
+          : `놀아 주기로 에너지 ${item.delta}개를 얻었어요`
+      case 'diary':
+        return item.delta === 0
+          ? '마음일기 보상이 적립되지 않았어요'
+          : `마음일기 작성으로 에너지 ${item.delta}개를 얻었어요`
+      case 'attend':
+        return item.delta === 0
+          ? '출석 보상이 적립되지 않았어요'
+          : `출석으로 에너지 ${item.delta}개를 얻었어요`
+      default:
+        return item.delta === 0
+          ? '에너지 변동이 없어요'
+          : item.delta > 0
+            ? `에너지 ${item.delta}개를 얻었어요`
+            : `에너지 ${n}개를 사용했어요`
+    }
+  }
+  switch (item.category) {
+    case 'use':
+      return item.kind === 'food'
+        ? `사료 ${n}개를 사용했어요`
+        : `장난감 ${n}개를 사용했어요`
+    case 'play':
+      return `장난감 ${n}개를 사용했어요`
+    case 'claim':
+      return item.kind === 'food'
+        ? `사료 ${n}개를 받았어요`
+        : `장난감 ${n}개를 받았어요`
+    default:
+      return formatDelta(item.delta, '개')
+  }
 }
 
 function StockIcon({
@@ -251,40 +301,22 @@ function CategoryIcon({
   if (energyTab || kind === 'energy') {
     return <Lightning size={20} color={Colors.accent} weight="fill" />
   }
+  // 아이템 탭: 홈·상단 카드와 동일 사료/장난감 이미지
+  if (kind === 'food' || kind === 'toy') {
+    return <StockIcon kind={kind} size={28} />
+  }
   const color = Colors.selected
   const size = 18
   switch (category) {
     case 'chat':
       return <ChatCircle size={size} color={color} weight="fill" />
-    case 'meal':
-    case 'use':
-      return kind === 'toy' ? (
-        <StockIcon kind="toy" size={20} />
-      ) : (
-        <StockIcon kind="food" size={20} />
-      )
-    case 'play':
-      return <StockIcon kind="toy" size={20} />
     case 'diary':
       return <Notebook size={size} color={color} weight="fill" />
     case 'attend':
       return <Lightning size={size} color={Colors.accent} weight="fill" />
-    case 'claim':
-      return kind === 'toy' ? (
-        <StockIcon kind="toy" size={20} />
-      ) : (
-        <StockIcon kind="food" size={20} />
-      )
     default:
       return <Lightning size={size} color={color} weight="fill" />
   }
-}
-
-function iconWellBg(kind: StockKind, empty: boolean) {
-  if (kind === 'energy') return Colors.accentSoft
-  if (empty) return Colors.surfaceSecondary
-  if (kind === 'food') return Colors.iconFeed
-  return Colors.iconToy
 }
 
 function stockFillColor(kind: StockKind) {
@@ -309,6 +341,7 @@ export default function StorageScreen() {
     energy: 0,
   })
   const [tab, setTab] = useState<HistoryTab>('item')
+  const [openId, setOpenId] = useState<string | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -341,7 +374,13 @@ export default function StorageScreen() {
   const switchTab = (next: HistoryTab) => {
     if (next === tab) return
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setOpenId(null)
     setTab(next)
+  }
+
+  const toggleRow = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setOpenId((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -382,12 +421,7 @@ export default function StorageScreen() {
                 accessibilityRole="summary"
                 accessibilityLabel={`${col.label} ${have} / ${col.max}${col.unit}`}
               >
-                <View
-                  style={[
-                    styles.stockIconWell,
-                    { backgroundColor: iconWellBg(col.key, empty) },
-                  ]}
-                >
+                <View style={styles.stockIconWell}>
                   <StockIcon kind={col.key} size={28} empty={empty} />
                 </View>
                 <Text style={styles.stockLabel}>{col.label}</Text>
@@ -426,7 +460,6 @@ export default function StorageScreen() {
               const gained = todayGain[col.key]
               const cap = TODAY_GAIN_MAX[col.key]
               const isEnergy = col.key === 'energy'
-              const full = gained >= cap
               return (
                 <View key={`gain-${col.key}`} style={styles.todayChip}>
                   <Text style={styles.todayChipLabel}>{col.label}</Text>
@@ -440,11 +473,6 @@ export default function StorageScreen() {
                       {gained}
                     </Text>
                     {` / ${cap}`}
-                  </Text>
-                  <Text style={styles.todayChipCap}>
-                    {full
-                      ? '오늘 한도예요'
-                      : `${cap - gained}개 더 받을 수 있어요`}
                   </Text>
                 </View>
               )
@@ -492,42 +520,68 @@ export default function StorageScreen() {
           <View style={styles.list}>
             {entries.map((item, index) => {
               const deltaLabel = formatDelta(item.delta, '개')
+              const open = openId === item.id
               const positive = item.delta > 0
               const zero = item.delta === 0
               const isEnergy = tab === 'energy'
               return (
                 <View
                   key={item.id}
-                  style={[styles.row, index > 0 ? styles.rowDivider : null]}
+                  style={index > 0 ? styles.rowDivider : undefined}
                 >
-                  <View
-                    style={[styles.rowIcon, isEnergy && styles.rowIconEnergy]}
-                  >
-                    <CategoryIcon
-                      category={item.category}
-                      kind={item.kind}
-                      energyTab={isEnergy}
-                    />
-                  </View>
-                  <View style={styles.rowCopy}>
-                    <Text style={styles.rowTitle}>{item.title}</Text>
-                    <Text style={styles.rowTime}>
-                      {formatHistoryTime(item.time)}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.rowDelta,
-                      positive &&
-                        (isEnergy
-                          ? styles.rowDeltaPlusEnergy
-                          : styles.rowDeltaPlus),
-                      !positive && !zero && styles.rowDeltaMinus,
-                      zero && styles.rowDeltaZero,
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: open }}
+                    accessibilityLabel={`${item.title}, ${deltaLabel}`}
+                    onPress={() => toggleRow(item.id)}
+                    style={({ pressed }) => [
+                      styles.row,
+                      pressed && styles.pressed,
                     ]}
                   >
-                    {deltaLabel}
-                  </Text>
+                    <View
+                      style={[
+                        styles.rowIcon,
+                        isEnergy ? styles.rowIconEnergy : styles.rowIconItem,
+                      ]}
+                    >
+                      <CategoryIcon
+                        category={item.category}
+                        kind={item.kind}
+                        energyTab={isEnergy}
+                      />
+                    </View>
+                    <View style={styles.rowCopy}>
+                      <Text style={styles.rowTitle}>{item.title}</Text>
+                      <Text style={styles.rowTime}>
+                        {formatHistoryTime(item.time)}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.rowDelta,
+                        positive &&
+                          (isEnergy
+                            ? styles.rowDeltaPlusEnergy
+                            : styles.rowDeltaPlus),
+                        !positive && !zero && styles.rowDeltaMinus,
+                        zero && styles.rowDeltaZero,
+                      ]}
+                    >
+                      {deltaLabel}
+                    </Text>
+                  </Pressable>
+                  {open ? (
+                    <View style={styles.detailWrap}>
+                      <Text style={styles.detailText}>
+                        {historyDeltaExplain(item)}
+                      </Text>
+                      <Text style={styles.detailMeta}>{item.time}</Text>
+                      {item.detail ? (
+                        <Text style={styles.detailNote}>{item.detail}</Text>
+                      ) : null}
+                    </View>
+                  ) : null}
                 </View>
               )
             })}
@@ -567,7 +621,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
@@ -593,7 +647,6 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   stockCardEmpty: {
-    backgroundColor: Colors.cardRecessed,
     borderColor: Colors.sand,
     shadowOpacity: 0,
     elevation: 0,
@@ -601,23 +654,22 @@ const styles = StyleSheet.create({
   stockIconWell: {
     width: 48,
     height: 48,
-    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stockLabel: {
     fontSize: 12,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   stockValue: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
   },
   stockHave: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.4,
   },
@@ -629,7 +681,7 @@ const styles = StyleSheet.create({
   },
   stockMax: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
   },
   stockTrack: {
@@ -647,7 +699,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   todayTitle: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 14,
     color: Colors.textPrimary,
   },
@@ -664,28 +716,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   todayChipLabel: {
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     fontSize: 11,
     color: Colors.textSecondary,
   },
   todayChipValue: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 13,
     color: Colors.textSecondary,
   },
   todayChipHave: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     fontSize: 16,
     color: Colors.textPrimary,
   },
   todayChipHaveEnergy: {
     color: Colors.accent,
-  },
-  todayChipCap: {
-    fontFamily: Fonts.uiMedium,
-    fontSize: 10,
-    lineHeight: 14,
-    color: Colors.textDisabled,
   },
   tabBar: {
     flexDirection: 'row',
@@ -699,12 +745,12 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 14,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textDisabled,
     marginBottom: 10,
   },
   tabLabelActive: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   tabUnderline: {
@@ -734,9 +780,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 11,
-    backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  rowIconItem: {
+    backgroundColor: 'transparent',
   },
   rowIconEnergy: {
     borderRadius: 20,
@@ -749,19 +797,19 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
   rowTime: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textDisabled,
     fontVariant: ['tabular-nums'],
   },
   rowDelta: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     minWidth: 44,
     textAlign: 'right',
   },
@@ -777,6 +825,37 @@ const styles = StyleSheet.create({
   rowDeltaZero: {
     color: Colors.textSecondary,
   },
+  detailWrap: {
+    marginLeft: 50,
+    marginRight: 4,
+    marginTop: -4,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.creamyBeige,
+    gap: 4,
+  },
+  detailText: {
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 20,
+    color: Colors.textPrimary,
+  },
+  detailMeta: {
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+    color: Colors.textDisabled,
+    fontVariant: ['tabular-nums'],
+  },
+  detailNote: {
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
   historyEmpty: {
     alignItems: 'center',
     paddingTop: 20,
@@ -786,13 +865,13 @@ const styles = StyleSheet.create({
   },
   historyEmptyTitle: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
   },
   historyEmptyBody: {
     fontSize: 13,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
   },

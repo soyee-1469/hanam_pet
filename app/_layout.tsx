@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router'
-import { useFonts } from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar'
@@ -8,8 +7,6 @@ import 'react-native-reanimated'
 import '../global.css'
 import { AppViewport } from '../components/AppViewport'
 import { ToastHost } from '../components/ToastHost'
-import { fontAssets } from '../constants/Typography'
-import { applyDefaultFonts } from '../lib/applyDefaultFonts'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -20,20 +17,9 @@ export const unstable_settings = {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts(fontAssets)
-
-  if (loaded || error) {
-    applyDefaultFonts()
-  }
-
   useEffect(() => {
-    if (!loaded && !error) return
     SplashScreen.hideAsync()
-  }, [loaded, error])
-
-  if (!loaded && !error) {
-    return null
-  }
+  }, [])
 
   return (
     <SafeAreaProvider>
@@ -52,7 +38,9 @@ export default function RootLayout() {
           <Stack.Screen name="guide-doc" />
           <Stack.Screen name="counseling" />
           <Stack.Screen name="data-manage" />
+          <Stack.Screen name="recovery-code" />
           <Stack.Screen name="mind-records" />
+          <Stack.Screen name="record-reset" />
           <Stack.Screen name="support" />
           <Stack.Screen name="chat-help" />
           <Stack.Screen name="withdraw" />
@@ -65,6 +53,7 @@ export default function RootLayout() {
           <Stack.Screen name="mind-report" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="notification-detail" />
+          <Stack.Screen name="component-catalog" />
         </Stack>
         <ToastHost />
       </AppViewport>

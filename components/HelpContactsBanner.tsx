@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   View,
   Text,
+  Image,
   Pressable,
   StyleSheet,
   PanResponder,
@@ -10,7 +11,6 @@ import {
 } from 'react-native'
 import { CaretUp } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
 const SWIPE_UP_THRESHOLD = 36
@@ -59,9 +59,11 @@ export function HelpContactsBanner({
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.emoji} accessibilityElementsHidden>
-            🤝
-          </Text>
+          <Image
+            source={require('../assets/images/help.png')}
+            style={styles.icon}
+            accessibilityElementsHidden
+          />
           <View style={styles.copy}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.sub}>{subtitle}</Text>
@@ -94,9 +96,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  emoji: {
-    fontSize: 22,
-    lineHeight: 26,
+  icon: {
+    width: 28,
+    height: 28,
   },
   copy: {
     flex: 1,
@@ -104,12 +106,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 14,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.buttonPrimaryText,
   },
   sub: {
     fontSize: 12,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.buttonPrimaryText,
     opacity: 0.92,
   },

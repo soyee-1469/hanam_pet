@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Lightning } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import {
@@ -53,19 +52,8 @@ export default function DiaryDoneScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.glowTop} pointerEvents="none" />
-      <View style={styles.glowBottom} pointerEvents="none" />
-
       <View style={styles.body}>
         <View style={styles.hero}>
-          <View style={styles.fireworksWrap} accessibilityElementsHidden>
-            <Image
-              source={require('../assets/images/fireworks.png')}
-              style={styles.fireworks}
-              resizeMode="contain"
-              importantForAccessibility="no"
-            />
-          </View>
           <Text style={styles.title}>마음을 담았어요</Text>
           <Text style={styles.subtitle}>오늘도 잘 기록했어요</Text>
         </View>
@@ -75,14 +63,12 @@ export default function DiaryDoneScreen() {
             <Text style={styles.bubbleText}>곁에서 항상 응원하고 있어요.</Text>
           </View>
 
-          <View style={styles.petWash}>
-            <Image
-              source={DogExpr.fun}
-              style={styles.petImage}
-              resizeMode="contain"
-              accessibilityLabel="펫"
-            />
-          </View>
+          <Image
+            source={DogExpr.fun}
+            style={styles.petImage}
+            resizeMode="contain"
+            accessibilityLabel="펫"
+          />
         </View>
 
         {showReward ? (
@@ -115,49 +101,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  glowTop: {
-    position: 'absolute',
-    top: -40,
-    alignSelf: 'center',
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: Colors.accentSoft,
-    opacity: 0.45,
-  },
-  glowBottom: {
-    position: 'absolute',
-    bottom: 120,
-    right: -60,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Colors.creamyBeige,
-    opacity: 0.9,
-  },
   body: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
-    gap: 28,
+    gap: 32,
   },
   hero: {
     alignItems: 'center',
-  },
-  fireworksWrap: {
-    width: 72,
-    height: 84,
-    marginBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fireworks: {
-    width: '100%',
-    height: '100%',
+    gap: 8,
   },
   title: {
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     fontSize: 26,
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -165,8 +121,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   subtitle: {
-    marginTop: 8,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     fontSize: 15,
     color: Colors.textSecondary,
     textAlign: 'center',
@@ -174,6 +129,7 @@ const styles = StyleSheet.create({
   },
   stage: {
     alignItems: 'center',
+    gap: 12,
   },
   bubble: {
     alignSelf: 'center',
@@ -182,30 +138,20 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 14,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    zIndex: 2,
     ...Shadows.elevation,
   },
   bubbleText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 15,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 24,
   },
-  petWash: {
-    width: 168,
-    height: 168,
-    borderRadius: 84,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   petImage: {
-    width: 148,
-    height: 148,
+    width: 156,
+    height: 156,
   },
   reward: {
     flexDirection: 'row',
@@ -226,7 +172,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rewardText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 14,
     color: Colors.textPrimary,
   },

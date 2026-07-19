@@ -153,7 +153,7 @@ export default function MindCheckIntroScreen() {
           <View style={styles.noticeRow}>
             <WarningCircle size={16} color={Colors.error} weight="fill" />
             <Text style={styles.noticeText}>
-              검사는 총 {assessment.questions.length}문항으로 구성되어 있습니다.
+              「검사는 총 {assessment.questions.length}문항으로 구성되어 있습니다.」
             </Text>
           </View>
         </View>
@@ -216,12 +216,13 @@ export default function MindCheckIntroScreen() {
             <View
               style={[
                 styles.scoreCircle,
-                { borderColor: latestBand.color },
+                {
+                  backgroundColor:
+                    BAND_PILL_BG[latestBand.id] ?? '#F7D7B8',
+                },
               ]}
             >
-              <Text style={[styles.scoreCircleText, { color: latestBand.color }]}>
-                {latest.score}점
-              </Text>
+              <Text style={styles.scoreCircleText}>{latest.score}점</Text>
             </View>
             <View style={styles.recentCopy}>
               <Text style={styles.recentDate}>
@@ -420,15 +421,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    backgroundColor: '#F7D7B8',
     alignItems: 'center',
     justifyContent: 'center',
   },
   scoreCircleText: {
     fontSize: 14,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.textPrimary,
   },
   recentCopy: {
     flex: 1,

@@ -16,7 +16,6 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, Lightning, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Fonts } from '../../constants/Typography'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
@@ -40,13 +39,12 @@ import {
   subscribePetTour,
 } from '../../lib/coachmarkTourState'
 import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
+import {
+  getChatClearToken,
+  subscribeChatClear,
+} from '../../lib/chatSession'
 
 const TYPING_MS = 1800
-/** 세션 유휴 후 대화 횟수·휴식 안내 리셋 */
-const SESSION_IDLE_MS = 30 * 60 * 1000
-const REST_AT_REPLIES = [20, 40] as const
-const REST_TIP =
-  '잠시 쉬어가도 괜찮아요. 깊게 숨 한번 고르고, 마음이 준비되면 다시 이야기해요.'
 
 function petReplies(name: string) {
   return [
@@ -79,9 +77,6 @@ export default function ChatScreen() {
   const scrollRef = useRef<ScrollView>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const replyIndex = useRef(0)
-  const sessionReplies = useRef(0)
-  const lastActivityAt = useRef(Date.now())
-  const restShownAt = useRef<Set<number>>(new Set())
   const [message, setMessage] = useState('')
   const [inputFocused, setInputFocused] = useState(false)
   const [noticeDone, setNoticeDone] = useState(false)
@@ -90,7 +85,6 @@ export default function ChatScreen() {
   )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [tipVisible, setTipVisible] = useState(true)
-  const [restTip, setRestTip] = useState<string | null>(null)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
@@ -117,6 +111,24 @@ export default function ChatScreen() {
   useEffect(() => {
     return subscribePetTour(() => {
       setTourIndex(getPetTourStepIndex())
+    })
+  }, [])
+
+  useEffect(() => {
+    let token = getChatClearToken()
+    return subscribeChatClear(() => {
+      const next = getChatClearToken()
+      if (next === token) return
+      token = next
+      if (typingTimer.current) {
+        clearTimeout(typingTimer.current)
+        typingTimer.current = null
+      }
+      setTyping(false)
+      setMessage('')
+      setMessages([])
+      setNoticeDone(false)
+      setTipVisible(true)
     })
   }, [])
 
@@ -185,15 +197,6 @@ export default function ChatScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true
-      // 30분 유휴 시 세션 횟수·휴식 게이트 리셋
-      const now = Date.now()
-      if (now - lastActivityAt.current >= SESSION_IDLE_MS) {
-        sessionReplies.current = 0
-        restShownAt.current = new Set()
-        setRestTip(null)
-      }
-      lastActivityAt.current = now
-
       void loadChatEnergy().then((n) => {
         if (!alive) return
         setEnergy(n)
@@ -234,28 +237,16 @@ export default function ChatScreen() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
   }
 
-  const touchSessionActivity = () => {
-    const now = Date.now()
-    if (now - lastActivityAt.current >= SESSION_IDLE_MS) {
-      sessionReplies.current = 0
-      restShownAt.current = new Set()
-      setRestTip(null)
-    }
-    lastActivityAt.current = now
-  }
-
   const sendMessage = async () => {
     const trimmed = message.trim()
     if (!trimmed || typing || depleted) return
 
-    touchSessionActivity()
-
-    // 보내기 전 잔량만 확인 — 차감은 답변 생성 성공 시점 (mock)
-    const before = await loadChatEnergy()
-    if (before < CHAT_ENERGY_COST) {
-      setEnergy(before)
+    const remaining = await spendChatEnergy()
+    if (remaining == null) {
+      setEnergy(0)
       return
     }
+    setEnergy(remaining)
 
     const next: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -265,48 +256,31 @@ export default function ChatScreen() {
     }
     setMessages((prev) => [...prev, next])
     setMessage('')
-    setRestTip(null)
     scrollToEnd()
+
+    // 이번 질문으로 소진 → 답변 없이 에너지 안내
+    if (remaining < CHAT_ENERGY_COST) {
+      setTyping(false)
+      scrollToEnd()
+      return
+    }
 
     setTyping(true)
     if (typingTimer.current) clearTimeout(typingTimer.current)
     typingTimer.current = setTimeout(() => {
-      void (async () => {
-        // 답변이 나온 뒤에만 차감 (실패 시 환불 불필요 — mock은 항상 성공)
-        const remaining = await spendChatEnergy()
-        if (remaining == null) {
-          setEnergy(0)
-          setTyping(false)
-          scrollToEnd()
-          return
-        }
-        setEnergy(remaining)
-
-        sessionReplies.current += 1
-        const count = sessionReplies.current
-        const reply = replies[replyIndex.current % replies.length]
-        replyIndex.current += 1
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `p-${Date.now()}`,
-            role: 'pet',
-            text: reply,
-            at: new Date(),
-          },
-        ])
-
-        if (
-          (REST_AT_REPLIES as readonly number[]).includes(count) &&
-          !restShownAt.current.has(count)
-        ) {
-          restShownAt.current.add(count)
-          setRestTip(REST_TIP)
-        }
-
-        setTyping(false)
-        scrollToEnd()
-      })()
+      const reply = replies[replyIndex.current % replies.length]
+      replyIndex.current += 1
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `p-${Date.now()}`,
+          role: 'pet',
+          text: reply,
+          at: new Date(),
+        },
+      ])
+      setTyping(false)
+      scrollToEnd()
     }, TYPING_MS)
   }
 
@@ -439,13 +413,6 @@ export default function ChatScreen() {
                 </View>
               </View>
             ))}
-
-            {restTip ? (
-              <View style={styles.restTipCard} accessibilityRole="text">
-                <Text style={styles.restTipTitle}>잠깐 쉬어가요</Text>
-                <Text style={styles.restTipBody}>{restTip}</Text>
-              </View>
-            ) : null}
 
             <View style={styles.petBlock}>
               {typing ? (
@@ -647,12 +614,10 @@ const styles = StyleSheet.create({
   },
   greetWrap: {
     alignItems: 'center',
-    alignSelf: 'center',
     marginBottom: 4,
-    maxWidth: '85%',
+    maxWidth: 280,
   },
   greetBubble: {
-    alignSelf: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 22,
     paddingHorizontal: 22,
@@ -671,7 +636,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   greetText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 16,
     lineHeight: 24,
     color: Colors.textPrimary,
@@ -711,32 +676,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
   },
-  restTipCard: {
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 340,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: Colors.creamyBeige,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  restTipTitle: {
-    fontFamily: Fonts.uiSemiBold,
-    fontSize: 14,
-    color: Colors.textPrimary,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  restTipBody: {
-    fontFamily: Fonts.uiMedium,
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
   petBlock: {
     alignItems: 'center',
     marginTop: 20,
@@ -744,14 +683,12 @@ const styles = StyleSheet.create({
   },
   petBubbleContainer: {
     alignItems: 'center',
-    alignSelf: 'center',
-    maxWidth: '85%',
+    alignSelf: 'stretch',
     marginBottom: 6,
     paddingHorizontal: 4,
   },
   petAnswerBubble: {
-    alignSelf: 'center',
-    maxWidth: '100%',
+    alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
     paddingHorizontal: 20,
@@ -761,7 +698,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   petAnswerText: {
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     fontSize: 15,
     lineHeight: 24,
     color: Colors.textPrimary,
@@ -900,12 +837,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   depletedBubble: {
-    alignSelf: 'center',
-    maxWidth: '100%',
+    alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
     paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingTop: 20,
+    paddingBottom: 18,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',

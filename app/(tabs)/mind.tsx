@@ -14,6 +14,7 @@ import {
   CaretRight,
   DotsThreeVertical,
   Heart,
+  Info,
   Lightning,
   Moon,
   Play,
@@ -352,7 +353,14 @@ export default function MindScreen() {
           </>
         ) : (
           <>
-            <View style={styles.checkNotice}>
+            <View
+              style={styles.checkNotice}
+              accessible
+              accessibilityLabel="자신의 증상을 직접 확인하고 작성한 자가보고식 평가 결과는 참고용으로, 의학적 진단을 대체하지 않아요."
+            >
+              <View style={styles.checkNoticeIcon}>
+                <Info size={18} color={Colors.selected} weight="fill" />
+              </View>
               <Text style={styles.checkNoticeText}>
                 자신의 증상을 직접 확인하고 작성한 자가보고식 평가 결과는
                 참고용으로, 의학적 진단을 대체하지 않아요.
@@ -385,7 +393,7 @@ export default function MindScreen() {
                     <View style={styles.checkIconWrap}>
                       <IconComp
                         size={22}
-                        color={Colors.primary}
+                        color={Colors.cocoa}
                         weight="regular"
                       />
                     </View>
@@ -395,15 +403,20 @@ export default function MindScreen() {
                         {check.code} · {check.questions}문항 · 약 {check.minutes}
                         분
                       </Text>
-                      <Text style={styles.checkHistory}>
+                      <Text
+                        style={[
+                          styles.checkHistory,
+                          !latest && styles.checkHistoryEmpty,
+                        ]}
+                      >
                         {latest
                           ? `최근 평가 ${formatResultDateYmd(latest.at)}`
                           : '검사 이력 없음'}
                       </Text>
                     </View>
                     <CaretRight
-                      size={16}
-                      color={Colors.textDisabled}
+                      size={18}
+                      color={Colors.taupe}
                       weight="bold"
                     />
                   </Pressable>
@@ -418,13 +431,19 @@ export default function MindScreen() {
         <View style={styles.coachOverlay} pointerEvents="box-none">
           <View style={styles.coachScrim} />
           {tourHighlightCheck ? (
-            <View
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={MIND_CHECKS[0]?.title ?? '우울 평가도구'}
+              onPress={() =>
+                router.push({
+                  pathname: '/mind-check-intro',
+                  params: { id: MIND_CHECKS[0]?.id ?? 'phq' },
+                })
+              }
               style={styles.tourSpotlight}
-              pointerEvents="none"
-              accessibilityElementsHidden
             >
               <View style={styles.checkIconWrap}>
-                <Moon size={22} color={Colors.primary} weight="regular" />
+                <Moon size={22} color={Colors.cocoa} weight="regular" />
               </View>
               <View style={styles.rowCopy}>
                 <Text style={styles.rowTitle}>
@@ -436,12 +455,8 @@ export default function MindScreen() {
                     : ''}
                 </Text>
               </View>
-              <CaretRight
-                size={16}
-                color={Colors.textDisabled}
-                weight="bold"
-              />
-            </View>
+              <CaretRight size={18} color={Colors.taupe} weight="bold" />
+            </Pressable>
           ) : null}
           <CoachmarkTourCard
             step={tourStep}
@@ -529,7 +544,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     paddingHorizontal: Layout.screenPaddingH,
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 14,
   },
@@ -554,7 +569,7 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   tabLabelOn: {
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   tabUnderline: {
@@ -636,31 +651,39 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
   },
   checkNotice: {
-    backgroundColor: Colors.accentSoft,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: Colors.creamyBeige,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  checkNoticeIcon: {
+    marginTop: 1,
   },
   checkNoticeText: {
+    flex: 1,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     lineHeight: 20,
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
   checkList: {
-    gap: 10,
+    gap: 8,
   },
   checkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
+    minHeight: 84,
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     ...Shadows.elevation,
   },
   checkCardTour: {
@@ -668,18 +691,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   checkIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.peach,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkHistory: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
+  },
+  checkHistoryEmpty: {
+    color: Colors.taupe,
+    opacity: 0.72,
   },
   chipRow: {
     gap: 8,
@@ -827,10 +854,10 @@ const styles = StyleSheet.create({
     zIndex: 30,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    minHeight: 72,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    gap: 14,
+    minHeight: 84,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderRadius: 18,
     borderWidth: 2.5,
     borderColor: Colors.primary,
@@ -845,10 +872,10 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   rowMeta: {
     fontSize: 13,

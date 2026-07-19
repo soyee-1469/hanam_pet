@@ -1,7 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native'
 import { ArrowUpRight } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { CenterDialog } from './ui/AppOverlay'
 
 type ExternalLinkModalProps = {
@@ -102,14 +101,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 8,
   },
   body: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 21,
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
   },
   urlText: {
     fontSize: 13,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   actions: {
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   goBtn: {
@@ -164,7 +163,7 @@ const styles = StyleSheet.create({
   },
   goText: {
     fontSize: 15,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
 })

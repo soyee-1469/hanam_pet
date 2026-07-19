@@ -1,7 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { PawPrint } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Fonts } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
 
 type CoachmarkWelcomeSheetProps = {
@@ -90,7 +89,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 30,
@@ -99,7 +98,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 14,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
@@ -119,7 +118,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 16,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   okBtn: {
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
   },
   okText: {
     fontSize: 16,
-    fontFamily: Fonts.uiBold,
+    fontWeight: '700',
     color: Colors.surface,
   },
   pressed: {

@@ -236,7 +236,6 @@ export default function DiaryScreen() {
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>마음일기</Text>
-          <Text style={styles.subtitle}>하루의 감정을 남겨봐요</Text>
         </View>
       </View>
 
@@ -313,7 +312,7 @@ export default function DiaryScreen() {
                           accessibilityRole="button"
                           accessibilityLabel={
                             mood
-                              ? `${day}일 마음일기 보기`
+                              ? `${day}일 ${moodMeta(mood.moodId).label} 마음일기`
                               : `${day}일 마음일기 쓰기`
                           }
                           disabled={future}
@@ -344,11 +343,20 @@ export default function DiaryScreen() {
                               {day}
                             </Text>
                             <View style={styles.dayMoodSlot}>
-                              {future ? null : emojiIndex ? (
-                                <MoodEmoji index={emojiIndex} size={20} />
-                              ) : (
-                                <View style={styles.dayDot} />
-                              )}
+                              {!future && mood && emojiIndex ? (
+                                <>
+                                  <MoodEmoji index={emojiIndex} size={18} />
+                                  <View
+                                    style={[
+                                      styles.moodDot,
+                                      {
+                                        backgroundColor:
+                                          DIARY_MOOD_LABEL_COLOR[mood.moodId],
+                                      },
+                                    ]}
+                                  />
+                                </>
+                              ) : null}
                             </View>
                           </View>
                         </Pressable>
@@ -394,7 +402,9 @@ export default function DiaryScreen() {
                       { backgroundColor: item.swatchColor },
                     ]}
                   />
-                  <Text style={styles.legendLabel}>{item.label}</Text>
+                  <Text style={styles.legendLabel}>
+                    {item.label} {item.count}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -479,7 +489,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: Layout.headerPaddingTop,
@@ -494,13 +504,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
   },
   iconBtn: {
     width: 40,
@@ -598,7 +601,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 0,
-    height: 64,
+    height: 68,
     minWidth: 0,
   },
   dayPressable: {
@@ -616,7 +619,7 @@ const styles = StyleSheet.create({
   },
   dayInner: {
     width: 42,
-    height: 58,
+    height: 62,
     borderRadius: 12,
     alignItems: 'center',
     alignSelf: 'center',
@@ -656,18 +659,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   dayMoodSlot: {
-    height: 24,
-    width: 24,
-    marginTop: 4,
+    height: 30,
+    width: 28,
+    marginTop: 2,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    gap: 2,
     zIndex: 1,
   },
-  dayDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.sand,
+  /** Inside Out 감정색 점 — 이모지와 함께 날짜별 다양성 표시 */
+  moodDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   distCard: {
     marginTop: 14,

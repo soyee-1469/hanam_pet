@@ -187,15 +187,15 @@ function helpItems(name: string) {
   return [
     {
       title: '받기 제한',
-      body: '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 받은 뒤 4시간이 지나야 다시 받을 수 있고, 두 번째는 받은 아이템을 먼저 사용한 뒤에 열려요. 하루 횟수는 자정에 다시 시작돼요.',
+      body: '사료랑 장난감은 하루에 최대 2번 받을 수 있어요. 받은 뒤 4시간이 지나면 다시 받을 수 있고, 두 번째는 받은 걸 먼저 써 준 뒤에 열려요. 하루 횟수는 자정에 다시 시작돼요.',
     },
     {
       title: '보관 한도',
-      body: '사료와 장난감은 최대 5개까지만 보관할 수 있어요.',
+      body: '사료와 장난감은 최대 5개까지 소중히 보관해 둘 수 있어요.',
     },
     {
       title: '돌보기',
-      body: `사료 주기·놀아 주기는 하루 각 ${CARE_USE_MAX_PER_DAY}번까지예요. 할 때마다 에너지가 오르고 ${name}와 더 가까워질 수 있어요.`,
+      body: `사료 주기·놀아 주기는 하루 각 ${CARE_USE_MAX_PER_DAY}번까지예요. 할 때마다 에너지가 오르고 ${name}와 마음이 더 가까워져요.`,
     },
   ] as const
 }
@@ -1455,13 +1455,34 @@ export default function PetHomeScreen() {
             <X size={20} color={Colors.textSecondary} weight="bold" />
           </Pressable>
         </View>
+        <View style={styles.helpIconRow} accessibilityElementsHidden>
+          <View style={styles.helpIconChip}>
+            <Image
+              source={require('../../assets/images/bowl.png')}
+              style={styles.helpIconImg}
+              resizeMode="contain"
+            />
+            <Text style={styles.helpIconLabel}>사료</Text>
+          </View>
+          <View style={styles.helpIconChip}>
+            <Image
+              source={require('../../assets/images/toy.png')}
+              style={styles.helpIconImg}
+              resizeMode="contain"
+            />
+            <Text style={styles.helpIconLabel}>장난감</Text>
+          </View>
+        </View>
         <Text style={styles.helpLead}>
-          필요할 때만 보면 돼요. 천천히 확인해 주세요.
+          사료랑 장난감으로 돌보는 방법이에요. 천천히 읽어 주세요.
         </Text>
         {helpItems(petName).map((item) => {
           const open = helpExpanded === item.title
           return (
-            <View key={item.title} style={styles.helpItem}>
+            <View
+              key={item.title}
+              style={[styles.helpItem, open && styles.helpItemOpen]}
+            >
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ expanded: open }}
@@ -1653,12 +1674,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   helpTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.cocoa,
   },
   helpCloseBtn: {
     width: 36,
@@ -1666,36 +1687,66 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  helpIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  helpIconChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: Colors.creamyBeige,
+  },
+  helpIconImg: {
+    width: 28,
+    height: 28,
+  },
+  helpIconLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.cocoa,
+  },
   helpLead: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 18,
+    lineHeight: 21,
+    marginBottom: 16,
   },
   helpItem: {
-    marginBottom: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    marginBottom: 8,
+    borderRadius: 14,
+    backgroundColor: Colors.creamyBeige,
+    overflow: 'hidden',
+  },
+  helpItemOpen: {
+    backgroundColor: Colors.surfaceSecondary,
   },
   helpItemHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
   helpItemTitle: {
     flex: 1,
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.cocoa,
   },
   helpItemBody: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
+    paddingHorizontal: 14,
     paddingBottom: 14,
   },
   menuItem: {

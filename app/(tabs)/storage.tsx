@@ -422,7 +422,7 @@ export default function StorageScreen() {
                 accessibilityLabel={`${col.label} ${have} / ${col.max}${col.unit}`}
               >
                 <View style={styles.stockIconWell}>
-                  <StockIcon kind={col.key} size={28} empty={empty} />
+                  <StockIcon kind={col.key} size={40} empty={empty} />
                 </View>
                 <Text style={styles.stockLabel}>{col.label}</Text>
                 <Text style={styles.stockValue}>
@@ -520,57 +520,71 @@ export default function StorageScreen() {
           <View style={styles.list}>
             {entries.map((item, index) => {
               const deltaLabel = formatDelta(item.delta, '개')
-              const open = openId === item.id
               const positive = item.delta > 0
               const zero = item.delta === 0
               const isEnergy = tab === 'energy'
+              const open = isEnergy && openId === item.id
+              const rowBody = (
+                <>
+                  <View
+                    style={[
+                      styles.rowIcon,
+                      isEnergy ? styles.rowIconEnergy : styles.rowIconItem,
+                    ]}
+                  >
+                    <CategoryIcon
+                      category={item.category}
+                      kind={item.kind}
+                      energyTab={isEnergy}
+                    />
+                  </View>
+                  <View style={styles.rowCopy}>
+                    <Text style={styles.rowTitle}>{item.title}</Text>
+                    <Text style={styles.rowTime}>
+                      {formatHistoryTime(item.time)}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.rowDelta,
+                      positive &&
+                        (isEnergy
+                          ? styles.rowDeltaPlusEnergy
+                          : styles.rowDeltaPlus),
+                      !positive && !zero && styles.rowDeltaMinus,
+                      zero && styles.rowDeltaZero,
+                    ]}
+                  >
+                    {deltaLabel}
+                  </Text>
+                </>
+              )
               return (
                 <View
                   key={item.id}
                   style={index > 0 ? styles.rowDivider : undefined}
                 >
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityState={{ expanded: open }}
-                    accessibilityLabel={`${item.title}, ${deltaLabel}`}
-                    onPress={() => toggleRow(item.id)}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && styles.pressed,
-                    ]}
-                  >
+                  {isEnergy ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: open }}
+                      accessibilityLabel={`${item.title}, ${deltaLabel}`}
+                      onPress={() => toggleRow(item.id)}
+                      style={({ pressed }) => [
+                        styles.row,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      {rowBody}
+                    </Pressable>
+                  ) : (
                     <View
-                      style={[
-                        styles.rowIcon,
-                        isEnergy ? styles.rowIconEnergy : styles.rowIconItem,
-                      ]}
+                      style={styles.row}
+                      accessibilityLabel={`${item.title}, ${deltaLabel}`}
                     >
-                      <CategoryIcon
-                        category={item.category}
-                        kind={item.kind}
-                        energyTab={isEnergy}
-                      />
+                      {rowBody}
                     </View>
-                    <View style={styles.rowCopy}>
-                      <Text style={styles.rowTitle}>{item.title}</Text>
-                      <Text style={styles.rowTime}>
-                        {formatHistoryTime(item.time)}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.rowDelta,
-                        positive &&
-                          (isEnergy
-                            ? styles.rowDeltaPlusEnergy
-                            : styles.rowDeltaPlus),
-                        !positive && !zero && styles.rowDeltaMinus,
-                        zero && styles.rowDeltaZero,
-                      ]}
-                    >
-                      {deltaLabel}
-                    </Text>
-                  </Pressable>
+                  )}
                   {open ? (
                     <View style={styles.detailWrap}>
                       <Text style={styles.detailText}>
@@ -709,6 +723,7 @@ const styles = StyleSheet.create({
   },
   todayChip: {
     flex: 1,
+    alignItems: 'center',
     backgroundColor: Colors.creamyBeige,
     borderRadius: 12,
     paddingHorizontal: 8,
@@ -719,11 +734,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 11,
     color: Colors.textSecondary,
+    textAlign: 'center',
   },
   todayChipValue: {
     fontWeight: '600',
     fontSize: 13,
     color: Colors.textSecondary,
+    textAlign: 'center',
   },
   todayChipHave: {
     fontWeight: '700',

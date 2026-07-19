@@ -176,13 +176,21 @@ export async function recordPetClaim(
 /** 사료 주기 / 놀아 주기 성공 시 — 2차 수령 게이트 해제 */
 export async function recordPetItemUse(
   kind: ClaimKind,
+  now = Date.now(),
 ): Promise<PetClaimState> {
   const state = await loadPetClaimState()
   const bucket = normalizeBucket(state[kind])
-  if (bucket.usedSinceClaim) return state
+  // 사료 사용 직후: 받기 CD가 진행 중이면 남은 시간을 절반(2h)으로 맞춤 (총 4h 유지, 시작점만 이동)
+  const nextReadyAt =
+    kind === 'feed' && bucket.nextReadyAt > now
+      ? now + FEED_COOLDOWN_MS / 2
+      : bucket.nextReadyAt
+  if (bucket.usedSinceClaim && nextReadyAt === bucket.nextReadyAt) {
+    return state
+  }
   const next: PetClaimState = {
     ...state,
-    [kind]: { ...bucket, usedSinceClaim: true },
+    [kind]: { ...bucket, usedSinceClaim: true, nextReadyAt },
   }
   await savePetClaimState(next)
   return next

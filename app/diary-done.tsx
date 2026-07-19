@@ -1,48 +1,98 @@
-import { useEffect, useRef } from 'react'
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { View, Text, Image, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Check, Lightning } from 'phosphor-react-native'
+import { Lightning } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Fonts } from '../constants/Typography'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
-import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
-import { ENERGY_DIARY_GAIN, addEnergy } from '../lib/petStock'
+import {
+  PrimaryButton,
+  GhostButton,
+  onboardingFooterStyle,
+} from '../components/ui'
+import {
+  ENERGY_DIARY_GAIN,
+  energyCreditMessage,
+  tryGrantDiaryEnergy,
+} from '../lib/petStock'
 
 export default function DiaryDoneScreen() {
   const granted = useRef(false)
+  const [rewardText, setRewardText] = useState(
+    `에너지 +${ENERGY_DIARY_GAIN} 받았어요`,
+  )
+  const [showReward, setShowReward] = useState(true)
+
   useEffect(() => {
     if (granted.current) return
     granted.current = true
-    void addEnergy(ENERGY_DIARY_GAIN)
+    void (async () => {
+      const result = await tryGrantDiaryEnergy()
+      if (result.alreadyGranted) {
+        setShowReward(false)
+        return
+      }
+      if (result.credited <= 0) {
+        setRewardText(
+          energyCreditMessage(result) ?? '에너지를 적립하지 못했어요',
+        )
+        return
+      }
+      if (result.credited < ENERGY_DIARY_GAIN) {
+        setRewardText(
+          energyCreditMessage(result) ??
+            `에너지 +${result.credited}만 적립됐어요`,
+        )
+        return
+      }
+      setRewardText(`에너지 +${result.credited} 받았어요`)
+    })()
   }, [])
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.body}>
-        <View style={styles.checkWrap}>
-          <Check size={32} color={Colors.primary} weight="bold" />
-        </View>
-        <Text style={styles.title}>마음을 담았어요</Text>
+      <View style={styles.glowTop} pointerEvents="none" />
+      <View style={styles.glowBottom} pointerEvents="none" />
 
-        <View style={styles.card}>
-          <View style={styles.petCircle}>
+      <View style={styles.body}>
+        <View style={styles.hero}>
+          <View style={styles.fireworksWrap} accessibilityElementsHidden>
             <Image
-              source={DogExpr.wink}
-              style={styles.petImage}
+              source={require('../assets/images/fireworks.png')}
+              style={styles.fireworks}
               resizeMode="contain"
+              importantForAccessibility="no"
             />
           </View>
+          <Text style={styles.title}>마음을 담았어요</Text>
+          <Text style={styles.subtitle}>오늘도 잘 기록했어요</Text>
+        </View>
+
+        <View style={styles.stage}>
           <View style={styles.bubble}>
             <Text style={styles.bubbleText}>곁에서 항상 응원하고 있어요.</Text>
           </View>
-          <View style={styles.reward}>
-            <Lightning size={14} color={Colors.primary} weight="fill" />
-            <Text style={styles.rewardText}>
-              에너지 +{ENERGY_DIARY_GAIN} 획득
-            </Text>
+
+          <View style={styles.petWash}>
+            <Image
+              source={DogExpr.fun}
+              style={styles.petImage}
+              resizeMode="contain"
+              accessibilityLabel="펫"
+            />
           </View>
         </View>
+
+        {showReward ? (
+          <View style={styles.reward}>
+            <View style={styles.rewardIcon}>
+              <Lightning size={16} color={Colors.accent} weight="fill" />
+            </View>
+            <Text style={styles.rewardText}>{rewardText}</Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.footer}>
@@ -51,17 +101,10 @@ export default function DiaryDoneScreen() {
           emphasized
           onPress={() => router.replace('/(tabs)/diary')}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="대화로 마음을 더 나눌게요"
+        <GhostButton
+          label="대화로 마음을 더 나눌게요"
           onPress={() => router.replace('/(tabs)/chat')}
-          style={({ pressed }) => [
-            styles.secondaryBtn,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.secondaryText}>대화로 마음을 더 나눌게요</Text>
-        </Pressable>
+        />
       </View>
     </SafeAreaView>
   )
@@ -72,98 +115,123 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  glowTop: {
+    position: 'absolute',
+    top: -40,
+    alignSelf: 'center',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: Colors.accentSoft,
+    opacity: 0.45,
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: 120,
+    right: -60,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: Colors.creamyBeige,
+    opacity: 0.9,
+  },
   body: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
+    gap: 28,
   },
-  checkWrap: {
+  hero: {
+    alignItems: 'center',
+  },
+  fireworksWrap: {
     width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#FFF0EE',
+    height: 84,
+    marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
+  },
+  fireworks: {
+    width: '100%',
+    height: '100%',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 28,
-  },
-  card: {
-    alignSelf: 'stretch',
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 22,
-    alignItems: 'center',
-  },
-  petCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    ...Shadows.elevation,
-  },
-  petImage: {
-    width: 96,
-    height: 96,
-  },
-  bubble: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 14,
-    maxWidth: '100%',
-  },
-  bubbleText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
+    fontSize: 26,
     color: Colors.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.4,
+    lineHeight: 34,
+  },
+  subtitle: {
+    marginTop: 8,
+    fontFamily: Fonts.uiMedium,
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
     lineHeight: 22,
+  },
+  stage: {
+    alignItems: 'center',
+  },
+  bubble: {
+    alignSelf: 'center',
+    maxWidth: '85%',
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    zIndex: 2,
+    ...Shadows.elevation,
+  },
+  bubbleText: {
+    fontFamily: Fonts.uiSemiBold,
+    fontSize: 15,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  petWash: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  petImage: {
+    width: 148,
+    height: 148,
   },
   reward: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.surface,
+    gap: 8,
+    backgroundColor: Colors.accentSoft,
     borderRadius: 999,
-    paddingHorizontal: 12,
+    paddingLeft: 8,
+    paddingRight: 16,
     paddingVertical: 8,
   },
+  rewardIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   rewardText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.primary,
+    fontFamily: Fonts.uiSemiBold,
+    fontSize: 14,
+    color: Colors.textPrimary,
   },
   footer: {
     ...onboardingFooterStyle,
-    gap: 10,
-  },
-  secondaryBtn: {
-    height: 54,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  secondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  pressed: {
-    opacity: 0.88,
+    gap: 8,
   },
 })

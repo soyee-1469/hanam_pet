@@ -62,8 +62,12 @@ export default function OnboardingWelcome() {
           style={styles.pet}
           resizeMode="contain"
         />
-        <Text style={styles.title}>{copy.title(petName)}</Text>
-        <Text style={styles.bodyText}>{copy.body(petName)}</Text>
+        <Text style={styles.title} numberOfLines={3}>
+          {copy.title(petName)}
+        </Text>
+        <Text style={styles.bodyText} numberOfLines={4}>
+          {copy.body(petName)}
+        </Text>
       </View>
 
       <View style={styles.footer}>

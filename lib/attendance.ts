@@ -1,13 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { dayKey } from './dayKey'
 
 const KEY = 'hp_attendance_days'
 
-/** YYYY-MM-DD */
+/** YYYY-MM-DD (Asia/Seoul) — dayKey와 동일 */
 export function dateKey(d: Date) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return dayKey(d)
 }
 
 export async function loadAttendanceKeys(): Promise<string[]> {

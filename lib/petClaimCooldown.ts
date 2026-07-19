@@ -1,28 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { dayKey, msUntilMidnight } from './dayKey'
 
 const KEY = 'hp_pet_claim_cooldown_v1'
 
 /** 하루 최대 수령 횟수 (시안·안내 문구) */
 export const CLAIM_MAX_PER_DAY = 2
 
-/** 수령 후 다음 제작까지 — 사료 */
-export const FEED_COOLDOWN_MS = __DEV__
+/** 수령 후 다음 제작까지 — 사료·장난감 공통 4시간 (DEV는 검수용 단축) */
+const CLAIM_COOLDOWN_MS = __DEV__
   ? 3 * 60 * 1000
   : 4 * 60 * 60 * 1000
 
-/** 수령 후 다음 제작까지 — 장난감 */
-export const TOY_COOLDOWN_MS = __DEV__
-  ? 2 * 60 * 1000
-  : 45 * 60 * 1000
-
+export const FEED_COOLDOWN_MS = CLAIM_COOLDOWN_MS
+export const TOY_COOLDOWN_MS = CLAIM_COOLDOWN_MS
 export type ClaimKind = 'feed' | 'toy'
 
 type ClaimBucket = {
-  /** YYYY-MM-DD */
+  /** YYYY-MM-DD (Asia/Seoul) */
   day: string
   count: number
   /** 다음 수령 가능 시각 (ms). 0이면 즉시 가능 */
   nextReadyAt: number
+  /**
+   * 당일 1차 수령 이후, 해당 종류를 한 번 이상 사용했는지.
+   * 2차 수령 전 필수 (정책: 사용 후 재획득).
+   */
+  usedSinceClaim: boolean
 }
 
 export type PetClaimState = {
@@ -30,15 +33,13 @@ export type PetClaimState = {
   toy: ClaimBucket
 }
 
-function dayKey(d = new Date()): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
 function emptyBucket(): ClaimBucket {
-  return { day: dayKey(), count: 0, nextReadyAt: 0 }
+  return {
+    day: dayKey(),
+    count: 0,
+    nextReadyAt: 0,
+    usedSinceClaim: true,
+  }
 }
 
 function normalizeBucket(raw: Partial<ClaimBucket> | undefined): ClaimBucket {
@@ -49,10 +50,15 @@ function normalizeBucket(raw: Partial<ClaimBucket> | undefined): ClaimBucket {
   if (day !== today) {
     return emptyBucket()
   }
+  const usedSinceClaim =
+    typeof raw?.usedSinceClaim === 'boolean'
+      ? raw.usedSinceClaim
+      : count === 0
   return {
     day,
     count: Math.max(0, Math.min(CLAIM_MAX_PER_DAY, Math.floor(count))),
     nextReadyAt: Math.max(0, nextReadyAt),
+    usedSinceClaim,
   }
 }
 
@@ -77,12 +83,7 @@ async function savePetClaimState(state: PetClaimState): Promise<void> {
   await AsyncStorage.setItem(KEY, JSON.stringify(normalize(state)))
 }
 
-/** 자정(다음 날 00:00)까지 ms */
-export function msUntilMidnight(now = Date.now()): number {
-  const d = new Date(now)
-  const next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-  return Math.max(0, next.getTime() - now)
-}
+export { msUntilMidnight }
 
 export function formatClaimCountdown(ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000))
@@ -94,29 +95,57 @@ export function formatClaimCountdown(ms: number): string {
 
 export type ClaimMenuStatus =
   | { kind: 'ready' }
-  | { kind: 'cooldown'; remainingMs: number; label: string }
+  | {
+      kind: 'cooldown'
+      remainingMs: number
+      label: string
+      /**
+       * 0 → 1 toward ready (fills as wait elapses).
+       * Claim CD: elapsed / FEED|TOY_COOLDOWN_MS.
+       * Daily cap: elapsed since last nextReadyAt → midnight.
+       */
+      progress: number
+    }
+  /** 1차 수령 후 사용 전 — 2차 수령 불가 */
+  | { kind: 'need_use' }
   | { kind: 'idle' }
 
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n))
+}
+
+/** Progress ring: fills toward ready while waiting. */
 export function getClaimMenuStatus(
   bucket: ClaimBucket,
   now = Date.now(),
+  kind: ClaimKind = 'feed',
 ): ClaimMenuStatus {
   const b = normalizeBucket(bucket)
   if (b.nextReadyAt > now) {
     const remainingMs = b.nextReadyAt - now
+    const totalMs = kind === 'feed' ? FEED_COOLDOWN_MS : TOY_COOLDOWN_MS
     return {
       kind: 'cooldown',
       remainingMs,
       label: formatClaimCountdown(remainingMs),
+      progress: clamp01(1 - remainingMs / Math.max(1, totalMs)),
     }
   }
   if (b.count >= CLAIM_MAX_PER_DAY) {
     const remainingMs = msUntilMidnight(now)
+    const dayEnd = now + remainingMs
+    const phaseStart = b.nextReadyAt > 0 ? b.nextReadyAt : dayEnd - remainingMs
+    const totalMs = Math.max(1, dayEnd - phaseStart)
     return {
       kind: 'cooldown',
       remainingMs,
       label: formatClaimCountdown(remainingMs),
+      progress: clamp01((now - phaseStart) / totalMs),
     }
+  }
+  // 2차 수령: 쿨다운 끝났어도 1차 아이템 사용 전엔 불가
+  if (b.count >= 1 && !b.usedSinceClaim) {
+    return { kind: 'need_use' }
   }
   return { kind: 'ready' }
 }
@@ -125,7 +154,7 @@ export function canClaimNow(bucket: ClaimBucket, now = Date.now()): boolean {
   return getClaimMenuStatus(bucket, now).kind === 'ready'
 }
 
-/** 수령 성공 후 쿨다운·일일 카운트 반영 */
+/** 수령 성공 후 쿨다운·일일 카운트 반영 (사용 게이트 리셋) */
 export async function recordPetClaim(
   kind: ClaimKind,
   now = Date.now(),
@@ -139,7 +168,23 @@ export async function recordPetClaim(
       day: dayKey(new Date(now)),
       count: Math.min(CLAIM_MAX_PER_DAY, bucket.count + 1),
       nextReadyAt: now + cooldown,
+      usedSinceClaim: false,
     },
+  }
+  await savePetClaimState(next)
+  return next
+}
+
+/** 사료 주기 / 놀아 주기 성공 시 — 2차 수령 게이트 해제 */
+export async function recordPetItemUse(
+  kind: ClaimKind,
+): Promise<PetClaimState> {
+  const state = await loadPetClaimState()
+  const bucket = normalizeBucket(state[kind])
+  if (bucket.usedSinceClaim) return state
+  const next: PetClaimState = {
+    ...state,
+    [kind]: { ...bucket, usedSinceClaim: true },
   }
   await savePetClaimState(next)
   return next

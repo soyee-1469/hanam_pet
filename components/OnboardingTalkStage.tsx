@@ -1,12 +1,13 @@
 import { View, Text, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Fonts } from '../constants/Typography'
 
 type OnboardingTalkStageProps = {
   image: ImageSourcePropType
   bubble: string
   title: string
   body: string
-  /** 합성 히어로(온보딩_1 등)일 때 더 크게 */
+  /** 합성 히어로(onboarding_1 등)일 때 더 크게 */
   heroLarge?: boolean
 }
 
@@ -54,7 +55,8 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   bubble: {
-    maxWidth: 300,
+    alignSelf: 'center',
+    maxWidth: '85%',
     backgroundColor: Colors.surface,
     borderRadius: 18,
     paddingHorizontal: 18,
@@ -66,8 +68,8 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   bubbleText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 15,
-    fontWeight: '700',
     color: Colors.textPrimary,
     lineHeight: 24,
     textAlign: 'center',
@@ -86,7 +88,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '900',
     color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.4,

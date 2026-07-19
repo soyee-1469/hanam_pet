@@ -29,13 +29,15 @@ alwaysApply: true
 
 허용 예:
 - Primary CTA, 선택 탭
-- 에너지 바 **충분(≥900)** 시만 Primary — 중간·완충은 `accent` / `energyFillMid`
 - 감정일기 **좋음** (`Colors.moodGood`)
 - 감정일기 **「감정 기록하기」** 버튼
+
+에너지(번개·바·칩)는 **전부 옐로** (`Colors.accent` / `energyFill` / `energyFillMid`) — Primary 코랄 금지.
 
 금지:
 - **힘듦 / 부정 / 위험** 상태에 오렌지·코랄 사용
 - 연령·성별 등 **선택 칩**에 오렌지 사용 → `Colors.selected` 사용
+- **에너지 UI**에 Primary 코랄 사용
 
 ## 감정 분포 색
 

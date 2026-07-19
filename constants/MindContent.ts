@@ -9,7 +9,11 @@ export type MindContent = {
   minutes: number
   icon: 'moon' | 'sun' | 'heart' | 'sparkle'
   summary: string
-  /** 외부 콘텐츠 URL (있으면 재생 시 외부 링크 확인) */
+  /** 목록 썸네일 (YouTube hqdefault 등) */
+  thumbnailUrl: string
+  /** 업로드일 ISO (YYYY-MM-DD) */
+  publishedAt: string
+  /** YouTube 등 외부 URL (앱 내 재생 + 「유튜브에서 보기」) */
   externalUrl?: string
 }
 
@@ -20,7 +24,9 @@ export const MIND_FEATURED: MindContent = {
   minutes: 12,
   icon: 'moon',
   summary: '잠들기 전 짧게 몸을 풀고 호흡을 고르는 가이드입니다.',
-  externalUrl: 'https://example.com/content/healing-sleep-5min',
+  thumbnailUrl: 'https://i.ytimg.com/vi/inpok4MKVLM/hqdefault.jpg',
+  publishedAt: '2026-03-12',
+  externalUrl: 'https://www.youtube.com/watch?v=inpok4MKVLM',
 }
 
 export const MIND_CONTENTS: MindContent[] = [
@@ -31,7 +37,9 @@ export const MIND_CONTENTS: MindContent[] = [
     minutes: 15,
     icon: 'moon',
     summary: '나를 힘들게 하는 혼잣말을 알아차리고, 부드러운 말로 바꿔 보는 시간입니다.',
-    externalUrl: 'https://example.com/content/healing-self-talk',
+    thumbnailUrl: 'https://i.ytimg.com/vi/ZToicYcHIOU/hqdefault.jpg',
+    publishedAt: '2026-02-28',
+    externalUrl: 'https://www.youtube.com/watch?v=ZToicYcHIOU',
   },
   {
     id: 'how-was-today',
@@ -40,7 +48,9 @@ export const MIND_CONTENTS: MindContent[] = [
     minutes: 8,
     icon: 'sun',
     summary: '하루를 돌아보며 지친 마음에 잠시 쉬어가는 안내입니다.',
-    externalUrl: 'https://example.com/content/healing-how-was-today',
+    thumbnailUrl: 'https://i.ytimg.com/vi/O-6f5wQXSu8/hqdefault.jpg',
+    publishedAt: '2026-01-15',
+    externalUrl: 'https://www.youtube.com/watch?v=O-6f5wQXSu8',
   },
   {
     id: 'breathing',
@@ -49,7 +59,9 @@ export const MIND_CONTENTS: MindContent[] = [
     minutes: 6,
     icon: 'heart',
     summary: '간단하고 따라 하기 쉬운 호흡으로 불안을 천천히 가라앉혀 봅니다.',
-    externalUrl: 'https://example.com/content/healing-breathing',
+    thumbnailUrl: 'https://i.ytimg.com/vi/tybOi4hjZFQ/hqdefault.jpg',
+    publishedAt: '2025-11-08',
+    externalUrl: 'https://www.youtube.com/watch?v=tybOi4hjZFQ',
   },
   {
     id: 'gratitude',
@@ -58,7 +70,9 @@ export const MIND_CONTENTS: MindContent[] = [
     minutes: 10,
     icon: 'sparkle',
     summary: '작은 감사 거리를 찾아 하루를 부드럽게 마무리하는 연습입니다.',
-    externalUrl: 'https://example.com/content/healing-gratitude',
+    thumbnailUrl: 'https://i.ytimg.com/vi/1ZYbU82GVz4/hqdefault.jpg',
+    publishedAt: '2025-09-22',
+    externalUrl: 'https://www.youtube.com/watch?v=1ZYbU82GVz4',
   },
 ]
 
@@ -109,4 +123,11 @@ export function getMindContent(id: string | undefined): MindContent | null {
 export function getMindCheck(id: string | undefined): MindCheckItem | null {
   if (!id) return null
   return MIND_CHECKS.find((c) => c.id === id) ?? null
+}
+
+/** 목록용 업로드일 (예: 2026. 3. 12.) */
+export function formatPublishedAt(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return iso
+  return `${y}. ${m}. ${d}.`
 }

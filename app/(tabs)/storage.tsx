@@ -13,14 +13,22 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Fonts } from '../../constants/Typography'
 import {
+  ENERGY_DAILY_EARN_CAP,
   ENERGY_MAX,
   FOOD_MAX,
   TOY_MAX,
+  energyBarColor,
+  loadPetDailyState,
   loadPetStock,
 } from '../../lib/petStock'
+import {
+  CLAIM_MAX_PER_DAY,
+  loadPetClaimState,
+} from '../../lib/petClaimCooldown'
 
 type StockKind = 'food' | 'toy' | 'energy'
 type HistoryTab = 'item' | 'energy'
@@ -31,10 +39,6 @@ type HistoryEntry = {
   tab: HistoryTab
   category: HistoryCategory
   title: string
-  /** 탭하면 펼쳐지는 추가 멘트 (아이템 등) */
-  note: string
-  /** 항상 노출되는 ※ 안내 (에너지 한도 등) */
-  footnote?: string
   time: string
   delta: number
   kind: StockKind
@@ -48,16 +52,22 @@ const STOCK_FALLBACK: StockMap = {
   energy: 48,
 }
 
-/** 데모: 오늘 돌봄으로 얻은 양 / 일일 상한 */
-const TODAY_GAIN: StockMap = { food: 1, toy: 1, energy: 12 }
-const TODAY_GAIN_MAX: StockMap = { food: 2, toy: 2, energy: 20 }
+const TODAY_GAIN_MAX: StockMap = {
+  food: CLAIM_MAX_PER_DAY,
+  toy: CLAIM_MAX_PER_DAY,
+  energy: ENERGY_DAILY_EARN_CAP,
+}
 
-const STOCK_COLS: { key: StockKind; label: string; max: number; unit: string }[] =
-  [
-    { key: 'food', label: '사료', max: FOOD_MAX, unit: '개' },
-    { key: 'toy', label: '장난감', max: TOY_MAX, unit: '개' },
-    { key: 'energy', label: '에너지', max: ENERGY_MAX, unit: '개' },
-  ]
+const STOCK_COLS: {
+  key: StockKind
+  label: string
+  max: number
+  unit: string
+}[] = [
+  { key: 'food', label: '사료', max: FOOD_MAX, unit: '개' },
+  { key: 'toy', label: '장난감', max: TOY_MAX, unit: '개' },
+  { key: 'energy', label: '에너지', max: ENERGY_MAX, unit: '개' },
+]
 
 /** 시안 my-activity-items-tab */
 const HISTORY: HistoryEntry[] = [
@@ -66,7 +76,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'item',
     category: 'use',
     title: '사료 주기',
-    note: '맛있게 먹고 배를 동그랗게 만들었어요.',
     time: '2026-07-08 14:20:28',
     delta: -1,
     kind: 'food',
@@ -76,7 +85,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'item',
     category: 'play',
     title: '놀아 주기',
-    note: '잠깐 놀아도 기분이 확 좋아져요. 또 불러 주세요.',
     time: '2026-07-08 14:18:14',
     delta: -1,
     kind: 'toy',
@@ -86,7 +94,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'item',
     category: 'play',
     title: '놀아 주기',
-    note: '신나게 놀고 나니 꼬리가 멈추질 않아요.',
     time: '2026-07-08 10:05:12',
     delta: -1,
     kind: 'toy',
@@ -96,7 +103,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'item',
     category: 'claim',
     title: '장난감 받기',
-    note: '같이 놀 준비가 됐어요. 언제든 꺼내 주세요.',
     time: '2026-07-08 10:00:16',
     delta: 1,
     kind: 'toy',
@@ -106,7 +112,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'item',
     category: 'claim',
     title: '사료 받기',
-    note: '다음에 배고플 때 바로 줄 수 있게 준비해 뒀어요.',
     time: '2026-07-08 08:00:16',
     delta: 1,
     kind: 'food',
@@ -116,7 +121,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'chat',
     title: '대화 하기',
-    note: '오늘 나눈 이야기 덕분에 마음이 조금 가벼워졌어요.',
     time: '2026-07-08 14:20:28',
     delta: -1,
     kind: 'energy',
@@ -126,9 +130,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'meal',
     title: '사료 주기',
-    note: '잘 먹고 기운을 차렸어요.',
-    footnote:
-      '※ 총 보유 에너지가 가득 차서 나머지 2개는 적립되지 않았어요. (최대 50개)',
     time: '2026-07-08 14:18:14',
     delta: 2,
     kind: 'energy',
@@ -138,7 +139,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'play',
     title: '놀아 주기',
-    note: '신나게 놀고 나니 꼬리가 멈추질 않아요.',
     time: '2026-07-08 10:05:12',
     delta: 4,
     kind: 'energy',
@@ -148,7 +148,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'diary',
     title: '마음일기 작성',
-    note: '적어 준 마음을 조용히 곁에서 들어줬어요.',
     time: '2026-07-08 10:00:16',
     delta: 2,
     kind: 'energy',
@@ -158,9 +157,6 @@ const HISTORY: HistoryEntry[] = [
     tab: 'energy',
     category: 'attend',
     title: '출석 도장',
-    note: '출석해 줘서 하루가 더 특별해요.',
-    footnote:
-      '※ 하루 최대 보상 한도를 채워서 에너지가 적립되지 않았어요.',
     time: '2026-07-08 08:00:16',
     delta: 0,
     kind: 'energy',
@@ -168,8 +164,8 @@ const HISTORY: HistoryEntry[] = [
 ]
 
 const TABS: { key: HistoryTab; label: string }[] = [
-  { key: 'item', label: '아이템 기록' },
-  { key: 'energy', label: '에너지 기록' },
+  { key: 'item', label: '아이템' },
+  { key: 'energy', label: '에너지' },
 ]
 
 function toCount(v: unknown): number {
@@ -190,9 +186,42 @@ function formatDelta(delta: number, unit: string) {
   return `0${unit}`
 }
 
-function StockIcon({ kind, size = 26 }: { kind: StockKind; size?: number }) {
+/** "2026-07-08 14:20:28" → "7월 8일 14:20" */
+function formatHistoryTime(raw: string) {
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/)
+  if (!m) return raw
+  const month = Number(m[2])
+  const day = Number(m[3])
+  return `${month}월 ${day}일 ${m[4]}:${m[5]}`
+}
+
+function StockIcon({
+  kind,
+  size = 28,
+  empty = false,
+}: {
+  kind: StockKind
+  size?: number
+  empty?: boolean
+}) {
   if (kind === 'energy') {
-    return <Lightning size={size} color={Colors.accent} weight="fill" />
+    return (
+      <Lightning
+        size={size}
+        color={Colors.accent}
+        weight="fill"
+        style={empty ? { opacity: 0.38 } : undefined}
+      />
+    )
+  }
+  if (kind === 'food' && empty) {
+    return (
+      <Image
+        source={require('../../assets/images/null-bowl.png')}
+        style={{ width: size, height: size }}
+        resizeMode="contain"
+      />
+    )
   }
   return (
     <Image
@@ -201,7 +230,10 @@ function StockIcon({ kind, size = 26 }: { kind: StockKind; size?: number }) {
           ? require('../../assets/images/bowl.png')
           : require('../../assets/images/toy.png')
       }
-      style={{ width: size, height: size }}
+      style={[
+        { width: size, height: size },
+        empty && kind === 'toy' ? { opacity: 0.38 } : null,
+      ]}
       resizeMode="contain"
     />
   )
@@ -248,6 +280,18 @@ function CategoryIcon({
   }
 }
 
+function iconWellBg(kind: StockKind, empty: boolean) {
+  if (kind === 'energy') return Colors.accentSoft
+  if (empty) return Colors.surfaceSecondary
+  if (kind === 'food') return Colors.iconFeed
+  return Colors.iconToy
+}
+
+function stockFillColor(kind: StockKind) {
+  if (kind === 'energy') return Colors.energyFill
+  return Colors.selected
+}
+
 if (
   Platform.OS === 'android' &&
   UIManager.setLayoutAnimationEnabledExperimental
@@ -259,16 +303,30 @@ export default function StorageScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const [stock, setStock] = useState(STOCK_FALLBACK)
+  const [todayGain, setTodayGain] = useState<StockMap>({
+    food: 0,
+    toy: 0,
+    energy: 0,
+  })
   const [tab, setTab] = useState<HistoryTab>('item')
-  const [openId, setOpenId] = useState<string | null>(null)
 
   useFocusEffect(
     useCallback(() => {
       let alive = true
-      void loadPetStock().then((s) => {
+      void (async () => {
+        const [s, daily, claims] = await Promise.all([
+          loadPetStock(),
+          loadPetDailyState(),
+          loadPetClaimState(),
+        ])
         if (!alive) return
         setStock({ food: s.food, toy: s.toy, energy: s.energy })
-      })
+        setTodayGain({
+          food: claims.feed.count,
+          toy: claims.toy.count,
+          energy: daily.energyEarned,
+        })
+      })()
       return () => {
         alive = false
       }
@@ -283,13 +341,7 @@ export default function StorageScreen() {
   const switchTab = (next: HistoryTab) => {
     if (next === tab) return
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setOpenId(null)
     setTab(next)
-  }
-
-  const toggleNote = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setOpenId((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -312,46 +364,87 @@ export default function StorageScreen() {
         style={styles.flex}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: tabBarSpace + 24 },
+          { paddingBottom: tabBarSpace + 20 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>지금 내 보관함에 있어요</Text>
-          <View style={styles.summaryRow}>
-            {STOCK_COLS.map((col) => {
-              const have = toCount(stock[col.key])
-              return (
-                <View key={`have-${col.key}`} style={styles.summaryCol}>
-                  <View style={styles.pill}>
-                    <Text style={styles.pillText}>{col.label}</Text>
-                  </View>
-                  <Text style={styles.summaryValue}>
-                    <Text style={styles.summaryHave}>{have}</Text>
-                    {` / ${col.max}${col.unit}`}
-                  </Text>
+        <View style={styles.stockRow}>
+          {STOCK_COLS.map((col) => {
+            const have = toCount(stock[col.key])
+            const empty = have === 0
+            const ratio = Math.min(1, have / col.max)
+            const isEnergy = col.key === 'energy'
+            const fill = isEnergy ? energyBarColor(have) : stockFillColor(col.key)
+            return (
+              <View
+                key={col.key}
+                style={[styles.stockCard, empty && styles.stockCardEmpty]}
+                accessibilityRole="summary"
+                accessibilityLabel={`${col.label} ${have} / ${col.max}${col.unit}`}
+              >
+                <View
+                  style={[
+                    styles.stockIconWell,
+                    { backgroundColor: iconWellBg(col.key, empty) },
+                  ]}
+                >
+                  <StockIcon kind={col.key} size={28} empty={empty} />
                 </View>
-              )
-            })}
-          </View>
+                <Text style={styles.stockLabel}>{col.label}</Text>
+                <Text style={styles.stockValue}>
+                  <Text
+                    style={[
+                      styles.stockHave,
+                      isEnergy && styles.stockHaveEnergy,
+                      empty && styles.stockHaveEmpty,
+                    ]}
+                  >
+                    {have}
+                  </Text>
+                  <Text style={styles.stockMax}>{` / ${col.max}`}</Text>
+                </Text>
+                <View style={styles.stockTrack}>
+                  <View
+                    style={[
+                      styles.stockFill,
+                      {
+                        width: `${Math.round(ratio * 100)}%`,
+                        backgroundColor: empty ? Colors.sand : fill,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            )
+          })}
+        </View>
 
-          <View style={styles.summaryDivider} />
-
-          <Text style={styles.summaryTitle}>
-            오늘 내 마음을 돌보고 얻었어요
-          </Text>
-          <View style={styles.summaryRow}>
+        <View style={styles.todayBlock}>
+          <Text style={styles.todayTitle}>오늘 받았어요</Text>
+          <View style={styles.todayRow}>
             {STOCK_COLS.map((col) => {
-              const gained = TODAY_GAIN[col.key]
+              const gained = todayGain[col.key]
               const cap = TODAY_GAIN_MAX[col.key]
+              const isEnergy = col.key === 'energy'
+              const full = gained >= cap
               return (
-                <View key={`gain-${col.key}`} style={styles.summaryCol}>
-                  <View style={styles.pill}>
-                    <Text style={styles.pillText}>{col.label}</Text>
-                  </View>
-                  <Text style={styles.summaryValue}>
-                    <Text style={styles.summaryHave}>{gained}</Text>
-                    {` / ${cap}${col.unit}`}
+                <View key={`gain-${col.key}`} style={styles.todayChip}>
+                  <Text style={styles.todayChipLabel}>{col.label}</Text>
+                  <Text style={styles.todayChipValue}>
+                    <Text
+                      style={[
+                        styles.todayChipHave,
+                        isEnergy && styles.todayChipHaveEnergy,
+                      ]}
+                    >
+                      {gained}
+                    </Text>
+                    {` / ${cap}`}
+                  </Text>
+                  <Text style={styles.todayChipCap}>
+                    {full
+                      ? '오늘 한도예요'
+                      : `${cap - gained}개 더 받을 수 있어요`}
                   </Text>
                 </View>
               )
@@ -384,36 +477,31 @@ export default function StorageScreen() {
           })}
         </View>
 
-        <View style={styles.list}>
-          {entries.map((item, index) => {
-            const deltaLabel = formatDelta(item.delta, '개')
-            const open = openId === item.id
-            const positive = item.delta > 0
-            const zero = item.delta === 0
-            const isEnergy = tab === 'energy'
-            return (
-              <View
-                key={item.id}
-                style={index > 0 ? styles.rowDivider : undefined}
-              >
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: open }}
-                  accessibilityLabel={item.title}
-                  onPress={() => {
-                    if (item.footnote) return
-                    toggleNote(item.id)
-                  }}
-                  style={({ pressed }) => [
-                    styles.row,
-                    pressed && !item.footnote && styles.pressed,
-                  ]}
+        {entries.length === 0 ? (
+          <View style={styles.historyEmpty}>
+            <Text style={styles.historyEmptyTitle}>
+              {tab === 'energy' ? '에너지 기록이 없어요' : '아이템 기록이 없어요'}
+            </Text>
+            <Text style={styles.historyEmptyBody}>
+              {tab === 'energy'
+                ? '돌보면 여기에 쌓여요.'
+                : '주고받으면 여기에 쌓여요.'}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {entries.map((item, index) => {
+              const deltaLabel = formatDelta(item.delta, '개')
+              const positive = item.delta > 0
+              const zero = item.delta === 0
+              const isEnergy = tab === 'energy'
+              return (
+                <View
+                  key={item.id}
+                  style={[styles.row, index > 0 ? styles.rowDivider : null]}
                 >
                   <View
-                    style={[
-                      styles.rowIcon,
-                      isEnergy && styles.rowIconEnergy,
-                    ]}
+                    style={[styles.rowIcon, isEnergy && styles.rowIconEnergy]}
                   >
                     <CategoryIcon
                       category={item.category}
@@ -423,31 +511,28 @@ export default function StorageScreen() {
                   </View>
                   <View style={styles.rowCopy}>
                     <Text style={styles.rowTitle}>{item.title}</Text>
-                    <Text style={styles.rowTime}>{item.time}</Text>
+                    <Text style={styles.rowTime}>
+                      {formatHistoryTime(item.time)}
+                    </Text>
                   </View>
                   <Text
                     style={[
                       styles.rowDelta,
-                      positive && styles.rowDeltaPlus,
+                      positive &&
+                        (isEnergy
+                          ? styles.rowDeltaPlusEnergy
+                          : styles.rowDeltaPlus),
                       !positive && !zero && styles.rowDeltaMinus,
                       zero && styles.rowDeltaZero,
                     ]}
                   >
                     {deltaLabel}
                   </Text>
-                </Pressable>
-                {item.footnote ? (
-                  <Text style={styles.footnote}>{item.footnote}</Text>
-                ) : null}
-                {open && !item.footnote ? (
-                  <View style={styles.noteWrap}>
-                    <Text style={styles.noteText}>{item.note}</Text>
-                  </View>
-                ) : null}
-              </View>
-            )
-          })}
-        </View>
+                </View>
+              )
+            })}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -482,81 +567,144 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
+    gap: 14,
   },
-  summaryCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 16,
-  },
-  summaryTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 14,
-  },
-  summaryRow: {
+  stockRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryCol: {
-    flex: 1,
-    alignItems: 'center',
     gap: 8,
   },
-  pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 999,
-    backgroundColor: Colors.creamyBeige,
+  stockCard: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 6,
+    gap: 6,
+    ...Shadows.elevation,
   },
-  pillText: {
+  stockCardEmpty: {
+    backgroundColor: Colors.cardRecessed,
+    borderColor: Colors.sand,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  stockIconWell: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stockLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textSecondary,
   },
-  summaryValue: {
+  stockValue: {
+    fontSize: 12,
+    fontFamily: Fonts.uiMedium,
+    color: Colors.textDisabled,
+  },
+  stockHave: {
+    fontSize: 18,
+    fontFamily: Fonts.uiBold,
+    color: Colors.textPrimary,
+    letterSpacing: -0.4,
+  },
+  stockHaveEnergy: {
+    color: Colors.accent,
+  },
+  stockHaveEmpty: {
+    color: Colors.textDisabled,
+  },
+  stockMax: {
+    fontSize: 12,
+    fontFamily: Fonts.uiMedium,
+    color: Colors.textDisabled,
+  },
+  stockTrack: {
+    alignSelf: 'stretch',
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: Colors.energyTrack,
+    overflow: 'hidden',
+  },
+  stockFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  todayBlock: {
+    gap: 10,
+  },
+  todayTitle: {
+    fontFamily: Fonts.uiSemiBold,
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
+  todayRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  todayChip: {
+    flex: 1,
+    backgroundColor: Colors.creamyBeige,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    gap: 4,
+  },
+  todayChipLabel: {
+    fontFamily: Fonts.uiMedium,
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  todayChipValue: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 13,
-    fontWeight: '500',
     color: Colors.textSecondary,
   },
-  summaryHave: {
+  todayChipHave: {
+    fontFamily: Fonts.uiBold,
     fontSize: 16,
-    fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.textPrimary,
   },
-  summaryDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.divider,
-    marginVertical: 16,
+  todayChipHaveEnergy: {
+    color: Colors.accent,
+  },
+  todayChipCap: {
+    fontFamily: Fonts.uiMedium,
+    fontSize: 10,
+    lineHeight: 14,
+    color: Colors.textDisabled,
   },
   tabBar: {
     flexDirection: 'row',
-    marginTop: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: 4,
   },
   tabLabel: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textDisabled,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   tabLabelActive: {
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
   },
   tabUnderline: {
@@ -569,56 +717,59 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   list: {
-    marginTop: 4,
+    marginTop: -4,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 16,
-    minHeight: 68,
+    gap: 10,
+    paddingVertical: 12,
+    minHeight: 56,
   },
   rowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
   },
   rowIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 11,
     backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rowIconEnergy: {
-    borderRadius: 22,
+    borderRadius: 20,
     backgroundColor: Colors.accentSoft,
   },
   rowCopy: {
     flex: 1,
     minWidth: 0,
-    gap: 5,
+    gap: 3,
   },
   rowTitle: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 14,
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     letterSpacing: -0.2,
   },
   rowTime: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textDisabled,
     fontVariant: ['tabular-nums'],
   },
   rowDelta: {
-    fontSize: 15,
-    fontWeight: '700',
-    minWidth: 48,
+    fontSize: 14,
+    fontFamily: Fonts.uiBold,
+    minWidth: 44,
     textAlign: 'right',
   },
   rowDeltaPlus: {
     color: Colors.primary,
+  },
+  rowDeltaPlusEnergy: {
+    color: Colors.accent,
   },
   rowDeltaMinus: {
     color: Colors.textPrimary,
@@ -626,30 +777,23 @@ const styles = StyleSheet.create({
   rowDeltaZero: {
     color: Colors.textSecondary,
   },
-  footnote: {
-    marginLeft: 56,
-    marginRight: 4,
-    marginTop: -8,
-    marginBottom: 12,
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 18,
-    color: Colors.textDisabled,
+  historyEmpty: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 24,
+    gap: 4,
   },
-  noteWrap: {
-    marginLeft: 56,
-    marginRight: 4,
-    marginTop: -6,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
+  historyEmptyTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.uiBold,
+    color: Colors.textPrimary,
+    textAlign: 'center',
   },
-  noteText: {
+  historyEmptyBody: {
     fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 20,
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
+    textAlign: 'center',
   },
 })

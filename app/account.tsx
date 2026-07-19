@@ -18,10 +18,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
-import { getOnboardingProfile } from '../lib/onboardingStorage'
+import { getOnboardingProfile, NICKNAME_MAX } from '../lib/onboardingStorage'
 import { showToast } from '../lib/toast'
 
-const MAX_LEN = 10
 const FALLBACK_NICKNAME = '몽이지킴이'
 const ANON_ID_DISPLAY = 'anon_8f2c...a91'
 const ANON_ID_FULL = 'anon_8f2c9d4e1b7a91'
@@ -37,7 +36,7 @@ export default function AccountScreen() {
   useEffect(() => {
     void getOnboardingProfile().then((profile) => {
       if (profile?.nickname) {
-        const name = profile.nickname.slice(0, MAX_LEN)
+        const name = profile.nickname.slice(0, NICKNAME_MAX)
         setNickname(name)
         setSavedNickname(name)
       }
@@ -47,7 +46,7 @@ export default function AccountScreen() {
   const trimmed = nickname.trim()
   const dirty = trimmed !== savedNickname
   const tooShort = trimmed.length > 0 && trimmed.length < 2
-  const canSave = trimmed.length >= 2 && trimmed.length <= MAX_LEN && dirty
+  const canSave = trimmed.length >= 2 && trimmed.length <= NICKNAME_MAX && dirty
 
   const borderColor = tooShort
     ? Colors.error
@@ -70,8 +69,8 @@ export default function AccountScreen() {
     if (!canSave || saving) return
     setSaving(true)
     try {
-      await AsyncStorage.setItem(NICKNAME_KEY, trimmed)
-      setSavedNickname(trimmed)
+      await AsyncStorage.setItem(NICKNAME_KEY, trimmed.slice(0, NICKNAME_MAX))
+      setSavedNickname(trimmed.slice(0, NICKNAME_MAX))
       showToast('닉네임이 저장되었어요')
       router.back()
     } catch {
@@ -119,22 +118,22 @@ export default function AccountScreen() {
             <View style={[styles.inputShell, { borderColor }]}>
               <TextInput
                 value={nickname}
-                onChangeText={(t) => setNickname(t.slice(0, MAX_LEN))}
+                onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
                 placeholder="닉네임을 입력해 주세요"
                 placeholderTextColor={Colors.textDisabled}
-                maxLength={MAX_LEN}
+                maxLength={NICKNAME_MAX}
                 style={styles.input}
                 returnKeyType="done"
               />
               <Text style={styles.counter}>
-                {nickname.length} / {MAX_LEN}
+                {nickname.length} / {NICKNAME_MAX}
               </Text>
             </View>
             <Text style={styles.hint}>
-              닉네임은 앱 안에서만 표시되며, 개인을 식별하는 정보로 사용되지
-              않습니다.
+              최대 {NICKNAME_MAX}자 · 앱 안에서만 표시되며, 개인을 식별하는
+              정보로 사용되지 않습니다.
             </Text>
             {tooShort ? (
               <Text style={styles.errorHint}>닉네임은 2글자 이상이어야 해요.</Text>
@@ -175,7 +174,7 @@ export default function AccountScreen() {
             onDisabledPress={() => {
               if (!dirty) return
               if (trimmed.length < 2) {
-                Alert.alert('안내', '닉네임은 2~10글자로 입력해 주세요.')
+                Alert.alert('안내', '닉네임은 2~8글자로 입력해 주세요.')
               }
             }}
           />
@@ -265,6 +264,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
@@ -272,6 +272,7 @@ const styles = StyleSheet.create({
   },
   counter: {
     marginLeft: 8,
+    flexShrink: 0,
     fontSize: 13,
     fontWeight: '600',
     color: Colors.textDisabled,

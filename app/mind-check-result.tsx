@@ -19,6 +19,7 @@ import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { HelpContactsSheet } from '../components/HelpContactsSheet'
 import {
   getSeverityBand,
   getSeverityBands,
@@ -112,6 +113,7 @@ export default function MindCheckResultScreen() {
   )
   const [saving, setSaving] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const accent = band.color
 
   const openGuide = () => {
@@ -235,7 +237,7 @@ export default function MindCheckResultScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="상담 연결"
-            onPress={() => router.push('/support')}
+            onPress={() => setHelpOpen(true)}
             style={({ pressed }) => [
               styles.counselFab,
               pressed && styles.pressed,
@@ -280,6 +282,11 @@ export default function MindCheckResultScreen() {
             }
           })()
         }}
+      />
+
+      <HelpContactsSheet
+        visible={helpOpen}
+        onClose={() => setHelpOpen(false)}
       />
     </SafeAreaView>
   )

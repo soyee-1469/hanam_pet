@@ -145,19 +145,19 @@ export default function DiaryListScreen() {
               >
                 <View style={styles.emojiWrap}>
                   <MoodEmoji index={mood.emojiIndex} size={36} />
+                  <Text
+                    style={[
+                      styles.cardMood,
+                      { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
+                    ]}
+                  >
+                    {mood.label}
+                  </Text>
                 </View>
                 <View style={styles.cardCopy}>
                   <View style={styles.cardHead}>
                     <Text style={styles.cardDate}>
                       {entry.month}월 {entry.day}일 {entry.weekday}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.cardMood,
-                        { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
-                      ]}
-                    >
-                      {mood.label}
                     </Text>
                   </View>
                   <Text style={styles.cardPreview} numberOfLines={2}>
@@ -202,8 +202,18 @@ export default function DiaryListScreen() {
 
         {menuEntry && menuMood ? (
           <View style={styles.sheetSummary}>
-            <View style={styles.sheetEmojiWrap}>
-              <MoodEmoji index={menuMood.emojiIndex} size={28} />
+            <View style={styles.sheetMoodLeft}>
+              <View style={styles.sheetEmojiWrap}>
+                <MoodEmoji index={menuMood.emojiIndex} size={28} />
+              </View>
+              <Text
+                style={[
+                  styles.sheetMoodLabel,
+                  { color: DIARY_MOOD_LABEL_COLOR[menuEntry.moodId] },
+                ]}
+              >
+                {menuMood.label}
+              </Text>
             </View>
             <Text style={styles.sheetSummaryDate}>
               {menuEntry.month}월 {menuEntry.day}일 {menuEntry.weekday}
@@ -363,12 +373,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emojiWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#FCE8DC',
+    width: 56,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    gap: 4,
   },
   cardCopy: {
     flex: 1,
@@ -387,8 +395,9 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   cardMood: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '800',
+    textAlign: 'center',
   },
   cardPreview: {
     fontSize: 14,
@@ -439,8 +448,15 @@ const styles = StyleSheet.create({
   sheetSummary: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 10,
     marginBottom: 16,
+  },
+  sheetMoodLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
   },
   sheetEmojiWrap: {
     width: 40,
@@ -449,6 +465,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FCE8DC',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sheetMoodLabel: {
+    fontSize: 15,
+    fontWeight: '700',
   },
   sheetSummaryDate: {
     fontSize: 15,

@@ -5,17 +5,19 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  Image,
 } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import {
   CaretRight,
+  DotsThreeVertical,
   Heart,
   Lightning,
   Moon,
   Play,
-  Sparkle,
-  Sun,
+  ArrowSquareOut,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -24,6 +26,8 @@ import {
   MIND_CONTENTS,
   MIND_CHECKS,
   MIND_FEATURED,
+  formatPublishedAt,
+  getMindContent,
   type MindContent,
   type MindMoodFilter,
 } from '../../constants/MindContent'
@@ -32,6 +36,13 @@ import {
   getMindCheckResults,
   type MindCheckResultRecord,
 } from '../../lib/mindCheckResults'
+import { openExternalUrl } from '../../components/ExternalLinkModal'
+import { YouTubeVideoModal } from '../../components/YouTubeVideoModal'
+import { BottomSheet } from '../../components/ui/AppOverlay'
+import {
+  extractYoutubeVideoId,
+  youtubeWatchUrl,
+} from '../../lib/youtube'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
@@ -57,13 +68,6 @@ const FILTERS: { id: MindMoodFilter; label: string }[] = [
   { id: '스트레스', label: '스트레스' },
 ]
 
-const ICON_MAP: Record<MindContent['icon'], Icon> = {
-  moon: Moon,
-  sun: Sun,
-  heart: Heart,
-  sparkle: Sparkle,
-}
-
 const CHECK_ICON: Record<MindCheckItem['icon'], Icon> = {
   moon: Moon,
   heart: Heart,
@@ -72,7 +76,7 @@ const CHECK_ICON: Record<MindCheckItem['icon'], Icon> = {
 
 type MindCheckItem = (typeof MIND_CHECKS)[number]
 
-function openContent(id: string) {
+function openContentDetail(id: string) {
   router.push({ pathname: '/mind-content', params: { id } })
 }
 
@@ -98,6 +102,33 @@ export default function MindScreen() {
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
   )
+  const [playing, setPlaying] = useState<MindContent | null>(null)
+  const [menuContent, setMenuContent] = useState<MindContent | null>(null)
+
+  const watchContent = useCallback((id: string) => {
+    const content = getMindContent(id)
+    if (!content) return
+    const videoId = extractYoutubeVideoId(
+      content.externalUrl,
+      content.thumbnailUrl,
+    )
+    if (videoId || content.externalUrl) {
+      setPlaying(content)
+      return
+    }
+    openContentDetail(id)
+  }, [])
+
+  const openOnYoutube = useCallback((content: MindContent) => {
+    const videoId = extractYoutubeVideoId(
+      content.externalUrl,
+      content.thumbnailUrl,
+    )
+    const url = videoId
+      ? youtubeWatchUrl(videoId)
+      : content.externalUrl
+    if (url) void openExternalUrl(url)
+  }, [])
 
   const tourStep =
     tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
@@ -165,11 +196,6 @@ export default function MindScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>마음챙김</Text>
-        <Text style={styles.headerSubtitle}>
-          {tab === 'fill'
-            ? '추천 콘텐츠로 하루를 채워봐요'
-            : '자가검진으로 상태를 살펴봐요'}
-        </Text>
         <View style={styles.tabs}>
           {TABS.map((t) => {
             const on = tab === t.id
@@ -206,34 +232,42 @@ export default function MindScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${MIND_FEATURED.title} 재생`}
-              onPress={() => openContent(MIND_FEATURED.id)}
+              onPress={() => watchContent(MIND_FEATURED.id)}
               style={({ pressed }) => [
                 styles.featured,
                 pressed && styles.pressed,
               ]}
             >
+              <Image
+                source={{ uri: MIND_FEATURED.thumbnailUrl }}
+                style={styles.featuredBg}
+                resizeMode="cover"
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.82)']}
+                locations={[0.28, 0.62, 1]}
+                style={styles.featuredGradient}
+                pointerEvents="none"
+              />
+              <View style={styles.featuredPlay} pointerEvents="none">
+                <Play size={28} color="#FFFFFF" weight="fill" />
+              </View>
               <View style={styles.featuredBadges}>
                 <View style={styles.badgePrimary}>
                   <Text style={styles.badgePrimaryText}>오늘의 추천</Text>
                 </View>
-                <View style={styles.badgeSecondary}>
-                  <Text style={styles.badgeSecondaryText}>대표 콘텐츠</Text>
-                </View>
               </View>
               <View style={styles.featuredBottom}>
-                <View style={styles.featuredCopy}>
-                  <Text style={styles.featuredTitle}>{MIND_FEATURED.title}</Text>
-                  <Text style={styles.featuredMeta}>
-                    {MIND_FEATURED.mood} · {MIND_FEATURED.minutes}분
-                  </Text>
-                </View>
-                <View style={styles.playBtn}>
-                  <Play size={22} color={Colors.primary} weight="fill" />
-                </View>
+                <Text style={styles.featuredTitle} numberOfLines={2}>
+                  {MIND_FEATURED.title}
+                </Text>
+                <Text style={styles.featuredMeta}>
+                  {MIND_FEATURED.mood} · {MIND_FEATURED.minutes}분
+                </Text>
               </View>
             </Pressable>
-
-            <Text style={styles.sectionLabel}>보고 들으며 마음을 채워요</Text>
 
             <ScrollView
               horizontal
@@ -258,47 +292,61 @@ export default function MindScreen() {
               })}
             </ScrollView>
 
-            <View style={styles.listCard}>
+            <View style={styles.videoList}>
               {list.length === 0 ? (
                 <Text style={styles.emptyText}>해당 카테고리 콘텐츠가 없어요.</Text>
               ) : (
-                list.map((item, i) => {
-                  const IconComp = ICON_MAP[item.icon]
-                  return (
+                list.map((item) => (
+                  <View key={item.id} style={styles.videoRow}>
                     <Pressable
-                      key={item.id}
                       accessibilityRole="button"
-                      accessibilityLabel={item.title}
-                      onPress={() => openContent(item.id)}
+                      accessibilityLabel={`${item.title} 재생`}
+                      onPress={() => watchContent(item.id)}
                       style={({ pressed }) => [
-                        styles.row,
-                        i < list.length - 1 && styles.rowDivider,
+                        styles.videoMain,
                         pressed && styles.pressed,
                       ]}
                     >
-                      <View style={styles.rowIcon}>
-                        <IconComp
-                          size={20}
-                          color={Colors.textPrimary}
-                          weight="regular"
+                      <View style={styles.thumbWrap}>
+                        <Image
+                          source={{ uri: item.thumbnailUrl }}
+                          style={styles.thumb}
+                          resizeMode="cover"
                         />
+                        <View style={styles.thumbPlay} pointerEvents="none">
+                          <Play size={14} color="#FFFFFF" weight="fill" />
+                        </View>
+                        <View style={styles.durationBadge}>
+                          <Text style={styles.durationText}>{item.minutes}분</Text>
+                        </View>
                       </View>
-                      <View style={styles.rowCopy}>
-                        <Text style={styles.rowTitle} numberOfLines={1}>
+                      <View style={styles.videoCopy}>
+                        <Text style={styles.videoTitle} numberOfLines={2}>
                           {item.title}
                         </Text>
-                        <Text style={styles.rowMeta}>
-                          {item.mood} · {item.minutes}분
+                        <Text style={styles.videoMeta} numberOfLines={1}>
+                          {item.mood} · {formatPublishedAt(item.publishedAt)}
                         </Text>
                       </View>
-                      <CaretRight
-                        size={16}
-                        color={Colors.textDisabled}
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.title} 더보기`}
+                      onPress={() => setMenuContent(item)}
+                      hitSlop={8}
+                      style={({ pressed }) => [
+                        styles.videoMore,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <DotsThreeVertical
+                        size={20}
+                        color={Colors.textSecondary}
                         weight="bold"
                       />
                     </Pressable>
-                  )
-                })
+                  </View>
+                ))
               )}
             </View>
           </>
@@ -311,7 +359,6 @@ export default function MindScreen() {
               </Text>
             </View>
 
-            <Text style={styles.sectionLabel}>내 마음을 들여다 봐요</Text>
             <View style={styles.checkList}>
               {MIND_CHECKS.map((check) => {
                 const IconComp = CHECK_ICON[check.icon]
@@ -405,6 +452,67 @@ export default function MindScreen() {
           />
         </View>
       ) : null}
+
+      <YouTubeVideoModal
+        visible={playing != null}
+        onClose={() => setPlaying(null)}
+        title={playing?.title}
+        externalUrl={playing?.externalUrl}
+        thumbnailUrl={playing?.thumbnailUrl}
+      />
+
+      <BottomSheet
+        visible={menuContent != null}
+        onRequestClose={() => setMenuContent(null)}
+        sheetStyle={styles.menuSheet}
+      >
+        <Text style={styles.menuTitle} numberOfLines={2}>
+          {menuContent?.title ?? ''}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="앱에서 재생"
+          onPress={() => {
+            const c = menuContent
+            setMenuContent(null)
+            if (c) setPlaying(c)
+          }}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
+        >
+          <Play size={20} color={Colors.cocoa} weight="fill" />
+          <Text style={styles.menuRowText}>앱에서 재생</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="유튜브에서 보기"
+          onPress={() => {
+            const c = menuContent
+            setMenuContent(null)
+            if (c) openOnYoutube(c)
+          }}
+          style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
+        >
+          <ArrowSquareOut size={20} color={Colors.cocoa} weight="bold" />
+          <Text style={styles.menuRowText}>유튜브에서 보기</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="자세히 보기"
+          onPress={() => {
+            const id = menuContent?.id
+            setMenuContent(null)
+            if (id) openContentDetail(id)
+          }}
+          style={({ pressed }) => [
+            styles.menuRow,
+            styles.menuRowLast,
+            pressed && styles.pressed,
+          ]}
+        >
+          <CaretRight size={20} color={Colors.cocoa} weight="bold" />
+          <Text style={styles.menuRowText}>자세히 보기</Text>
+        </Pressable>
+      </BottomSheet>
     </SafeAreaView>
   )
 }
@@ -423,14 +531,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    paddingHorizontal: Layout.screenPaddingH,
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
     marginBottom: 14,
   },
   tabs: {
@@ -472,23 +572,45 @@ const styles = StyleSheet.create({
   },
   featured: {
     borderRadius: 20,
-    backgroundColor: Colors.cocoa,
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 18,
-    minHeight: 168,
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 16,
+    minHeight: 188,
     justifyContent: 'space-between',
     marginBottom: 24,
     overflow: 'hidden',
     ...Shadows.elevation,
   },
+  featuredBg: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  featuredGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  featuredPlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -28,
+    marginLeft: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 3,
+    zIndex: 1,
+  },
   featuredBadges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    zIndex: 1,
   },
   badgePrimary: {
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -496,51 +618,22 @@ const styles = StyleSheet.create({
   badgePrimaryText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  badgeSecondary: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  badgeSecondaryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.9)',
+    color: '#FFFFFF',
   },
   featuredBottom: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-  },
-  featuredCopy: {
-    flex: 1,
+    zIndex: 1,
   },
   featuredTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 6,
+    lineHeight: 26,
+    marginBottom: 4,
   },
   featuredMeta: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.78)',
-  },
-  playBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    marginBottom: 12,
+    color: 'rgba(255,255,255,0.85)',
   },
   checkNotice: {
     backgroundColor: Colors.accentSoft,
@@ -614,13 +707,109 @@ const styles = StyleSheet.create({
   chipTextOn: {
     color: '#FFFFFF',
   },
-  listCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.divider,
+  videoList: {
+    gap: 14,
+  },
+  videoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  videoMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    minWidth: 0,
+  },
+  videoMore: {
+    width: 32,
+    height: 84,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuSheet: {
+    paddingTop: 4,
+  },
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.divider,
+  },
+  menuRowLast: {
+    borderBottomWidth: 0,
+  },
+  menuRowText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  thumbWrap: {
+    width: 148,
+    height: 84,
+    borderRadius: 10,
     overflow: 'hidden',
-    ...Shadows.elevation,
+    backgroundColor: Colors.creamyBeige,
+  },
+  thumb: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbPlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -16,
+    marginLeft: -16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 2,
+  },
+  durationBadge: {
+    position: 'absolute',
+    right: 6,
+    bottom: 6,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  durationText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  videoCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingTop: 2,
+  },
+  videoTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    lineHeight: 21,
+    marginBottom: 6,
+  },
+  videoMeta: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
   },
   coachOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -648,28 +837,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     ...Shadows.elevation,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    minHeight: 68,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
-  },
   pressed: {
     opacity: 0.9,
-  },
-  rowIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rowCopy: {
     flex: 1,
@@ -687,144 +856,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   emptyText: {
-    padding: 24,
+    paddingVertical: 24,
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textDisabled,
-  },
-  scoreCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
-    marginBottom: 24,
-    ...Shadows.elevation,
-  },
-  scoreCardTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 14,
-  },
-  dailyList: {
-    gap: 12,
-    marginBottom: 18,
-  },
-  dailyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  dailyLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  dailyLabelOn: {
-    color: Colors.textPrimary,
-  },
-  scoreBlock: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.divider,
-    paddingTop: 16,
-  },
-  scoreTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  scoreLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-  },
-  scoreValue: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    lineHeight: 36,
-  },
-  scoreTrack: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.energyTrack,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  scoreFill: {
-    height: '100%',
-    borderRadius: 4,
-    backgroundColor: Colors.peach,
-  },
-  compareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  compareLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  compareValue: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  compareHint: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textDisabled,
-  },
-  scoreEmptyTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  scoreEmptyBody: {
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 19,
-    color: Colors.textSecondary,
-    marginBottom: 14,
-  },
-  scoreEmptyCta: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  scoreEmptyCtaText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.primary,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
-    minHeight: 76,
-  },
-  actionNum: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionNumText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.selected,
   },
 })

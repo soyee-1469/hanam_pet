@@ -4,13 +4,13 @@ import { Tabs } from 'expo-router'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
-  CalendarHeart,
-  ChatCircle,
   FlowerLotus,
-  PawPrint,
   GearSix,
+  NotePencil,
+  PawPrint,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
+import { ChatTabIcon } from '../../components/ChatTabIcon'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -59,20 +59,25 @@ function TabIcon({
   color,
   focused,
   label,
+  customIcon,
 }: {
-  IconComponent: Icon
-  color: string
+  IconComponent?: Icon
+  color?: string
   focused: boolean
   label: string
+  customIcon?: ReactNode
 }) {
   return (
     <View style={styles.tabItem}>
       <View style={styles.tabIconWrap}>
-        <IconComponent
-          size={20}
-          color={color}
-          weight={focused ? 'fill' : 'light'}
-        />
+        {customIcon ??
+          (IconComponent ? (
+            <IconComponent
+              size={20}
+              color={color}
+              weight={focused ? 'fill' : 'light'}
+            />
+          ) : null)}
       </View>
       <Text
         numberOfLines={1}
@@ -154,10 +159,11 @@ export default function TabLayout() {
           title: '대화',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              IconComponent={ChatCircle}
-              color={String(color)}
               focused={focused}
               label="대화"
+              customIcon={
+                <ChatTabIcon focused={focused} size={26} color={String(color)} />
+              }
             />
           ),
         }}
@@ -168,7 +174,7 @@ export default function TabLayout() {
           title: '마음일기',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              IconComponent={CalendarHeart}
+              IconComponent={NotePencil}
               color={String(color)}
               focused={focused}
               label="마음일기"
@@ -245,8 +251,8 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   tabIconWrap: {
-    height: 26,
-    width: 26,
+    height: 28,
+    width: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },

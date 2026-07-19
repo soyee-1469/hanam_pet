@@ -9,9 +9,10 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, PawPrint } from 'phosphor-react-native'
+import { CaretLeft, CheckCircle, Lightning, PawPrint } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Fonts } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { PrimaryButton } from '../../components/ui'
 import {
@@ -21,7 +22,7 @@ import {
   saveAttendanceKeys,
   stampToday,
 } from '../../lib/attendance'
-import { ENERGY_ATTEND_GAIN, addEnergy } from '../../lib/petStock'
+import { ENERGY_ATTEND_GAIN, ENERGY_MAX, addEnergy } from '../../lib/petStock'
 import { showToast } from '../../lib/toast'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
@@ -53,6 +54,7 @@ export default function AttendanceScreen() {
   const month = today.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const todayKey = dateKey(today)
+  const todayDay = today.getDate()
   const cells = useMemo(() => getMonthMatrix(year, month), [year, month])
 
   const [stamped, setStamped] = useState<Set<string>>(new Set())
@@ -98,8 +100,18 @@ export default function AttendanceScreen() {
         return
       }
       setStamped(new Set(next))
-      await addEnergy(ENERGY_ATTEND_GAIN)
-      showToast(`출석 완료! +${ENERGY_ATTEND_GAIN} 에너지`)
+      const result = await addEnergy(ENERGY_ATTEND_GAIN)
+      if (result.credited <= 0) {
+        showToast(
+          result.stock.energy >= ENERGY_MAX
+            ? '출석 완료! 에너지는 이미 가득해요'
+            : '출석 완료! 오늘 에너지 한도에 도달했어요',
+        )
+      } else if (result.credited < ENERGY_ATTEND_GAIN) {
+        showToast(`출석 완료! +${result.credited}만 적립됐어요`)
+      } else {
+        showToast(`출석 완료! +${result.credited} 에너지`)
+      }
     } finally {
       setBusy(false)
     }
@@ -132,21 +144,23 @@ export default function AttendanceScreen() {
         <View style={styles.heroCard}>
           <View style={styles.heroCopy}>
             <Text style={styles.heroTitle}>
-              {'하루에 한 번씩 도장을\n찍어주세요'}
+              {'하루에 한 번씩\n도장을 찍어 주세요'}
             </Text>
             <Text style={styles.heroSub}>
-              출석하면 {ATTENDANCE_ENERGY_REWARD} 에너지를 얻을 수 있어요! 🐾
+              출석하면 에너지를 모을 수 있어요
             </Text>
             <View style={styles.energyPill}>
+              <Lightning size={14} color={Colors.accent} weight="fill" />
               <Text style={styles.energyPillText}>
-                이번 달 모은 에너지{' '}
-                <Text style={styles.energyPillEm}>{monthEnergy}</Text> 에너지
+                이번 달{' '}
+                <Text style={styles.energyPillEm}>{monthEnergy}</Text>
+                {' 에너지'}
               </Text>
             </View>
           </View>
           <View style={styles.heroImageWrap}>
             <Image
-              source={DogExpr.fun}
+              source={stampedToday ? DogExpr.wink : DogExpr.soft}
               style={styles.heroImage}
               resizeMode="contain"
               accessibilityLabel="펫"
@@ -161,7 +175,7 @@ export default function AttendanceScreen() {
             </Text>
             <View style={styles.calCountPill}>
               <Text style={styles.calCountText}>
-                이번 달 출석 {monthStampCount}/{daysInMonth}일
+                출석 {monthStampCount}/{daysInMonth}일
               </Text>
             </View>
           </View>
@@ -170,7 +184,11 @@ export default function AttendanceScreen() {
             {WEEKDAYS.map((w, i) => (
               <Text
                 key={w}
-                style={[styles.weekLabel, i === 0 && styles.weekLabelSun]}
+                style={[
+                  styles.weekLabel,
+                  i === 0 && styles.weekLabelSun,
+                  i === 6 && styles.weekLabelSat,
+                ]}
               >
                 {w}
               </Text>
@@ -185,31 +203,60 @@ export default function AttendanceScreen() {
               const key = dateKey(new Date(year, month, day))
               const isStamped = stamped.has(key)
               const isToday = key === todayKey
+              const isFuture = day > todayDay
               return (
                 <View key={key} style={styles.cell}>
                   {isStamped ? (
-                    <View style={styles.stampWrap}>
-                      <PawPrint size={22} color={Colors.primary} weight="fill" />
+                    <View
+                      style={[
+                        styles.dayDisk,
+                        styles.stampDisk,
+                        isToday && styles.stampDiskToday,
+                      ]}
+                      accessibilityLabel={`${day}일 출석 완료`}
+                    >
+                      <PawPrint
+                        size={18}
+                        color={Colors.selected}
+                        weight="fill"
+                      />
                     </View>
                   ) : (
                     <View
-                      style={[styles.dayWrap, isToday && styles.dayWrapToday]}
+                      style={[
+                        styles.dayDisk,
+                        styles.emptyDisk,
+                        isToday && styles.emptyDiskToday,
+                        isFuture && styles.emptyDiskFuture,
+                      ]}
                     >
                       <Text
-                        style={[styles.dayText, isToday && styles.dayTextToday]}
+                        style={[
+                          styles.dayText,
+                          isToday && styles.dayTextToday,
+                          isFuture && styles.dayTextFuture,
+                        ]}
                       >
                         {day}
                       </Text>
                     </View>
                   )}
-                  {isToday && !isStamped ? (
-                    <View style={styles.todayDot} />
-                  ) : (
-                    <View style={styles.todayDotSpacer} />
-                  )}
                 </View>
               )
             })}
+          </View>
+
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, styles.legendDotStamp]}>
+                <PawPrint size={10} color={Colors.selected} weight="fill" />
+              </View>
+              <Text style={styles.legendText}>출석한 날</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, styles.legendDotEmpty]} />
+              <Text style={styles.legendText}>아직 안 찍은 날</Text>
+            </View>
           </View>
 
           <View style={styles.stampCta}>
@@ -219,16 +266,34 @@ export default function AttendanceScreen() {
                 accessibilityRole="text"
                 accessibilityLabel="오늘 출석 완료"
               >
+                <CheckCircle
+                  size={20}
+                  color={Colors.textSecondary}
+                  weight="fill"
+                />
                 <Text style={styles.doneBtnText}>오늘 출석 완료!</Text>
               </View>
             ) : (
-              <PrimaryButton
-                label={`출석하고 ${ATTENDANCE_ENERGY_REWARD}개 에너지 받기`}
-                disabled={busy}
-                onPress={() => {
-                  void onStamp()
-                }}
-              />
+              <>
+                <View style={styles.ctaHint}>
+                  <Lightning size={14} color={Colors.accent} weight="fill" />
+                  <Text style={styles.ctaHintText}>
+                    출석 보상{' '}
+                    <Text style={styles.ctaHintEm}>
+                      +{ATTENDANCE_ENERGY_REWARD}
+                    </Text>
+                    {' 에너지'}
+                  </Text>
+                </View>
+                <PrimaryButton
+                  label={`출석하고 ${ATTENDANCE_ENERGY_REWARD}개 에너지 받기`}
+                  emphasized
+                  disabled={busy}
+                  onPress={() => {
+                    void onStamp()
+                  }}
+                />
+              </>
             )}
           </View>
         </View>
@@ -251,6 +316,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
+    minHeight: 56,
   },
   sideBtn: {
     width: 40,
@@ -265,8 +331,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -277,76 +344,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.creamyBeige,
     borderRadius: 20,
-    paddingVertical: 18,
+    paddingVertical: 20,
     paddingHorizontal: 18,
   },
   heroCopy: {
     flex: 1,
     minWidth: 0,
-    paddingRight: 8,
+    paddingRight: 10,
   },
   heroTitle: {
-    fontSize: 17,
-    fontWeight: '900',
+    fontSize: 18,
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     lineHeight: 26,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     marginBottom: 8,
   },
   heroSub: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   energyPill: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.peach,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.accentSoft,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   energyPillText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textPrimary,
   },
   energyPillEm: {
-    fontWeight: '800',
-    color: Colors.primary,
+    fontFamily: Fonts.uiBold,
+    color: Colors.accent,
   },
   heroImageWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: Colors.surface,
+    borderWidth: 3,
+    borderColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   heroImage: {
-    width: 88,
-    height: 88,
+    width: 84,
+    height: 84,
   },
   calCard: {
     backgroundColor: Colors.surface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 18,
-    paddingBottom: 16,
+    paddingBottom: 18,
     ...Shadows.elevation,
   },
   calHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   calMonth: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   calCountPill: {
     backgroundColor: Colors.creamyBeige,
@@ -356,23 +429,25 @@ const styles = StyleSheet.create({
   },
   calCountText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textSecondary,
   },
   weekRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   weekLabel: {
     flex: 1,
     textAlign: 'center',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textDisabled,
   },
   weekLabelSun: {
-    color: Colors.primary,
-    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  weekLabelSat: {
+    color: Colors.textSecondary,
   },
   grid: {
     flexDirection: 'row',
@@ -381,58 +456,112 @@ const styles = StyleSheet.create({
   cell: {
     width: `${100 / 7}%`,
     alignItems: 'center',
-    paddingVertical: 4,
-    minHeight: 44,
+    paddingVertical: 5,
+    minHeight: 48,
   },
-  stampWrap: {
-    width: 34,
-    height: 34,
+  dayDisk: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  stampDisk: {
+    backgroundColor: Colors.creamyBeige,
   },
-  dayWrapToday: {
-    backgroundColor: Colors.iconFeed,
+  stampDiskToday: {
+    backgroundColor: Colors.accentSoft,
+    borderWidth: 1.5,
+    borderColor: Colors.accent,
+  },
+  emptyDisk: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  emptyDiskToday: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.selected,
+  },
+  emptyDiskFuture: {
+    backgroundColor: 'transparent',
   },
   dayText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textPrimary,
   },
   dayTextToday: {
-    fontWeight: '800',
-    color: Colors.primary,
+    fontFamily: Fonts.uiBold,
+    color: Colors.selected,
   },
-  todayDot: {
-    marginTop: 3,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.primary,
+  dayTextFuture: {
+    fontFamily: Fonts.uiMedium,
+    color: Colors.textDisabled,
   },
-  todayDotSpacer: {
-    marginTop: 3,
-    height: 4,
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 18,
+    marginTop: 10,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.divider,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  legendDotStamp: {
+    backgroundColor: Colors.creamyBeige,
+  },
+  legendDotEmpty: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  legendText: {
+    fontSize: 11,
+    fontFamily: Fonts.uiMedium,
+    color: Colors.textSecondary,
   },
   stampCta: {
-    marginTop: 14,
+    marginTop: 16,
+    gap: 10,
+  },
+  ctaHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  ctaHintText: {
+    fontSize: 13,
+    fontFamily: Fonts.uiMedium,
+    color: Colors.textSecondary,
+  },
+  ctaHintEm: {
+    fontFamily: Fonts.uiBold,
+    color: Colors.accent,
   },
   doneBtn: {
     height: 54,
     borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     backgroundColor: Colors.creamyBeige,
   },
   doneBtnText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textSecondary,
   },
 })

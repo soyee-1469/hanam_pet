@@ -16,6 +16,7 @@ import {
   type DiaryMoodId,
 } from '../../constants/Moods'
 import {
+  DIARY_MOOD_LABEL_COLOR,
   diaryMoodsForMonth,
   findDiaryEntryByDate,
 } from '../../constants/diaryDemo'
@@ -37,15 +38,6 @@ type DayMood = {
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
-
-/** 막대 세그먼트용 파스텔 (5종) — 기쁨·슬픔·분노·걱정·불편 */
-const BAR_COLOR: Record<DiaryMoodId, string> = {
-  great: '#F5E3A8',
-  good: '#C5DFF0',
-  ok: '#F7D7B8',
-  bad: '#E0D4F0',
-  hard: '#E4EBB8',
-}
 
 function moodMeta(id: DiaryMoodId) {
   return DIARY_MOODS.find((m) => m.id === id)!
@@ -168,12 +160,12 @@ export default function DiaryScreen() {
       label: m.label,
       emojiIndex: m.emojiIndex,
       count: counts[m.id],
-      barColor: BAR_COLOR[m.id],
+      barColor: DIARY_MOOD_LABEL_COLOR[m.id],
     }))
     const legend = DIARY_MOODS.map((m) => ({
       id: m.id,
       label: m.shortLabel,
-      barColor: BAR_COLOR[m.id],
+      swatchColor: DIARY_MOOD_LABEL_COLOR[m.id],
       count: counts[m.id],
     }))
     return {
@@ -327,8 +319,8 @@ export default function DiaryScreen() {
                           <View
                             style={[
                               styles.dayInner,
-                              isToday && styles.dayToday,
                               selected && styles.daySelected,
+                              isToday && styles.dayToday,
                             ]}
                           >
                             <Text
@@ -378,28 +370,29 @@ export default function DiaryScreen() {
                     styles.distSeg,
                     { flex: chip.count, backgroundColor: chip.barColor },
                   ]}
-                >
-                  {chip.count > 0 ? (
-                    <Text style={styles.distSegNum}>{chip.count}</Text>
-                  ) : null}
-                </View>
+                />
               ))
             )}
           </View>
 
           {dist.count > 0 ? (
             <View style={styles.legendRow}>
-              {dist.legend.map((item) => (
-                <View key={item.id} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendSwatch,
-                      { backgroundColor: item.barColor },
-                    ]}
-                  />
-                  <Text style={styles.legendLabel}>{item.label}</Text>
-                </View>
-              ))}
+              {dist.legend
+                .filter((item) => item.count > 0)
+                .map((item) => (
+                  <View key={item.id} style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendSwatch,
+                        { backgroundColor: item.swatchColor },
+                      ]}
+                    />
+                    <Text style={styles.legendLabel}>
+                      {item.label}{' '}
+                      <Text style={styles.legendCount}>{item.count}</Text>
+                    </Text>
+                  </View>
+                ))}
             </View>
           ) : null}
 
@@ -455,8 +448,10 @@ export default function DiaryScreen() {
       </View>
 
       {showDiaryTour && tourStep ? (
-        <View style={styles.coachOverlay} pointerEvents="box-none">
-          <View style={styles.coachScrim} />
+        <>
+          <View style={styles.coachScrimLayer} pointerEvents="auto">
+            <View style={styles.coachScrim} />
+          </View>
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -464,7 +459,7 @@ export default function DiaryScreen() {
             onNext={onPetTourNext}
             bottom={Math.max(insets.bottom, 12) + 86}
           />
-        </View>
+        </>
       ) : null}
     </SafeAreaView>
   )
@@ -523,19 +518,18 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     backgroundColor: Colors.background,
   },
+  /** Above scrim (spotlight); below CoachmarkTourCard (zIndex 40). */
   ctaWrapTour: {
     zIndex: 30,
+    elevation: 30,
   },
-  coachOverlay: {
+  coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 28,
+    zIndex: 20,
+    elevation: 20,
   },
   coachScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   monthRow: {
@@ -629,14 +623,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     overflow: 'visible',
   },
-  /** Today — soft yellow fill; border may come from daySelected */
-  dayToday: {
-    backgroundColor: Colors.accentSoft,
-  },
-  /** Selected — Primary Stroke */
+  /** Selected (non-today) — primary border, no fill */
   daySelected: {
-    borderWidth: 1.5,
     borderColor: Colors.primary,
+    backgroundColor: 'transparent',
+  },
+  /** Today — soft yellow fill (wins over selected fill) */
+  dayToday: {
+    backgroundColor: '#FFF6D6',
   },
   dayNum: {
     height: 18,
@@ -699,7 +693,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   distBar: {
-    height: 28,
+    height: 8,
     borderRadius: 999,
     overflow: 'hidden',
     flexDirection: 'row',
@@ -707,14 +701,7 @@ const styles = StyleSheet.create({
   },
   distSeg: {
     height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 22,
-  },
-  distSegNum: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    minWidth: 4,
   },
   distEmpty: {
     backgroundColor: Colors.sand,
@@ -740,6 +727,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textSecondary,
+  },
+  legendCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   feedback: {
     marginTop: 12,

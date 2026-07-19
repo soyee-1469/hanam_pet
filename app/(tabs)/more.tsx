@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router, useFocusEffect } from 'expo-router'
+import { router } from 'expo-router'
 import {
   User,
   FileText,
@@ -23,8 +23,6 @@ import {
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
-import { getOnboardingProfile } from '../../lib/onboardingStorage'
-import { getPetName } from '../../lib/petProfile'
 
 type MenuItem = {
   id: string
@@ -118,21 +116,6 @@ function SettingsRow({
 export default function MoreScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
-  const [petName, setPetName] = useState('하치')
-
-  useFocusEffect(
-    useCallback(() => {
-      let alive = true
-      void (async () => {
-        const profile = await getOnboardingProfile()
-        const name = await getPetName(profile?.petId ?? 'mongi')
-        if (alive) setPetName(name)
-      })()
-      return () => {
-        alive = false
-      }
-    }, []),
-  )
 
   const onMenuPress = (item: MenuItem) => {
     if (item.id === 'account') {
@@ -180,19 +163,6 @@ export default function MoreScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: tabBarSpace + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileCard}>
-          <View style={styles.profileAvatar}>
-            <Text style={styles.profileAvatarText}>펫</Text>
-          </View>
-          <View style={styles.profileCopy}>
-            <Text style={styles.profileTitle}>{petName}와 함께하는 중</Text>
-            <Text style={styles.profileSub}>익명 사용자 · 가입 24일째</Text>
-          </View>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelBadgeText}>Lv.4</Text>
-          </View>
-        </View>
-
         {MENU_GROUPS.map((group, gi) => (
           <View key={gi} style={styles.card}>
             {group.map((item, ii) => (
@@ -235,57 +205,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Layout.screenPaddingH,
     gap: 12,
-  },
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    ...Shadows.elevation,
-  },
-  profileAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  profileAvatarText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.textSecondary,
-  },
-  profileCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  profileTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  profileSub: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  levelBadge: {
-    backgroundColor: Colors.primary,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  levelBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.buttonPrimaryText,
   },
   card: {
     backgroundColor: Colors.surface,

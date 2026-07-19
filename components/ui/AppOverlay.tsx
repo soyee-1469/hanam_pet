@@ -138,8 +138,11 @@ const styles = StyleSheet.create({
   },
   dismissFill: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   centerCard: {
+    position: 'relative',
+    zIndex: 1,
     backgroundColor: Colors.surface,
     borderRadius: 24,
     paddingHorizontal: 22,

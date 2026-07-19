@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Fonts } from '../constants/Typography'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
 type CoachmarkTourCardProps = {
@@ -35,8 +36,12 @@ export function CoachmarkTourCard({
           </Text>
         </View>
 
-        <Text style={styles.title}>{step.title(petName)}</Text>
-        <Text style={styles.body}>{step.body(petName)}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {step.title(petName)}
+        </Text>
+        <Text style={styles.body} numberOfLines={4}>
+          {step.body(petName)}
+        </Text>
 
         <View style={styles.footer}>
           <View style={styles.dots} accessibilityRole="progressbar">
@@ -71,6 +76,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     zIndex: 40,
+    elevation: 40,
     alignItems: 'center',
   },
   card: {
@@ -96,24 +102,24 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
     color: Colors.primary,
   },
   page: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textDisabled,
   },
   title: {
     fontSize: 18,
-    fontWeight: '900',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     marginBottom: 8,
     letterSpacing: -0.3,
   },
   body: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     lineHeight: 22,
     marginBottom: 18,
@@ -151,7 +157,7 @@ const styles = StyleSheet.create({
   },
   nextText: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.surface,
   },
   pressed: {

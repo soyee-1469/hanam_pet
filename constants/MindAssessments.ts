@@ -212,7 +212,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 우울장애',
     min: 29,
     max: 36,
-    color: '#E57A72',
+    color: '#C4847E',
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (29-36점) 전문가 소견',
     opinionBody:
@@ -288,7 +288,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 불안장애',
     min: 25,
     max: 33,
-    color: '#E57A72',
+    color: '#C4847E',
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (25-33점) 전문가 소견',
     opinionBody:
@@ -346,7 +346,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '매우 높은 중증 스트레스',
     min: 21,
     max: 33,
-    color: '#E57A72',
+    color: '#C4847E',
     meaning: '적극적인 원인 파악과 전문 도움 권장',
     opinionTitle: '매우 높은 중증 (21-33점) 전문가 소견',
     opinionBody:

@@ -11,6 +11,7 @@ import {
   TextInput,
   Platform,
 } from 'react-native'
+import Svg, { Circle } from 'react-native-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import {
@@ -23,6 +24,7 @@ import {
   PencilSimple,
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { Fonts } from '../../constants/Typography'
 import { tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
@@ -34,6 +36,7 @@ import {
 } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import {
+  CARE_USE_MAX_PER_DAY,
   ENERGY_FEED_GAIN,
   ENERGY_MAX,
   ENERGY_PLAY_GAIN,
@@ -43,7 +46,10 @@ import {
   addFood,
   addToy,
   energyBarColor as stockEnergyBarColor,
+  energyCreditMessage,
+  getCareUseGate,
   loadPetStock,
+  recordCareUse,
   useFood,
   useToy,
 } from '../../lib/petStock'
@@ -67,7 +73,6 @@ import {
   setCoachmarkWelcomeStatus,
 } from '../../lib/coachmarkStorage'
 import {
-  dismissHomeReceiveTip,
   dismissHomeStockTip,
   getHomeGuideTips,
 } from '../../lib/homeGuideTipsStorage'
@@ -76,6 +81,7 @@ import {
   getClaimMenuStatus,
   loadPetClaimState,
   recordPetClaim,
+  recordPetItemUse,
   type PetClaimState,
 } from '../../lib/petClaimCooldown'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
@@ -182,7 +188,7 @@ function helpItems(name: string) {
   return [
     {
       title: '받기 제한',
-      body: '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 제작된 사료와 장난감은 23시 59분까지 받지 않으면 사라져요.',
+      body: '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 받은 뒤 4시간이 지나야 다시 받을 수 있고, 두 번째는 받은 아이템을 먼저 사용한 뒤에 열려요. 하루 횟수는 자정에 다시 시작돼요.',
     },
     {
       title: '보관 한도',
@@ -190,13 +196,10 @@ function helpItems(name: string) {
     },
     {
       title: '돌보기',
-      body: `사료 주기·놀아 주기로 에너지를 채우고 ${name}와 더 가까워질 수 있어요.`,
+      body: `사료 주기·놀아 주기는 하루 각 ${CARE_USE_MAX_PER_DAY}번까지예요. 할 때마다 에너지가 오르고 ${name}와 더 가까워질 수 있어요.`,
     },
   ] as const
 }
-
-const HOME_RECEIVE_TIP =
-  '사료와 장난감은 하루에 최대 2번 받을 수 있어요. 제작된 사료와 장난감은 23시 59분까지 받지 않으면 사라져요.'
 
 const HOME_STOCK_TIP =
   '사료와 장난감은 최대 5개까지만 보관할 수 있어요.'
@@ -310,7 +313,10 @@ function CareStockCard({
   )
 }
 
-/** 미션 퀵 바 — Bounding Box 전체 터치 + 수령 가능/쿨다운 */
+/** Progress ring stroke for claim cooldown (main orange). */
+const MENU_RING_STROKE = 2.5
+
+/** 미션 퀵 바 — 원형 + 수령 가능/쿨다운 링 */
 type MenuQuickItemProps = {
   label: string
   image: number
@@ -319,11 +325,60 @@ type MenuQuickItemProps = {
   ready?: boolean
   /** 쿨다운 남은 시간 HH:MM:SS */
   cooldownLabel?: string
+  /**
+   * 쿨다운 진행도 0→1 (대기 경과에 따라 링이 채워짐 → 수령 가능).
+   * ready일 때는 링 숨김.
+   */
+  cooldownProgress?: number
   highlighted?: boolean
   circleSize: number
   iconSize: number
   labelSize: number
   onPress: () => void
+}
+
+function MenuCooldownRing({
+  size,
+  progress,
+}: {
+  size: number
+  progress: number
+}) {
+  const r = (size - MENU_RING_STROKE) / 2
+  const c = 2 * Math.PI * r
+  const ratio = Math.min(1, Math.max(0, progress))
+  const offset = c * (1 - ratio)
+  const cx = size / 2
+
+  return (
+    <Svg
+      width={size}
+      height={size}
+      style={styles.menuRingSvg}
+      pointerEvents="none"
+    >
+      <Circle
+        cx={cx}
+        cy={cx}
+        r={r}
+        stroke={Colors.energyTrack}
+        strokeWidth={MENU_RING_STROKE}
+        fill="none"
+      />
+      <Circle
+        cx={cx}
+        cy={cx}
+        r={r}
+        stroke={Colors.primary}
+        strokeWidth={MENU_RING_STROKE}
+        fill="none"
+        strokeDasharray={`${c} ${c}`}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cx})`}
+      />
+    </Svg>
+  )
 }
 
 function MenuQuickItem({
@@ -332,6 +387,7 @@ function MenuQuickItem({
   bgColor,
   ready = false,
   cooldownLabel,
+  cooldownProgress,
   highlighted,
   circleSize,
   iconSize,
@@ -341,6 +397,7 @@ function MenuQuickItem({
   const cooling = Boolean(cooldownLabel)
   const [hovered, setHovered] = useState(false)
   const lift = (ready && hovered) || highlighted
+  const showRing = cooling && cooldownProgress != null
 
   return (
     <Pressable
@@ -362,24 +419,33 @@ function MenuQuickItem({
       ]}
     >
       <View style={styles.menuIconWrap}>
-        <View
-          style={[
-            styles.menuCircle,
-            {
-              width: circleSize,
-              height: circleSize,
-              backgroundColor: bgColor,
-            },
-            ready && styles.menuCircleReady,
-            cooling && styles.menuCircleCooldown,
-            highlighted && !ready && !cooling && styles.menuCircleNudge,
-          ]}
-        >
-          <Image
-            source={image}
-            style={{ width: iconSize, height: iconSize }}
-            resizeMode="contain"
-          />
+        <View style={{ width: circleSize, height: circleSize }}>
+          {showRing ? (
+            <MenuCooldownRing
+              size={circleSize}
+              progress={cooldownProgress ?? 0}
+            />
+          ) : null}
+          <View
+            style={[
+              styles.menuCircle,
+              {
+                width: circleSize,
+                height: circleSize,
+                borderRadius: circleSize / 2,
+                backgroundColor: bgColor,
+              },
+              ready && styles.menuCircleReady,
+              showRing && styles.menuCircleCooldown,
+              highlighted && !ready && !cooling && styles.menuCircleNudge,
+            ]}
+          >
+            <Image
+              source={image}
+              style={{ width: iconSize, height: iconSize }}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         {ready ? <View style={styles.menuReadyDot} /> : null}
       </View>
@@ -476,7 +542,6 @@ export default function PetHomeScreen() {
   const [nameSaving, setNameSaving] = useState(false)
   const [heartsOn, setHeartsOn] = useState(false)
   const [helpExpanded, setHelpExpanded] = useState<string | null>(null)
-  const [receiveTipOn, setReceiveTipOn] = useState(false)
   const [stockTipOn, setStockTipOn] = useState(false)
   const [tipsReady, setTipsReady] = useState(false)
   const [claimState, setClaimState] = useState<PetClaimState | null>(null)
@@ -732,14 +797,12 @@ export default function PetHomeScreen() {
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
   const showGuideTips =
     tipsReady && !coachWelcomeOpen && !showPetTour && !coachCompleteOpen
-  const showReceiveTip = showGuideTips && receiveTipOn
   const showStockTip = showGuideTips && stockTipOn
 
   useEffect(() => {
     let cancelled = false
     void getHomeGuideTips().then((tips) => {
       if (cancelled) return
-      setReceiveTipOn(!tips.receiveDismissed)
       setStockTipOn(!tips.stockDismissed)
       setTipsReady(true)
     })
@@ -759,10 +822,10 @@ export default function PetHomeScreen() {
   }, [])
 
   const feedClaimStatus = claimState
-    ? getClaimMenuStatus(claimState.feed, claimNow)
+    ? getClaimMenuStatus(claimState.feed, claimNow, 'feed')
     : { kind: 'idle' as const }
   const toyClaimStatus = claimState
-    ? getClaimMenuStatus(claimState.toy, claimNow)
+    ? getClaimMenuStatus(claimState.toy, claimNow, 'toy')
     : { kind: 'idle' as const }
   const claimTickerOn =
     feedClaimStatus.kind === 'cooldown' ||
@@ -879,11 +942,39 @@ export default function PetHomeScreen() {
       bounce.start(() => resolve())
     })
 
+  const applyEnergyCredit = async (
+    result: Awaited<ReturnType<typeof addEnergy>>,
+  ) => {
+    setEnergy(result.stock.energy)
+    const msg = energyCreditMessage(result)
+    if (msg) {
+      showToast(msg)
+      if (result.credited > 0) {
+        await playFx(`+${result.credited} 에너지`, true)
+      }
+      return
+    }
+    if (result.credited > 0) {
+      await playFx(`+${result.credited} 에너지`, true)
+    }
+  }
+
   const runCareAction = async (kind: 'feed' | 'play') => {
     if (careBusyRef.current) return
 
     if (kind === 'feed' && foodCount <= 0) return
     if (kind === 'play' && toyCount <= 0) return
+
+    const gate = await getCareUseGate(kind)
+    if (!gate.ok) {
+      const label = kind === 'feed' ? '사료 주기' : '놀아 주기'
+      showSpeech(
+        `오늘은 ${label}를 ${CARE_USE_MAX_PER_DAY}번 모두 했어요. 내일 다시 와요!`,
+        3200,
+      )
+      showToast(`오늘 ${label} 한도에 도달했어요`)
+      return
+    }
 
     careBusyRef.current = true
     try {
@@ -892,28 +983,52 @@ export default function PetHomeScreen() {
         const next = await useFood(1)
         if (!next) return
         setFoodCount(next.food)
+        await recordCareUse('feed')
+        const claims = await recordPetItemUse('feed')
+        setClaimState(claims)
         playHearts()
         await playPetReact('eat')
         const after = await addEnergy(gain)
-        setEnergy(after.energy)
-        await playFx(`+${gain} 에너지`, true)
+        await applyEnergyCredit(after)
         showSpeech(FEED_DONE_SPEECH[petId], 3400)
         showChatCta()
       } else {
         const next = await useToy(1)
         if (!next) return
         setToyCount(next.toy)
+        await recordCareUse('play')
+        const claims = await recordPetItemUse('toy')
+        setClaimState(claims)
         playHearts()
         await playPetReact('play')
         const after = await addEnergy(gain)
-        setEnergy(after.energy)
-        await playFx(`+${gain} 에너지`, true)
+        await applyEnergyCredit(after)
         showSpeech(PLAY_DONE_SPEECH[petId], 3400)
         showChatCta()
       }
     } finally {
       careBusyRef.current = false
     }
+  }
+
+  const claimBlockedSpeech = (
+    st: ReturnType<typeof getClaimMenuStatus> | null,
+    kind: 'feed' | 'toy',
+  ) => {
+    if (st?.kind === 'cooldown') {
+      showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
+      return
+    }
+    if (st?.kind === 'need_use') {
+      const tip =
+        kind === 'feed'
+          ? '두 번째 사료는 받은 맘마를 먼저 준 뒤에 받을 수 있어요.'
+          : '두 번째 장난감은 먼저 놀아 준 뒤에 받을 수 있어요.'
+      showSpeech(tip, 3400)
+      showToast(tip)
+      return
+    }
+    showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
   }
 
   const claimFeed = () => {
@@ -924,13 +1039,9 @@ export default function PetHomeScreen() {
     }
     if (!claimState || !canClaimNow(claimState.feed, claimNow)) {
       const st = claimState
-        ? getClaimMenuStatus(claimState.feed, claimNow)
+        ? getClaimMenuStatus(claimState.feed, claimNow, 'feed')
         : null
-      if (st?.kind === 'cooldown') {
-        showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
-      } else {
-        showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
-      }
+      claimBlockedSpeech(st, 'feed')
       return
     }
     void (async () => {
@@ -958,13 +1069,9 @@ export default function PetHomeScreen() {
     }
     if (!claimState || !canClaimNow(claimState.toy, claimNow)) {
       const st = claimState
-        ? getClaimMenuStatus(claimState.toy, claimNow)
+        ? getClaimMenuStatus(claimState.toy, claimNow, 'toy')
         : null
-      if (st?.kind === 'cooldown') {
-        showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
-      } else {
-        showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
-      }
+      claimBlockedSpeech(st, 'toy')
       return
     }
     void (async () => {
@@ -1080,24 +1187,6 @@ export default function PetHomeScreen() {
           </Pressable>
         </View>
 
-        {showReceiveTip ? (
-          <View style={styles.receiveTip}>
-            <Text style={styles.receiveTipText}>{HOME_RECEIVE_TIP}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="받기 안내 닫기"
-              hitSlop={8}
-              onPress={() => {
-                setReceiveTipOn(false)
-                void dismissHomeReceiveTip()
-              }}
-              style={styles.tipCloseBtn}
-            >
-              <X size={14} color={Colors.textSecondary} weight="bold" />
-            </Pressable>
-          </View>
-        ) : null}
-
         <View style={styles.menuRow}>
           {HEADER_MENU.map((item) => (
             <MenuQuickItem
@@ -1117,6 +1206,13 @@ export default function PetHomeScreen() {
                   ? feedClaimStatus.label
                   : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
                     ? toyClaimStatus.label
+                    : undefined
+              }
+              cooldownProgress={
+                item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
+                  ? feedClaimStatus.progress
+                  : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
+                    ? toyClaimStatus.progress
                     : undefined
               }
               highlighted={menuNudge === item.id}
@@ -1518,23 +1614,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
   },
-  receiveTip: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.accentSoft,
-  },
-  receiveTipText: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
   tipCloseBtn: {
     width: 22,
     height: 22,
@@ -1595,7 +1674,7 @@ const styles = StyleSheet.create({
   },
   helpTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
   },
   helpCloseBtn: {
@@ -1626,12 +1705,12 @@ const styles = StyleSheet.create({
   helpItemTitle: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
   },
   helpItemBody: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     lineHeight: 22,
     paddingBottom: 14,
@@ -1650,24 +1729,27 @@ const styles = StyleSheet.create({
   menuCircle: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(94, 64, 51, 0.12)',
     backgroundColor: Colors.surface,
   },
+  menuRingSvg: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
   menuCircleReady: {
     borderWidth: 2,
-    borderColor: Colors.accent,
+    borderColor: Colors.primary,
     backgroundColor: Colors.surface,
-    shadowColor: Colors.accent,
+    shadowColor: Colors.primary,
     shadowOpacity: 0.45,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 0 },
     elevation: 4,
   },
   menuCircleCooldown: {
-    borderWidth: 1.5,
-    borderColor: Colors.accent,
+    borderWidth: 0,
+    borderColor: 'transparent',
     backgroundColor: Colors.surface,
   },
   menuCircleNudge: {
@@ -1765,14 +1847,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.textPrimary,
     letterSpacing: -0.2,
-    maxWidth: 160,
+    maxWidth: 176,
+    flexShrink: 1,
   },
   headerIconPressed: {
     opacity: 0.88,
   },
   nameModalTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.3,
@@ -1780,7 +1863,7 @@ const styles = StyleSheet.create({
   },
   nameModalLead: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -1804,7 +1887,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Platform.OS === 'ios' ? 14 : 10,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     borderWidth: 0,
     backgroundColor: 'transparent',
@@ -1812,7 +1895,7 @@ const styles = StyleSheet.create({
   nameModalCountIn: {
     marginLeft: 8,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: Colors.textDisabled,
     fontVariant: ['tabular-nums'],
   },
@@ -1820,7 +1903,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 22,
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     textAlign: 'center',
   },
@@ -1840,7 +1923,7 @@ const styles = StyleSheet.create({
   },
   nameModalSecondaryText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
   },
   nameModalPrimary: {
@@ -1856,7 +1939,7 @@ const styles = StyleSheet.create({
   },
   nameModalPrimaryText: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.buttonPrimaryText,
   },
   careFxText: {
@@ -1901,11 +1984,10 @@ const styles = StyleSheet.create({
   },
   greetingBubble: {
     position: 'absolute',
-    left: '50%',
     bottom: '100%',
     zIndex: 10,
-    width: 260,
-    marginLeft: -130,
+    alignSelf: 'center',
+    maxWidth: 280,
     marginBottom: 10,
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -1919,9 +2001,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   greetingBubbleText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 15,
     lineHeight: 22,
-    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
   },

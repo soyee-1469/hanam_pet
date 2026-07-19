@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -8,17 +8,35 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
-import { CaretLeft, Play, ArrowUpRight } from 'phosphor-react-native'
+import { CaretLeft, Play, ArrowSquareOut } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import { ExternalLinkModal } from '../components/ExternalLinkModal'
+import { YouTubeVideoModal } from '../components/YouTubeVideoModal'
 import { getMindContent } from '../constants/MindContent'
+import {
+  extractYoutubeVideoId,
+  youtubeWatchUrl,
+} from '../lib/youtube'
 
 export default function MindContentScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
   const content = getMindContent(typeof id === 'string' ? id : id?.[0])
+  const [playerOpen, setPlayerOpen] = useState(false)
   const [linkOpen, setLinkOpen] = useState(false)
+
+  const videoId = useMemo(
+    () =>
+      content
+        ? extractYoutubeVideoId(content.externalUrl, content.thumbnailUrl)
+        : null,
+    [content],
+  )
+  const watchUrl = videoId
+    ? youtubeWatchUrl(videoId)
+    : content?.externalUrl
+  const canPlay = Boolean(videoId || content?.externalUrl)
 
   if (!content) {
     return (
@@ -40,8 +58,6 @@ export default function MindContentScreen() {
       </SafeAreaView>
     )
   }
-
-  const externalUrl = content.externalUrl
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -66,13 +82,15 @@ export default function MindContentScreen() {
         <View style={styles.hero}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="외부에서 콘텐츠 열기"
+            accessibilityLabel="앱에서 재생"
+            disabled={!canPlay}
             onPress={() => {
-              if (externalUrl) setLinkOpen(true)
+              if (canPlay) setPlayerOpen(true)
             }}
             style={({ pressed }) => [
               styles.bigPlay,
-              pressed && styles.pressed,
+              pressed && canPlay && styles.pressed,
+              !canPlay && styles.bigPlayDisabled,
             ]}
           >
             <Play size={36} color={Colors.primary} weight="fill" />
@@ -81,8 +99,8 @@ export default function MindContentScreen() {
             {content.mood} · {content.minutes}분
           </Text>
           <Text style={styles.playState}>
-            {externalUrl
-              ? '외부 페이지에서 이어서 볼 수 있어요'
+            {canPlay
+              ? '앱 안에서 바로 볼 수 있어요'
               : '콘텐츠를 준비 중이에요'}
           </Text>
         </View>
@@ -90,35 +108,43 @@ export default function MindContentScreen() {
         <Text style={styles.title}>{content.title}</Text>
         <Text style={styles.summary}>{content.summary}</Text>
 
-        {externalUrl ? (
+        {watchUrl ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="외부 사이트로 이동"
+            accessibilityLabel="유튜브에서 보기"
             onPress={() => setLinkOpen(true)}
             style={({ pressed }) => [
               styles.linkHint,
               pressed && styles.pressed,
             ]}
           >
-            <ArrowUpRight size={16} color={Colors.selected} weight="bold" />
-            <Text style={styles.linkHintText}>웹에서 열기</Text>
+            <ArrowSquareOut size={16} color={Colors.selected} weight="bold" />
+            <Text style={styles.linkHintText}>유튜브에서 보기</Text>
           </Pressable>
         ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
         <PrimaryButton
-          label="외부에서 이어서 보기"
+          label="앱에서 재생"
           emphasized
-          disabled={!externalUrl}
-          onPress={() => setLinkOpen(true)}
+          disabled={!canPlay}
+          onPress={() => setPlayerOpen(true)}
         />
       </View>
 
-      {externalUrl ? (
+      <YouTubeVideoModal
+        visible={playerOpen}
+        onClose={() => setPlayerOpen(false)}
+        title={content.title}
+        externalUrl={content.externalUrl}
+        thumbnailUrl={content.thumbnailUrl}
+      />
+
+      {watchUrl ? (
         <ExternalLinkModal
           visible={linkOpen}
-          url={externalUrl}
+          url={watchUrl}
           onClose={() => setLinkOpen(false)}
         />
       ) : null}
@@ -176,6 +202,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+  },
+  bigPlayDisabled: {
+    opacity: 0.55,
   },
   meta: {
     fontSize: 14,

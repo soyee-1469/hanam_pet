@@ -5,7 +5,6 @@ import {
   Image,
   Pressable,
   TextInput,
-  Alert,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -15,12 +14,14 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, CaretUp, Lightning, List, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { CaretLeft, Lightning, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { Fonts } from '../../constants/Typography'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
+import { HelpContactsBanner } from '../../components/HelpContactsBanner'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import {
   CHAT_ENERGY_COST,
@@ -41,6 +42,11 @@ import {
 import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
 
 const TYPING_MS = 1800
+/** 세션 유휴 후 대화 횟수·휴식 안내 리셋 */
+const SESSION_IDLE_MS = 30 * 60 * 1000
+const REST_AT_REPLIES = [20, 40] as const
+const REST_TIP =
+  '잠시 쉬어가도 괜찮아요. 깊게 숨 한번 고르고, 마음이 준비되면 다시 이야기해요.'
 
 function petReplies(name: string) {
   return [
@@ -73,6 +79,9 @@ export default function ChatScreen() {
   const scrollRef = useRef<ScrollView>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const replyIndex = useRef(0)
+  const sessionReplies = useRef(0)
+  const lastActivityAt = useRef(Date.now())
+  const restShownAt = useRef<Set<number>>(new Set())
   const [message, setMessage] = useState('')
   const [inputFocused, setInputFocused] = useState(false)
   const [noticeDone, setNoticeDone] = useState(false)
@@ -81,6 +90,7 @@ export default function ChatScreen() {
   )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [tipVisible, setTipVisible] = useState(true)
+  const [restTip, setRestTip] = useState<string | null>(null)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
@@ -96,7 +106,7 @@ export default function ChatScreen() {
   const composing = message.trim().length > 0
   const showComposeTip = tipVisible && composing && !typing && !depleted
   const replies = useMemo(() => petReplies(petName), [petName])
-  const petImage = petId === 'nami' ? CatExpr.soft : DogExpr.soft
+  const petImage = petId === 'nami' ? CatExpr.wink : DogExpr.wink
 
   const tourStep =
     tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
@@ -175,6 +185,15 @@ export default function ChatScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true
+      // 30분 유휴 시 세션 횟수·휴식 게이트 리셋
+      const now = Date.now()
+      if (now - lastActivityAt.current >= SESSION_IDLE_MS) {
+        sessionReplies.current = 0
+        restShownAt.current = new Set()
+        setRestTip(null)
+      }
+      lastActivityAt.current = now
+
       void loadChatEnergy().then((n) => {
         if (!alive) return
         setEnergy(n)
@@ -215,16 +234,28 @@ export default function ChatScreen() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
   }
 
+  const touchSessionActivity = () => {
+    const now = Date.now()
+    if (now - lastActivityAt.current >= SESSION_IDLE_MS) {
+      sessionReplies.current = 0
+      restShownAt.current = new Set()
+      setRestTip(null)
+    }
+    lastActivityAt.current = now
+  }
+
   const sendMessage = async () => {
     const trimmed = message.trim()
     if (!trimmed || typing || depleted) return
 
-    const remaining = await spendChatEnergy()
-    if (remaining == null) {
-      setEnergy(0)
+    touchSessionActivity()
+
+    // 보내기 전 잔량만 확인 — 차감은 답변 생성 성공 시점 (mock)
+    const before = await loadChatEnergy()
+    if (before < CHAT_ENERGY_COST) {
+      setEnergy(before)
       return
     }
-    setEnergy(remaining)
 
     const next: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -234,42 +265,49 @@ export default function ChatScreen() {
     }
     setMessages((prev) => [...prev, next])
     setMessage('')
+    setRestTip(null)
     scrollToEnd()
-
-    // 이번 질문으로 소진 → 답변 없이 에너지 안내
-    if (remaining < CHAT_ENERGY_COST) {
-      setTyping(false)
-      scrollToEnd()
-      return
-    }
 
     setTyping(true)
     if (typingTimer.current) clearTimeout(typingTimer.current)
     typingTimer.current = setTimeout(() => {
-      const reply = replies[replyIndex.current % replies.length]
-      replyIndex.current += 1
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `p-${Date.now()}`,
-          role: 'pet',
-          text: reply,
-          at: new Date(),
-        },
-      ])
-      setTyping(false)
-      scrollToEnd()
-    }, TYPING_MS)
-  }
+      void (async () => {
+        // 답변이 나온 뒤에만 차감 (실패 시 환불 불필요 — mock은 항상 성공)
+        const remaining = await spendChatEnergy()
+        if (remaining == null) {
+          setEnergy(0)
+          setTyping(false)
+          scrollToEnd()
+          return
+        }
+        setEnergy(remaining)
 
-  const openMenu = () => {
-    Alert.alert('대화', undefined, [
-      { text: '닫기', style: 'cancel' },
-      {
-        text: '도움 받기',
-        onPress: () => router.push('/chat-help'),
-      },
-    ])
+        sessionReplies.current += 1
+        const count = sessionReplies.current
+        const reply = replies[replyIndex.current % replies.length]
+        replyIndex.current += 1
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `p-${Date.now()}`,
+            role: 'pet',
+            text: reply,
+            at: new Date(),
+          },
+        ])
+
+        if (
+          (REST_AT_REPLIES as readonly number[]).includes(count) &&
+          !restShownAt.current.has(count)
+        ) {
+          restShownAt.current.add(count)
+          setRestTip(REST_TIP)
+        }
+
+        setTyping(false)
+        scrollToEnd()
+      })()
+    }, TYPING_MS)
   }
 
   const goRefillEnergy = () => {
@@ -336,22 +374,7 @@ export default function ChatScreen() {
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
           <Text style={styles.title}>대화</Text>
-          {chatting || depleted ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="메뉴"
-              hitSlop={8}
-              onPress={openMenu}
-              style={({ pressed }) => [
-                styles.sideBtn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <List size={22} color={Colors.textPrimary} weight="regular" />
-            </Pressable>
-          ) : (
-            <View style={styles.sideBtn} />
-          )}
+          <View style={styles.sideBtn} />
         </View>
 
         {!chatting && !depleted ? (
@@ -391,7 +414,10 @@ export default function ChatScreen() {
             />
             <View style={[styles.statusPill, styles.statusPillDepleted]}>
               <View style={[styles.statusDot, styles.statusDotDepleted]} />
-              <Text style={[styles.statusText, styles.statusTextDepleted]}>
+              <Text
+                style={[styles.statusText, styles.statusTextDepleted]}
+                numberOfLines={1}
+              >
                 {petName} 에너지 소진
               </Text>
             </View>
@@ -413,6 +439,13 @@ export default function ChatScreen() {
                 </View>
               </View>
             ))}
+
+            {restTip ? (
+              <View style={styles.restTipCard} accessibilityRole="text">
+                <Text style={styles.restTipTitle}>잠깐 쉬어가요</Text>
+                <Text style={styles.restTipBody}>{restTip}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.petBlock}>
               {typing ? (
@@ -470,29 +503,17 @@ export default function ChatScreen() {
                 accessibilityLabel={petName}
               />
 
-              <View
-                style={[
-                  styles.statusPill,
-                  depleted && styles.statusPillDepleted,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.statusDot,
-                    depleted && styles.statusDotDepleted,
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.statusText,
-                    depleted && styles.statusTextDepleted,
-                  ]}
-                >
-                  {depleted
-                    ? `${petName} 에너지 소진`
-                    : `${petName} 실시간 공감 중`}
-                </Text>
-              </View>
+              {depleted ? (
+                <View style={[styles.statusPill, styles.statusPillDepleted]}>
+                  <View style={[styles.statusDot, styles.statusDotDepleted]} />
+                  <Text
+                    style={[styles.statusText, styles.statusTextDepleted]}
+                    numberOfLines={1}
+                  >
+                    {petName} 에너지 소진
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </ScrollView>
         )}
@@ -512,34 +533,7 @@ export default function ChatScreen() {
             </View>
           ) : (
             <>
-              {chatting ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="도움 받을 곳 보기"
-                  onPress={() => router.push('/chat-help')}
-                  style={({ pressed }) => [
-                    styles.helpCard,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.helpEmoji} accessibilityElementsHidden>
-                    🤝
-                  </Text>
-                  <View style={styles.helpCopy}>
-                    <Text style={styles.helpTitle}>
-                      혼자 견디지 않아도 괜찮아요
-                    </Text>
-                    <Text style={styles.helpSub}>
-                      도움 받을 곳을 알려 드릴게요
-                    </Text>
-                  </View>
-                  <CaretUp
-                    size={16}
-                    color={Colors.buttonPrimaryText}
-                    weight="bold"
-                  />
-                </Pressable>
-              ) : null}
+              {chatting ? <HelpContactsBanner /> : null}
 
               <View
                 style={[
@@ -653,10 +647,12 @@ const styles = StyleSheet.create({
   },
   greetWrap: {
     alignItems: 'center',
+    alignSelf: 'center',
     marginBottom: 4,
-    maxWidth: 280,
+    maxWidth: '85%',
   },
   greetBubble: {
+    alignSelf: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 22,
     paddingHorizontal: 22,
@@ -675,9 +671,9 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   greetText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'center',
   },
@@ -715,6 +711,32 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
   },
+  restTipCard: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 340,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: Colors.creamyBeige,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  restTipTitle: {
+    fontFamily: Fonts.uiSemiBold,
+    fontSize: 14,
+    color: Colors.textPrimary,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  restTipBody: {
+    fontFamily: Fonts.uiMedium,
+    fontSize: 13,
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
   petBlock: {
     alignItems: 'center',
     marginTop: 20,
@@ -722,12 +744,14 @@ const styles = StyleSheet.create({
   },
   petBubbleContainer: {
     alignItems: 'center',
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    maxWidth: '85%',
     marginBottom: 6,
     paddingHorizontal: 4,
   },
   petAnswerBubble: {
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    maxWidth: '100%',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
     paddingHorizontal: 20,
@@ -737,9 +761,9 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   petAnswerText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 15,
     lineHeight: 24,
-    fontWeight: '500',
     color: Colors.textPrimary,
     textAlign: 'center',
   },
@@ -822,6 +846,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginTop: 10,
+    maxWidth: '92%',
+    alignSelf: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 999,
     paddingHorizontal: 14,
@@ -838,6 +864,7 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 4,
     backgroundColor: Colors.primary,
+    flexShrink: 0,
   },
   statusDotDepleted: {
     backgroundColor: Colors.textDisabled,
@@ -846,6 +873,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.primary,
+    flexShrink: 1,
   },
   statusTextDepleted: {
     color: Colors.textSecondary,
@@ -872,12 +900,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   depletedBubble: {
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    maxWidth: '100%',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 18,
+    paddingVertical: 18,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
@@ -937,34 +965,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textSecondary,
-  },
-  helpCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: Colors.primary,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  helpEmoji: {
-    fontSize: 22,
-    lineHeight: 26,
-  },
-  helpCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  helpTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.buttonPrimaryText,
-  },
-  helpSub: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.buttonPrimaryText,
-    opacity: 0.92,
   },
   composer: {
     flexDirection: 'row',

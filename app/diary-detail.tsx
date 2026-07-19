@@ -14,8 +14,9 @@ import {
   PencilSimple,
   TrashSimple,
 } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { Fonts } from '../constants/Typography'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
   DIARY_DEMO_ENTRIES,
@@ -26,6 +27,7 @@ import { MoodEmoji } from '../components/MoodEmoji'
 import {
   BottomSheet,
   ConfirmDialog,
+  GhostButton,
   PrimaryButton,
   onboardingFooterStyle,
 } from '../components/ui'
@@ -53,6 +55,7 @@ export default function DiaryDetailScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="뒤로"
+            hitSlop={8}
             onPress={() => router.back()}
             style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
           >
@@ -77,6 +80,7 @@ export default function DiaryDetailScreen() {
   }
 
   const mood = moodMeta(entry.moodId)
+  const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -105,6 +109,7 @@ export default function DiaryDetailScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="뒤로"
+          hitSlop={8}
           onPress={() => router.back()}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
@@ -114,6 +119,7 @@ export default function DiaryDetailScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="더보기"
+          hitSlop={8}
           onPress={() => setMenuOpen(true)}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
@@ -134,21 +140,23 @@ export default function DiaryDetailScreen() {
         </Text>
 
         <View style={styles.moodBlock}>
-          <MoodEmoji index={mood.emojiIndex} size={56} />
-          <Text
-            style={[styles.moodLabel, { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] }]}
-          >
+          <View style={styles.moodWash}>
+            <MoodEmoji index={mood.emojiIndex} size={64} />
+          </View>
+          <Text style={[styles.moodLabel, { color: moodColor }]}>
             {mood.label}
           </Text>
         </View>
 
-        <View style={styles.tagRow}>
-          {entry.tags.map((tag) => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
+        {entry.tags.length > 0 ? (
+          <View style={styles.tagRow}>
+            {entry.tags.map((tag) => (
+              <View key={tag} style={styles.tag}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.bodyCard}>
           <Text style={styles.bodyText}>{entry.body}</Text>
@@ -163,13 +171,24 @@ export default function DiaryDetailScreen() {
         ]}
       >
         <PrimaryButton label="다시 쓸게요" emphasized onPress={onRewrite} />
+        <GhostButton
+          label="목록으로 돌아가기"
+          onPress={() => router.replace('/diary-list')}
+        />
       </View>
 
       <BottomSheet visible={menuOpen} onRequestClose={closeMenu}>
         <Text style={styles.sheetTitle}>이 날의 마음을 어떻게 할까요?</Text>
         <View style={styles.sheetDivider} />
         <View style={styles.sheetSummary}>
-          <MoodEmoji index={mood.emojiIndex} size={28} />
+          <View style={styles.sheetMoodLeft}>
+            <View style={styles.sheetEmojiWash}>
+              <MoodEmoji index={mood.emojiIndex} size={28} />
+            </View>
+            <Text style={[styles.sheetMoodLabel, { color: moodColor }]}>
+              {mood.label}
+            </Text>
+          </View>
           <Text style={styles.sheetSummaryDate}>
             {entry.month}월 {entry.day}일 {entry.weekday}
           </Text>
@@ -201,15 +220,13 @@ export default function DiaryDetailScreen() {
           onPress={onDelete}
           style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
         >
-          <View style={styles.actionIcon}>
-            <TrashSimple
-              size={22}
-              color={Colors.textPrimary}
-              weight="regular"
-            />
+          <View style={[styles.actionIcon, styles.actionIconDelete]}>
+            <TrashSimple size={22} color={Colors.error} weight="regular" />
           </View>
           <View style={styles.actionCopy}>
-            <Text style={styles.actionTitle}>지울래요</Text>
+            <Text style={[styles.actionTitle, styles.actionTitleDelete]}>
+              지울래요
+            </Text>
             <Text style={styles.actionDesc}>일기 내용이 사라져요</Text>
           </View>
         </Pressable>
@@ -243,15 +260,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   missingTitle: {
+    fontFamily: Fonts.uiBold,
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.2,
   },
   missingBody: {
+    fontFamily: Fonts.uiMedium,
     fontSize: 14,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 22,
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
@@ -276,70 +296,94 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
+    fontFamily: Fonts.uiBold,
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 24,
+    paddingBottom: 28,
   },
   date: {
-    fontSize: 15,
+    fontFamily: Fonts.uiSemiBold,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.textSecondary,
-    marginBottom: 28,
+    textAlign: 'center',
+    letterSpacing: -0.1,
+    marginBottom: 24,
   },
   moodBlock: {
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 22,
+    gap: 14,
+  },
+  moodWash: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   moodLabel: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 22,
   },
   tag: {
     backgroundColor: Colors.creamyBeige,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
   },
   tagText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 13,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
   bodyCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
+    backgroundColor: Colors.cardRecessed,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingHorizontal: 18,
-    paddingVertical: 20,
-    ...Shadows.elevation,
+    borderColor: Colors.border,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    minHeight: 160,
   },
   bodyText: {
+    fontFamily: Fonts.uiMedium,
     fontSize: 16,
     fontWeight: '500',
     color: Colors.textPrimary,
-    lineHeight: 26,
+    lineHeight: 28,
+    letterSpacing: -0.1,
   },
   footer: {
-    paddingTop: 8,
+    paddingTop: 10,
+    gap: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.divider,
+    backgroundColor: Colors.background,
   },
   sheetTitle: {
+    fontFamily: Fonts.uiBold,
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.2,
     marginBottom: 14,
   },
   sheetDivider: {
@@ -349,13 +393,35 @@ const styles = StyleSheet.create({
   sheetSummary: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 12,
     paddingVertical: 14,
   },
-  sheetSummaryDate: {
+  sheetMoodLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  sheetEmojiWash: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetMoodLabel: {
+    fontFamily: Fonts.uiBold,
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    letterSpacing: -0.1,
+  },
+  sheetSummaryDate: {
+    fontFamily: Fonts.uiMedium,
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
   },
   actionRow: {
     flexDirection: 'row',
@@ -371,16 +437,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  actionIconDelete: {
+    backgroundColor: '#F8EBE8',
+  },
   actionCopy: {
     flex: 1,
     gap: 2,
   },
   actionTitle: {
+    fontFamily: Fonts.uiBold,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
+  actionTitleDelete: {
+    color: Colors.error,
+  },
   actionDesc: {
+    fontFamily: Fonts.uiMedium,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,

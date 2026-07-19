@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Fonts } from '../constants/Typography'
 import { subscribeToast } from '../lib/toast'
 
 const SHOW_MS = 2200
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     elevation: 9999,
   },
   toast: {
-    backgroundColor: 'rgba(70, 55, 45, 0.92)',
+    backgroundColor: 'rgba(70, 55, 45, 0.78)',
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 999,
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.uiSemiBold,
     color: '#FFFFFF',
     textAlign: 'center',
   },

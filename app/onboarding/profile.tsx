@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors, Shadows } from '../../constants/Colors'
+import { Fonts } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
@@ -25,12 +26,11 @@ import {
   type AgeGroup,
   type GenderChoice,
 } from '../../lib/onboardingDraft'
-import { completeOnboarding, type PetChoice } from '../../lib/onboardingStorage'
+import { completeOnboarding, type PetChoice, NICKNAME_MAX } from '../../lib/onboardingStorage'
 import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
 import { defaultPetName } from '../../lib/petProfile'
 
 const copy = getOnboardingCopy().profile
-const MAX_LEN = 8
 
 const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
   mongi: DogExpr.wink,
@@ -50,11 +50,11 @@ export default function OnboardingProfile() {
 
   const trimmed = nickname.trim()
   const tooShort = trimmed.length > 0 && trimmed.length < 2
-  const atMax = trimmed.length >= MAX_LEN
+  const atMax = trimmed.length >= NICKNAME_MAX
   const showCounter = atMax || tooShort
   const valid =
     trimmed.length >= 2 &&
-    trimmed.length <= MAX_LEN &&
+    trimmed.length <= NICKNAME_MAX &&
     ageGroup != null &&
     gender != null
 
@@ -120,10 +120,10 @@ export default function OnboardingProfile() {
             <View style={[styles.inputShell, { borderColor }]}>
               <TextInput
                 value={nickname}
-                onChangeText={(t) => setNickname(t.slice(0, MAX_LEN))}
+                onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
                 placeholder={copy.placeholder}
                 placeholderTextColor={Colors.textDisabled}
-                maxLength={MAX_LEN}
+                maxLength={NICKNAME_MAX}
                 autoCapitalize="none"
                 autoCorrect={false}
                 onFocus={() => setFocused(true)}
@@ -140,7 +140,7 @@ export default function OnboardingProfile() {
                     tooShort && styles.counterError,
                   ]}
                 >
-                  {trimmed.length} / {MAX_LEN}
+                  {trimmed.length} / {NICKNAME_MAX}
                 </Text>
               ) : null}
             </View>
@@ -211,7 +211,9 @@ export default function OnboardingProfile() {
             <View style={styles.cheerBubble}>
               <Text style={styles.cheerText}>{cheerText}</Text>
             </View>
-            <Text style={styles.cheerName}>{petName}</Text>
+            <Text style={styles.cheerName} numberOfLines={1}>
+              {petName}
+            </Text>
           </View>
         ) : null}
 
@@ -365,7 +367,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cheerBubble: {
-    maxWidth: '88%',
+    alignSelf: 'center',
+    maxWidth: '85%',
     backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
@@ -375,8 +378,8 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   cheerText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 13,
-    fontWeight: '600',
     color: Colors.textPrimary,
     textAlign: 'center',
   },
@@ -385,6 +388,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textDisabled,
+    maxWidth: '88%',
+    textAlign: 'center',
   },
   footer: {
     ...onboardingFooterStyle,

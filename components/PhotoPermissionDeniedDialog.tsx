@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Linking } from 'react-native'
 import { Question } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { Fonts } from '../constants/Typography'
 import { CenterDialog } from './ui/AppOverlay'
 
 type PhotoPermissionDeniedDialogProps = {
@@ -61,7 +62,7 @@ export function PhotoPermissionDeniedDialog({
 const styles = StyleSheet.create({
   header: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 14,
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 22,
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   },
   body: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.uiMedium,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
     color: Colors.textPrimary,
   },
   primary: {
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
   },
   primaryText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.uiBold,
     color: Colors.buttonPrimaryText,
   },
   pressed: {

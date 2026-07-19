@@ -7,10 +7,17 @@ const KEYS = {
   welcomePending: 'hp_welcome_pending',
 } as const
 
+/** 유저 닉네임 상한 (한글 기준) */
+export const NICKNAME_MAX = 8
+
 export type PetChoice = 'mongi' | 'nami'
 
 /** 홈 첫 진입 말풍선 종류 */
 export type WelcomePendingKind = 'fresh' | 'resume'
+
+function clampNickname(name: string): string {
+  return name.trim().slice(0, NICKNAME_MAX)
+}
 
 export async function isOnboardingCompleted(): Promise<boolean> {
   const v = await AsyncStorage.getItem(KEYS.completed)
@@ -23,7 +30,7 @@ export async function completeOnboarding(data: {
 }): Promise<void> {
   await AsyncStorage.multiSet([
     [KEYS.completed, '1'],
-    [KEYS.nickname, data.nickname],
+    [KEYS.nickname, clampNickname(data.nickname)],
     [KEYS.petId, data.petId],
     [KEYS.welcomePending, 'fresh'],
   ])
@@ -34,10 +41,10 @@ export async function getOnboardingProfile(): Promise<{
   petId: PetChoice
 } | null> {
   const pairs = await AsyncStorage.multiGet([KEYS.nickname, KEYS.petId])
-  const nickname = pairs[0][1]
+  const raw = pairs[0][1]
   const petId = pairs[1][1] as PetChoice | null
-  if (!nickname || !petId) return null
-  return { nickname, petId }
+  if (!raw || !petId) return null
+  return { nickname: clampNickname(raw), petId }
 }
 
 /** 온보딩/복구 직후 홈 환영 말풍선 — 한 번만 */

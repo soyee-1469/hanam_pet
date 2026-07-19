@@ -6,7 +6,7 @@ export type DiaryMoodId = 'great' | 'good' | 'ok' | 'bad' | 'hard'
 /**
  * 감정 5종 (피그마 마음 기록)
  * 1 기뻐요 · 2 슬퍼요 · 3 화가나요 · 4 걱정돼요 · 5 불편해요
- * 에셋: 기뻐요 / 슬퍼요 / 화가나요 / 걱정되요 / 붎ㄴ해요.svg
+ * 에셋: mood-happy / mood-sad / mood-angry / mood-worried / mood-uncomfortable.svg
  */
 export const DIARY_MOODS: {
   id: DiaryMoodId

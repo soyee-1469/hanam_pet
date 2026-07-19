@@ -52,7 +52,7 @@ module.exports = {
         },
         success: '#A9B69A',
         warning: '#FF8F7A',
-        error: '#E57A72',
+        error: '#C4847E',
         coral: {
           DEFAULT: '#FF8F7A',
           soft: '#FFD0C6',
@@ -60,7 +60,7 @@ module.exports = {
         },
         yellow: {
           soft: '#FCE8C0',
-          energy: '#FF8F7A',
+          energy: '#F4C85B',
           mission: '#F4C85B',
         },
         cocoa: {

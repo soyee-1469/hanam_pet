@@ -16,10 +16,11 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
 import { CaretDown, CaretLeft, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Fonts } from '../constants/Typography'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { DIARY_MOODS, type DiaryMoodId } from '../constants/Moods'
-import { findDiaryEntry } from '../constants/diaryDemo'
+import { DIARY_MOOD_LABEL_COLOR, findDiaryEntry } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../lib/toast'
@@ -307,7 +308,7 @@ export default function DiaryWriteScreen() {
     ]).start(() => {
       setTimeout(() => {
         if (isEdit) {
-          showToast('수정되었어요')
+          showToast('일기 내용을 고쳤어요')
           allowLeave.current = true
           // 토스트가 그려진 뒤 이동 (바로 back 하면 안 보이는 경우 방지)
           setTimeout(() => {
@@ -420,7 +421,13 @@ export default function DiaryWriteScreen() {
                   >
                     <MoodEmoji index={m.emojiIndex} size={40} />
                   </Animated.View>
-                  <Text style={[styles.moodLabel, selected && styles.moodLabelOn]}>
+                  <Text
+                    style={[
+                      styles.moodLabel,
+                      selected && styles.moodLabelOn,
+                      selected && { color: DIARY_MOOD_LABEL_COLOR[m.id] },
+                    ]}
+                  >
                     {m.label}
                   </Text>
                 </Pressable>
@@ -605,7 +612,8 @@ const styles = StyleSheet.create({
     right: 0,
   },
   speech: {
-    flex: 1,
+    alignSelf: 'center',
+    flexShrink: 1,
     backgroundColor: Colors.surface,
     borderRadius: 16,
     borderWidth: 0.5,
@@ -614,16 +622,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   speechMain: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 16,
     lineHeight: 22,
-    fontWeight: '800',
     color: Colors.textPrimary,
   },
   speechSub: {
     marginTop: 4,
+    fontFamily: Fonts.uiMedium,
     fontSize: 13,
     lineHeight: 18,
-    fontWeight: '500',
     color: Colors.textSecondary,
   },
   moodRow: {
@@ -662,7 +670,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   moodLabelOn: {
-    color: Colors.primary,
     fontWeight: '700',
   },
   sectionTitleRow: {
@@ -719,14 +726,14 @@ const styles = StyleSheet.create({
   noteWrap: {
     position: 'relative',
     marginBottom: 8,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.beige,
   },
   note: {
     width: '100%',
     minHeight: NOTE_MIN_H,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 28,

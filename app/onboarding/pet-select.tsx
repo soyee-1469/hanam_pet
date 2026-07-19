@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/Colors'
+import { Fonts } from '../../constants/Typography'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
   ONBOARDING_STEPS,
@@ -244,6 +245,17 @@ export default function OnboardingPetSelect() {
                 returnKeyType="done"
                 onSubmitEditing={goNext}
               />
+              {atMax || tooShort ? (
+                <Text
+                  style={[
+                    styles.counter,
+                    atMax && styles.counterMax,
+                    tooShort && styles.counterError,
+                  ]}
+                >
+                  {trimmedName.length} / {PET_NAME_MAX}
+                </Text>
+              ) : null}
             </View>
             {tooShort ? (
               <Text style={styles.hintError}>{copy.nameHintInvalid}</Text>
@@ -331,6 +343,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
   },
+  counter: {
+    marginLeft: 8,
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textDisabled,
+  },
+  counterMax: {
+    color: Colors.textSecondary,
+  },
+  counterError: {
+    color: Colors.error,
+  },
   nameHint: {
     marginTop: 8,
     fontSize: 12,
@@ -390,7 +414,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     zIndex: 2,
-    maxWidth: '92%',
+    alignSelf: 'center',
+    maxWidth: '85%',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -398,8 +423,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubbleText: {
+    fontFamily: Fonts.uiSemiBold,
     fontSize: 11,
-    fontWeight: '700',
     color: Colors.surface,
     textAlign: 'center',
     letterSpacing: -0.2,

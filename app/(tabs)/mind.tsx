@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -28,7 +28,6 @@ import {
   MIND_CHECKS,
   MIND_FEATURED,
   formatPublishedAt,
-  getMindContent,
   type MindContent,
   type MindMoodFilter,
 } from '../../constants/MindContent'
@@ -92,11 +91,9 @@ export default function MindScreen() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const params = useLocalSearchParams<{ segment?: string }>()
-  const initialSegment =
-    params.segment === 'check' || params.segment === 'fill'
-      ? params.segment
-      : 'fill'
-  const [tab, setTab] = useState<TabId>(initialSegment)
+  /** Skip one focus-reset after consuming `?segment=` (avoids clear→fill race). */
+  const skipNextFillReset = useRef(false)
+  const [tab, setTab] = useState<TabId>('fill')
   const [filter, setFilter] = useState<MindMoodFilter>('all')
   const [results, setResults] = useState<MindCheckResultRecord[]>([])
   const [petName, setPetName] = useState('하치')
@@ -105,20 +102,6 @@ export default function MindScreen() {
   )
   const [playing, setPlaying] = useState<MindContent | null>(null)
   const [menuContent, setMenuContent] = useState<MindContent | null>(null)
-
-  const watchContent = useCallback((id: string) => {
-    const content = getMindContent(id)
-    if (!content) return
-    const videoId = extractYoutubeVideoId(
-      content.externalUrl,
-      content.thumbnailUrl,
-    )
-    if (videoId || content.externalUrl) {
-      setPlaying(content)
-      return
-    }
-    openContentDetail(id)
-  }, [])
 
   const openOnYoutube = useCallback((content: MindContent) => {
     const videoId = extractYoutubeVideoId(
@@ -177,6 +160,12 @@ export default function MindScreen() {
     useCallback(() => {
       if (params.segment === 'check' || params.segment === 'fill') {
         setTab(params.segment)
+        skipNextFillReset.current = true
+        router.setParams({ segment: undefined })
+      } else if (skipNextFillReset.current) {
+        skipNextFillReset.current = false
+      } else if (!showMindTour) {
+        setTab('fill')
       }
       let alive = true
       void getMindCheckResults().then((list) => {
@@ -185,7 +174,7 @@ export default function MindScreen() {
       return () => {
         alive = false
       }
-    }, [params.segment]),
+    }, [params.segment, showMindTour]),
   )
 
   const list = useMemo(() => {
@@ -232,8 +221,8 @@ export default function MindScreen() {
           <>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${MIND_FEATURED.title} 재생`}
-              onPress={() => watchContent(MIND_FEATURED.id)}
+              accessibilityLabel={`${MIND_FEATURED.title} 자세히 보기`}
+              onPress={() => openContentDetail(MIND_FEATURED.id)}
               style={({ pressed }) => [
                 styles.featured,
                 pressed && styles.pressed,
@@ -301,8 +290,8 @@ export default function MindScreen() {
                   <View key={item.id} style={styles.videoRow}>
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={`${item.title} 재생`}
-                      onPress={() => watchContent(item.id)}
+                      accessibilityLabel={`${item.title} 자세히 보기`}
+                      onPress={() => openContentDetail(item.id)}
                       style={({ pressed }) => [
                         styles.videoMain,
                         pressed && styles.pressed,
@@ -472,6 +461,9 @@ export default function MindScreen() {
         visible={playing != null}
         onClose={() => setPlaying(null)}
         title={playing?.title}
+        subtitle={
+          playing ? `${playing.mood} · ${playing.minutes}분` : undefined
+        }
         externalUrl={playing?.externalUrl}
         thumbnailUrl={playing?.thumbnailUrl}
       />
@@ -481,9 +473,16 @@ export default function MindScreen() {
         onRequestClose={() => setMenuContent(null)}
         sheetStyle={styles.menuSheet}
       >
-        <Text style={styles.menuTitle} numberOfLines={2}>
-          {menuContent?.title ?? ''}
-        </Text>
+        <View style={styles.menuHeader}>
+          <Text style={styles.menuTitle} numberOfLines={2}>
+            {menuContent?.title ?? ''}
+          </Text>
+          {menuContent ? (
+            <Text style={styles.menuMeta} numberOfLines={1}>
+              {menuContent.mood} · {menuContent.minutes}분
+            </Text>
+          ) : null}
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="앱에서 재생"
@@ -494,7 +493,9 @@ export default function MindScreen() {
           }}
           style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
-          <Play size={20} color={Colors.cocoa} weight="fill" />
+          <View style={styles.menuIconWrap}>
+            <Play size={18} color={Colors.cocoa} weight="fill" />
+          </View>
           <Text style={styles.menuRowText}>앱에서 재생</Text>
         </Pressable>
         <Pressable
@@ -507,7 +508,9 @@ export default function MindScreen() {
           }}
           style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
         >
-          <ArrowSquareOut size={20} color={Colors.cocoa} weight="bold" />
+          <View style={styles.menuIconWrap}>
+            <ArrowSquareOut size={18} color={Colors.cocoa} weight="bold" />
+          </View>
           <Text style={styles.menuRowText}>유튜브에서 보기</Text>
         </Pressable>
         <Pressable
@@ -524,7 +527,9 @@ export default function MindScreen() {
             pressed && styles.pressed,
           ]}
         >
-          <CaretRight size={20} color={Colors.cocoa} weight="bold" />
+          <View style={styles.menuIconWrap}>
+            <CaretRight size={18} color={Colors.cocoa} weight="bold" />
+          </View>
           <Text style={styles.menuRowText}>자세히 보기</Text>
         </Pressable>
       </BottomSheet>
@@ -756,20 +761,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuSheet: {
-    paddingTop: 4,
+    paddingTop: 2,
+    paddingBottom: 4,
+  },
+  menuHeader: {
+    paddingHorizontal: 4,
+    marginBottom: 12,
+    gap: 4,
   },
   menuTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    lineHeight: 22,
+  },
+  menuMeta: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 14,
+    minHeight: 52,
+    paddingVertical: 12,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
@@ -777,7 +794,16 @@ const styles = StyleSheet.create({
   menuRowLast: {
     borderBottomWidth: 0,
   },
+  menuIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   menuRowText: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '700',
     color: Colors.textPrimary,

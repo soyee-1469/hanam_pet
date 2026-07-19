@@ -45,7 +45,7 @@ export function notificationDetailHref(id: string) {
 }
 
 /**
- * 알림에 연결된 화면 경로 (있으면 모달에서 「바로가기」 표시).
+ * 알림에 연결된 화면 경로 (있으면 상세에서 「바로가기」 표시).
  * 공지·점검·업데이트 등 본문만 있는 알림은 null.
  */
 export function getNotificationActionHref(n: AppNotification): string | null {
@@ -53,7 +53,7 @@ export function getNotificationActionHref(n: AppNotification): string | null {
   return TYPE_HREF[n.type] ?? null
 }
 
-/** 상세 경로 폴백 (모달 도입 전 호환) */
+/** 액션 경로가 없으면 상세 화면으로 */
 export function resolveNotificationHref(n: AppNotification): string {
   return getNotificationActionHref(n) ?? notificationDetailHref(n.id)
 }
@@ -72,7 +72,7 @@ export function markAllNotificationsRead() {
 }
 
 /** 더미 알림 — 시안「앱 알림」기준 (서버 연동 전)
- * date는 YYYY-MM-DD. 데모는 오늘/어제/이전이 보이도록 상대 날짜 사용.
+ * date는 YYYY-MM-DD. 목록에서는 YYYY.M.D 로 표시.
  */
 export const DEMO_NOTIFICATIONS: AppNotification[] = [
   {

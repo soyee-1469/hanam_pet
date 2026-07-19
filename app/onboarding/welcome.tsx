@@ -57,11 +57,13 @@ export default function OnboardingWelcome() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
-        <Image
-          source={PET_IMAGES[petId]}
-          style={styles.pet}
-          resizeMode="contain"
-        />
+        <View style={styles.petGlow}>
+          <Image
+            source={PET_IMAGES[petId]}
+            style={styles.pet}
+            resizeMode="contain"
+          />
+        </View>
         <Text style={styles.title} numberOfLines={3}>
           {copy.title(petName)}
         </Text>
@@ -99,10 +101,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 28,
   },
-  pet: {
-    width: 148,
-    height: 148,
+  petGlow: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 28,
+  },
+  pet: {
+    width: 140,
+    height: 140,
   },
   title: {
     fontSize: 24,

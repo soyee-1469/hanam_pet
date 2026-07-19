@@ -28,8 +28,8 @@ export function TourDots({ total, index }: TourDotsProps) {
 /** CTA 푸터 공통 패딩 — 투어·설정 단계 버튼 높이 맞춤 */
 export const onboardingFooterStyle = {
   paddingHorizontal: 20,
-  paddingBottom: 16,
-  paddingTop: 8,
+  paddingBottom: 18,
+  paddingTop: 10,
 } as const
 
 const styles = StyleSheet.create({

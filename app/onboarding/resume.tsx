@@ -22,7 +22,7 @@ import {
   Lock,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
 import { PrimaryButton, ScreenHeader } from '../../components/ui'
@@ -367,11 +367,13 @@ export default function OnboardingResume() {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.center}>
-          <Image
-            source={onboardingMascot(0, 'wink')}
-            style={styles.pet}
-            resizeMode="contain"
-          />
+          <View style={styles.restoredGlow}>
+            <Image
+              source={onboardingMascot(0, 'wink')}
+              style={styles.pet}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={[styles.headline, styles.centerText]}>
             {copy.restored.headline}
           </Text>
@@ -511,13 +513,21 @@ const styles = StyleSheet.create({
   pet: {
     width: 120,
     height: 120,
-    marginBottom: 16,
+  },
+  restoredGlow: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   lostPet: {
     width: 88,
     height: 88,
     alignSelf: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   headline: {
     fontSize: 22,
@@ -531,7 +541,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 20,
+    marginBottom: 22,
   },
   otpRow: {
     flexDirection: 'row',
@@ -593,11 +603,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   helpBtn: {
-    marginTop: 16,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    marginTop: 20,
+    alignSelf: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
     backgroundColor: Colors.creamyBeige,
   },
   helpBtnPressed: {
@@ -607,8 +617,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   helpBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   tipList: {

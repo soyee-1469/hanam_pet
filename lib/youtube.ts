@@ -56,8 +56,17 @@ function isVideoId(value: string | null | undefined): value is string {
   return typeof value === 'string' && /^[a-zA-Z0-9_-]{11}$/.test(value)
 }
 
-export function youtubeEmbedUrl(videoId: string): string {
-  return `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0`
+export function youtubeEmbedUrl(
+  videoId: string,
+  options?: { autoplay?: boolean; mute?: boolean },
+): string {
+  const params = new URLSearchParams({
+    playsinline: '1',
+    rel: '0',
+  })
+  if (options?.autoplay) params.set('autoplay', '1')
+  if (options?.mute) params.set('mute', '1')
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`
 }
 
 export function youtubeWatchUrl(videoId: string): string {

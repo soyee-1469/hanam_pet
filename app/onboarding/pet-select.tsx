@@ -144,7 +144,7 @@ function PetCard({
 
         {selected ? (
           <View style={styles.heart}>
-            <Heart size={14} color={Colors.taupe} weight="fill" />
+            <Heart size={14} color={Colors.selected} weight="fill" />
           </View>
         ) : null}
 
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
   headline: {
     fontSize: 22,
@@ -327,17 +327,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 22,
+    marginBottom: 20,
   },
   speciesLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textDisabled,
-    letterSpacing: 0.4,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
     marginBottom: 10,
   },
   fieldBlock: {
-    marginTop: 22,
+    marginTop: 24,
     width: '100%',
   },
   nameLabel: {
@@ -399,6 +398,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: 4,
+    marginHorizontal: -4,
   },
   cardWrap: {
     flex: 1,
@@ -407,29 +407,20 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     paddingTop: 28,
-    paddingBottom: 14,
+    paddingBottom: 16,
     paddingHorizontal: 10,
     borderRadius: 20,
     overflow: 'visible',
   },
   cardOff: {
     backgroundColor: Colors.surface,
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.03,
-    shadowRadius: 30,
-    elevation: 2,
+    borderWidth: 1.5,
+    borderColor: Colors.divider,
   },
   cardOn: {
     backgroundColor: Colors.surface,
     borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#7A5B45',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 3,
+    borderColor: Colors.selected,
   },
   bubble: {
     position: 'absolute',
@@ -460,8 +451,8 @@ const styles = StyleSheet.create({
   },
   heart: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 14,
+    right: 14,
     zIndex: 1,
   },
   petImg: {
@@ -471,14 +462,14 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   speciesName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 2,
     letterSpacing: -0.3,
   },
   speciesNameOn: {
-    color: Colors.primary,
+    color: Colors.selected,
   },
   footer: {
     ...onboardingFooterStyle,

@@ -71,7 +71,7 @@ export function HelpContactsBanner({
           <View style={styles.caretWrap} accessibilityElementsHidden>
             <CaretUp
               size={16}
-              color={Colors.buttonPrimaryText}
+              color={Colors.selected}
               weight="bold"
             />
           </View>
@@ -91,8 +91,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.creamyBeige,
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
@@ -107,13 +109,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.buttonPrimaryText,
+    color: Colors.textPrimary,
   },
   sub: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.buttonPrimaryText,
-    opacity: 0.92,
+    color: Colors.textSecondary,
   },
   caretWrap: {
     paddingLeft: 2,

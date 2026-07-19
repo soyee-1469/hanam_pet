@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -14,7 +15,10 @@ import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import { ExternalLinkModal } from '../components/ExternalLinkModal'
 import { YouTubeVideoModal } from '../components/YouTubeVideoModal'
-import { getMindContent } from '../constants/MindContent'
+import {
+  formatPublishedAt,
+  getMindContent,
+} from '../constants/MindContent'
 import {
   extractYoutubeVideoId,
   youtubeWatchUrl,
@@ -46,11 +50,12 @@ export default function MindContentScreen() {
             accessibilityRole="button"
             accessibilityLabel="뒤로"
             onPress={() => router.back()}
-            style={styles.backBtn}
+            style={styles.sideBtn}
           >
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
-          <Text style={styles.headerTitle}>콘텐츠</Text>
+          <Text style={styles.headerTitle}>마음 채우기</Text>
+          <View style={styles.sideBtn} />
         </View>
         <View style={styles.empty}>
           <Text style={styles.emptyText}>콘텐츠를 찾을 수 없어요.</Text>
@@ -66,42 +71,58 @@ export default function MindContentScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           onPress={() => router.back()}
-          style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {content.title}
-        </Text>
+        <Text style={styles.headerTitle}>마음 채우기</Text>
+        <View style={styles.sideBtn} />
       </View>
 
       <ScrollView
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="앱에서 재생"
-            disabled={!canPlay}
-            onPress={() => {
-              if (canPlay) setPlayerOpen(true)
-            }}
-            style={({ pressed }) => [
-              styles.bigPlay,
-              pressed && canPlay && styles.pressed,
-              !canPlay && styles.bigPlayDisabled,
-            ]}
-          >
-            <Play size={36} color={Colors.primary} weight="fill" />
-          </Pressable>
-          <Text style={styles.meta}>
-            {content.mood} · {content.minutes}분
-          </Text>
-          <Text style={styles.playState}>
-            {canPlay
-              ? '앱 안에서 바로 볼 수 있어요'
-              : '콘텐츠를 준비 중이에요'}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="앱에서 재생"
+          disabled={!canPlay}
+          onPress={() => {
+            if (canPlay) setPlayerOpen(true)
+          }}
+          style={({ pressed }) => [
+            styles.hero,
+            pressed && canPlay && styles.pressed,
+            !canPlay && styles.heroDisabled,
+          ]}
+        >
+          <Image
+            source={{ uri: content.thumbnailUrl }}
+            style={styles.heroImage}
+            resizeMode="cover"
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          />
+          <View style={styles.heroScrim} pointerEvents="none" />
+          {canPlay ? (
+            <View style={styles.heroPlay} pointerEvents="none">
+              <Play size={28} color="#FFFFFF" weight="fill" />
+            </View>
+          ) : null}
+          <View style={styles.heroDuration} pointerEvents="none">
+            <Text style={styles.heroDurationText}>{content.minutes}분</Text>
+          </View>
+        </Pressable>
+
+        <View style={styles.metaRow}>
+          <View style={styles.moodChip}>
+            <Text style={styles.moodChipText}>{content.mood}</Text>
+          </View>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.metaText}>{content.minutes}분</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.metaText}>
+            {formatPublishedAt(content.publishedAt)}
           </Text>
         </View>
 
@@ -137,6 +158,7 @@ export default function MindContentScreen() {
         visible={playerOpen}
         onClose={() => setPlayerOpen(false)}
         title={content.title}
+        subtitle={`${content.mood} · ${content.minutes}분`}
         externalUrl={content.externalUrl}
         thumbnailUrl={content.thumbnailUrl}
       />
@@ -165,78 +187,121 @@ const styles = StyleSheet.create({
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
   },
-  backBtn: {
+  sideBtn: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.88,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 17,
+    textAlign: 'center',
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginLeft: 2,
-    marginRight: 40,
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 16,
   },
   hero: {
-    alignItems: 'center',
-    backgroundColor: Colors.cocoa,
-    borderRadius: 24,
-    paddingVertical: 40,
-    marginBottom: 24,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: Colors.creamyBeige,
+    aspectRatio: 16 / 9,
+    marginBottom: 20,
     ...Shadows.elevation,
   },
-  bigPlay: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surface,
+  heroDisabled: {
+    opacity: 0.7,
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.22)',
+  },
+  heroPlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -28,
+    marginLeft: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    paddingLeft: 3,
   },
-  bigPlayDisabled: {
-    opacity: 0.55,
+  heroDuration: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  meta: {
-    fontSize: 14,
+  heroDurationText: {
+    fontSize: 12,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 6,
+    color: '#FFFFFF',
   },
-  playState: {
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  moodChip: {
+    backgroundColor: Colors.creamyBeige,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  moodChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.selected,
+  },
+  metaDot: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.65)',
+    fontWeight: '600',
+    color: Colors.textDisabled,
+  },
+  metaText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 10,
-    lineHeight: 28,
+    marginBottom: 12,
+    lineHeight: 30,
   },
   summary: {
     fontSize: 15,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 24,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   linkHint: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
   },
   linkHintText: {
     fontSize: 14,

@@ -107,7 +107,7 @@ function HelpSlide({
                 <Text style={styles.helpName}>{line.name}</Text>
               </View>
               <View style={styles.helpPhoneRow}>
-                <Phone size={14} color={Colors.primary} weight="fill" />
+                <Phone size={14} color={Colors.selected} weight="fill" />
                 <Text style={styles.helpPhone}>{line.phoneDisplay}</Text>
               </View>
               <Text style={styles.helpNote}>{line.note}</Text>
@@ -148,7 +148,7 @@ function FeaturesSlide({
           return (
             <View key={f.key} style={styles.featureCard}>
               <View style={styles.featureIcon}>
-                <IconComp size={22} color={Colors.primary} weight="fill" />
+                <IconComp size={22} color={Colors.selected} weight="fill" />
               </View>
               <View style={styles.featureCopy}>
                 <Text style={styles.featureName}>{f.title}</Text>
@@ -274,10 +274,10 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   brandGlow: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
@@ -310,15 +310,16 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    maxWidth: 320,
   },
   helpSlide: {
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 12,
   },
   helpIconWrap: {
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   helpTitle: {
     fontSize: 22,
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 32,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   helpBody: {
     fontSize: 14,
@@ -334,7 +335,8 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 20,
+    marginBottom: 18,
+    paddingHorizontal: 4,
   },
   helpList: {
     gap: 10,
@@ -347,6 +349,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: Colors.divider,
   },
   helpCardCopy: {
     flex: 1,
@@ -362,7 +366,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   helpName: {
     flex: 1,
@@ -379,7 +383,7 @@ const styles = StyleSheet.create({
   helpPhone: {
     fontSize: 15,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.textPrimary,
   },
   helpNote: {
     fontSize: 12,
@@ -416,10 +420,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 18,
+    lineHeight: 22,
+    marginBottom: 16,
   },
   featureList: {
-    gap: 10,
+    gap: 8,
   },
   featureCard: {
     flexDirection: 'row',
@@ -427,14 +432,16 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: Colors.divider,
   },
   featureIcon: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    backgroundColor: Colors.iconFeed,
+    backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -446,7 +453,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   featureDesc: {
     fontSize: 13,

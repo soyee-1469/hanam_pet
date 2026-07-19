@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react'
-import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
+import { useCallback, useMemo, useState } from 'react'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { Bell, CalendarBlank, CaretLeft } from 'phosphor-react-native'
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router'
+import { Bell, CalendarBlank } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { PrimaryButton, ScreenHeader } from '../components/ui'
 import {
+  getNotificationActionHref,
   getNotificationById,
   markNotificationRead,
 } from '../lib/notifications'
@@ -34,22 +36,15 @@ export default function NotificationDetailScreen() {
     }, [id]),
   )
 
+  const actionHref = useMemo(
+    () => (item ? getNotificationActionHref(item) : null),
+    [item],
+  )
+
   if (!item) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="뒤로"
-            hitSlop={8}
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-          >
-            <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-          </Pressable>
-          <Text style={styles.headerTitle}>알림</Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <ScreenHeader title="알림" onBack={() => router.back()} />
         <View style={styles.empty}>
           <Text style={styles.emptyText}>알림을 찾을 수 없어요.</Text>
         </View>
@@ -59,21 +54,7 @@ export default function NotificationDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="뒤로"
-          hitSlop={8}
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-        >
-          <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          알림 상세
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader title="알림 상세" onBack={() => router.back()} />
 
       <ScrollView
         contentContainerStyle={styles.body}
@@ -96,6 +77,16 @@ export default function NotificationDetailScreen() {
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.content}>{item.body}</Text>
       </ScrollView>
+
+      {actionHref ? (
+        <View style={styles.footer}>
+          <PrimaryButton
+            label="바로가기"
+            emphasized
+            onPress={() => router.push(actionHref as Href)}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
@@ -104,33 +95,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    minHeight: 56,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  pressed: {
-    opacity: 0.88,
   },
   empty: {
     flex: 1,
@@ -179,5 +143,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 24,
     color: Colors.textSecondary,
+  },
+  footer: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 12,
+    paddingTop: 8,
   },
 })

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors } from '../constants/Colors'
 import { dayKey } from './dayKey'
+import { resetPetClaimState } from './petClaimCooldown'
 
 const KEY = 'hp_pet_stock_v1'
 const DAILY_KEY = 'hp_pet_daily_v1'
@@ -323,8 +324,8 @@ export async function recordCareUse(
 }
 
 /**
- * __DEV__ 전용 — 「사료 주기」「놀아 주기」바로 눌러볼 수 있게
- * 재고·일일 사용 카운트만 맞춤 (claim 쿨다운은 건드리지 않음).
+ * __DEV__ 전용 — 「사료 주기」「놀아 주기」·「받기」바로 눌러볼 수 있게
+ * 재고·일일 사용 카운트·사료/장난감 claim 쿨다운을 검수용 베이스라인으로 맞춤.
  */
 export async function seedCareUseReadyForDev(): Promise<PetStock> {
   const stock = await savePetStock({
@@ -339,6 +340,7 @@ export async function seedCareUseReadyForDev(): Promise<PetStock> {
     feedUses: 0,
     playUses: 0,
   })
+  await resetPetClaimState()
   return stock
 }
 

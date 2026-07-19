@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -10,24 +10,22 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useFocusEffect, type Href } from 'expo-router'
 import { Bell, CalendarBlank, CaretLeft } from 'phosphor-react-native'
-import { OVERLAY_SCRIM } from '../components/ui/AppOverlay'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import {
   DEMO_NOTIFICATIONS,
-  getNotificationActionHref,
   markAllNotificationsRead,
   markNotificationRead,
+  notificationDetailHref,
   type AppNotification,
   type NotifCategory,
 } from '../lib/notifications'
 import { showToast } from '../lib/toast'
 
 type FilterId = 'all' | NotifCategory
-type DayGroup = 'today' | 'yesterday' | 'earlier'
 
 type NotifSection = {
-  key: DayGroup
+  key: string
   title: string
   data: AppNotification[]
 }
@@ -38,83 +36,32 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'service', label: '서비스' },
 ]
 
-const GROUP_ORDER: DayGroup[] = ['today', 'yesterday', 'earlier']
-const GROUP_LABEL: Record<DayGroup, string> = {
-  today: '오늘',
-  yesterday: '어제',
-  earlier: '이전',
-}
-
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-}
-
-function parseIsoDate(iso: string) {
+/** 목록용 날짜 — 마인드 목록과 동일 (예: 2026.7.19) */
+function formatNotifDate(iso: string) {
   const [y, m, day] = iso.split('-').map(Number)
-  if (!y || !m || !day) return null
-  return new Date(y, m - 1, day)
-}
-
-function dayGroupOf(iso: string, now = new Date()): DayGroup {
-  const date = parseIsoDate(iso)
-  if (!date) return 'earlier'
-  const today = startOfDay(now)
-  const target = startOfDay(date)
-  const diffDays = Math.round(
-    (today.getTime() - target.getTime()) / (24 * 60 * 60 * 1000),
-  )
-  if (diffDays === 0) return 'today'
-  if (diffDays === 1) return 'yesterday'
-  return 'earlier'
-}
-
-function formatNotifDate(iso: string, group: DayGroup) {
-  const date = parseIsoDate(iso)
-  if (!date) return iso
-  if (group === 'today') return '오늘'
-  if (group === 'yesterday') return '어제'
-  return `${date.getMonth() + 1}월 ${date.getDate()}일`
-}
-
-function formatModalDate(iso: string) {
-  const date = parseIsoDate(iso)
-  if (!date) return iso
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`
+  if (!y || !m || !day) return iso
+  return `${y}.${m}.${day}`
 }
 
 function buildSections(items: AppNotification[]): NotifSection[] {
-  const buckets: Record<DayGroup, AppNotification[]> = {
-    today: [],
-    yesterday: [],
-    earlier: [],
-  }
+  const buckets = new Map<string, AppNotification[]>()
   for (const item of items) {
-    buckets[dayGroupOf(item.date)].push(item)
+    const list = buckets.get(item.date)
+    if (list) list.push(item)
+    else buckets.set(item.date, [item])
   }
-  return GROUP_ORDER.filter((key) => buckets[key].length > 0).map((key) => ({
-    key,
-    title: GROUP_LABEL[key],
-    data: buckets[key],
-  }))
+  return [...buckets.entries()]
+    .sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0))
+    .map(([date, data]) => ({
+      key: date,
+      title: formatNotifDate(date),
+      data,
+    }))
 }
 
 export default function NotificationsScreen() {
   const [filter, setFilter] = useState<FilterId>('all')
   const [items, setItems] = useState<AppNotification[]>(DEMO_NOTIFICATIONS)
-  const [selected, setSelected] = useState<AppNotification | null>(null)
-  /** Delay arming backdrop so the opening click cannot immediately dismiss. */
-  const [scrimArmed, setScrimArmed] = useState(false)
-
-  useEffect(() => {
-    if (!selected) {
-      setScrimArmed(false)
-      return
-    }
-    const id = requestAnimationFrame(() => {
-      setScrimArmed(true)
-    })
-    return () => cancelAnimationFrame(id)
-  }, [selected])
 
   useFocusEffect(
     useCallback(() => {
@@ -132,7 +79,6 @@ export default function NotificationsScreen() {
     () => items.filter((n) => n.unread).length,
     [items],
   )
-  const actionHref = selected ? getNotificationActionHref(selected) : null
 
   const markAllRead = () => {
     if (unreadCount === 0) return
@@ -144,15 +90,7 @@ export default function NotificationsScreen() {
   const openItem = (item: AppNotification) => {
     markNotificationRead(item.id)
     setItems(DEMO_NOTIFICATIONS.map((n) => ({ ...n })))
-    setSelected({ ...item, unread: false })
-  }
-
-  const closeModal = () => setSelected(null)
-
-  const goToLinked = () => {
-    if (!actionHref) return
-    closeModal()
-    router.push(actionHref as Href)
+    router.push(notificationDetailHref(item.id) as Href)
   }
 
   return (
@@ -234,7 +172,7 @@ export default function NotificationsScreen() {
             <View key={section.key}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               {section.data.map((item) => {
-                const dateLabel = formatNotifDate(item.date, section.key)
+                const dateLabel = formatNotifDate(item.date)
                 return (
                   <Pressable
                     key={item.id}
@@ -314,76 +252,6 @@ export default function NotificationsScreen() {
           ))
         )}
       </ScrollView>
-
-      {selected ? (
-        <View
-          style={styles.detailOverlay}
-          accessibilityViewIsModal
-          importantForAccessibility="yes"
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="닫기"
-            disabled={!scrimArmed}
-            onPress={scrimArmed ? closeModal : undefined}
-            style={styles.detailScrim}
-          />
-          <View style={styles.detailCard}>
-            <View style={styles.modalIconRow}>
-              <View style={styles.modalIconBox}>
-                {selected.icon === 'calendar' ? (
-                  <CalendarBlank
-                    size={22}
-                    color={Colors.selected}
-                    weight="regular"
-                  />
-                ) : (
-                  <Bell size={22} color={Colors.selected} weight="regular" />
-                )}
-              </View>
-              <Text style={styles.modalDate}>
-                {formatModalDate(selected.date)}
-              </Text>
-            </View>
-            <Text style={styles.modalTitle}>{selected.title}</Text>
-            <Text style={styles.modalBody}>{selected.body}</Text>
-            <View style={styles.modalActions}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="닫기"
-                onPress={closeModal}
-                style={({ pressed }) => [
-                  actionHref ? styles.modalSecondary : styles.modalPrimaryFull,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={
-                    actionHref
-                      ? styles.modalSecondaryText
-                      : styles.modalPrimaryText
-                  }
-                >
-                  닫기
-                </Text>
-              </Pressable>
-              {actionHref ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="바로가기"
-                  onPress={goToLinked}
-                  style={({ pressed }) => [
-                    styles.modalPrimary,
-                    pressed && styles.actionPressed,
-                  ]}
-                >
-                  <Text style={styles.modalPrimaryText}>바로가기</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          </View>
-        </View>
-      ) : null}
     </SafeAreaView>
   )
 }
@@ -392,8 +260,6 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
-    // Anchor for in-screen detail overlay
-    position: 'relative',
   },
   header: {
     flexDirection: 'row',
@@ -588,107 +454,5 @@ const styles = StyleSheet.create({
   },
   rowBodyTextRead: {
     color: Colors.textDisabled,
-  },
-  detailOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 100,
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    backgroundColor: OVERLAY_SCRIM,
-    ...(Platform.OS === 'web'
-      ? ({ position: 'fixed', inset: 0, zIndex: 10000 } as object)
-      : null),
-  },
-  detailScrim: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
-  },
-  detailCard: {
-    position: 'relative',
-    zIndex: 1,
-    alignItems: 'stretch',
-    backgroundColor: Colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 20,
-    ...Shadows.elevation,
-  },
-  modalIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
-  },
-  modalIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.accentSoft,
-  },
-  modalDate: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textDisabled,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    lineHeight: 26,
-    marginBottom: 10,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    alignSelf: 'stretch',
-    gap: 10,
-  },
-  modalSecondary: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  modalSecondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  modalPrimary: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
-  },
-  modalPrimaryFull: {
-    flex: 1,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
-  },
-  modalPrimaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.buttonPrimaryText,
-  },
-  actionPressed: {
-    opacity: 0.92,
   },
 })

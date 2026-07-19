@@ -5,6 +5,7 @@ export default function OnboardingLayout() {
     <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
       <Stack.Screen name="splash" />
       <Stack.Screen name="gate" />
+      <Stack.Screen name="welcome-prep" />
       <Stack.Screen name="intro" />
       <Stack.Screen name="diary-record" />
       <Stack.Screen name="healing-content" />

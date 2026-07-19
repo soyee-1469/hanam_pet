@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { Colors } from '../../constants/Colors'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { resetOnboardingCompleted } from '../../lib/onboardingStorage'
+import { seedCareUseReadyForDev } from '../../lib/petStock'
 
 const HOLD_MS = 1800
 const copy = getOnboardingCopy().splash
@@ -18,6 +19,10 @@ export default function OnboardingSplash() {
     ;(async () => {
       if (reset === '1') {
         await resetOnboardingCompleted()
+        // DEV: 온보딩 리셋과 함께 사료·장난감 재고/사용/받기 쿨다운도 맞춤
+        if (__DEV__) {
+          await seedCareUseReadyForDev()
+        }
       }
       if (!alive) return
       t = setTimeout(() => {
@@ -33,12 +38,14 @@ export default function OnboardingSplash() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
-        <View style={styles.iconWrap}>
-          <Image
-            source={require('../../assets/images/icon.png')}
-            style={styles.icon}
-            resizeMode="contain"
-          />
+        <View style={styles.iconGlow}>
+          <View style={styles.iconWrap}>
+            <Image
+              source={require('../../assets/images/icon.png')}
+              style={styles.icon}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.sub}>{copy.body}</Text>
@@ -50,7 +57,7 @@ export default function OnboardingSplash() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FED391',
+    backgroundColor: Colors.creamyBeige,
   },
   body: {
     flex: 1,
@@ -58,32 +65,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 28,
   },
-  iconWrap: {
-    width: 148,
-    height: 148,
-    borderRadius: 74,
-    backgroundColor: 'rgba(245, 213, 200, 0.35)',
+  iconGlow: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 22,
+    marginBottom: 28,
+  },
+  iconWrap: {
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
-    width: 88,
-    height: 88,
+    width: 84,
+    height: 84,
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '900',
     color: Colors.textPrimary,
-    letterSpacing: -0.9,
+    letterSpacing: -0.8,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sub: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 24,
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'center',
+    maxWidth: 280,
   },
 })

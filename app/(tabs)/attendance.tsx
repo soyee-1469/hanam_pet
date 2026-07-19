@@ -254,7 +254,7 @@ export default function AttendanceScreen() {
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendDotEmpty]} />
-              <Text style={styles.legendText}>아직 안 찍은 날</Text>
+              <Text style={styles.legendText}>도장 없는 날</Text>
             </View>
           </View>
 

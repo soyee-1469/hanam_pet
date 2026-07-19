@@ -180,30 +180,29 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
   headline: {
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 8,
-    lineHeight: 30,
+    marginBottom: 10,
+    lineHeight: 32,
   },
   sub: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   allBlock: {
-    /** 배경(#F8F4EF)보다 반 단계 크리미 — 테두리 없이 면만 */
-    backgroundColor: '#EFE9E1',
+    backgroundColor: Colors.creamyBeige,
     borderRadius: 16,
     paddingLeft: 4,
     paddingRight: 8,
-    paddingVertical: 8,
-    marginBottom: 20,
+    paddingVertical: 10,
+    marginBottom: 18,
   },
   listBlock: {
     paddingVertical: 2,
@@ -212,13 +211,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   footerNote: {
-    marginBottom: 10,
+    marginBottom: 12,
     fontSize: 12,
     lineHeight: 18,
     fontWeight: '500',
     color: Colors.textDisabled,
     textAlign: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
   },
   footer: {
     ...onboardingFooterStyle,

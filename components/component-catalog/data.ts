@@ -289,8 +289,8 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
   },
   {
     name: '알림 상세 카드 / NotificationDetailCard',
-    note: '목록 모달·상세 화면 본문 카드',
-    paths: ['app/notifications.tsx', 'app/notification-detail.tsx'],
+    note: '전체 페이지 상세 본문 (제목·날짜·본문·바로가기)',
+    paths: ['app/notification-detail.tsx'],
   },
   {
     name: '일기 목록 카드 / DiaryEntryCard',

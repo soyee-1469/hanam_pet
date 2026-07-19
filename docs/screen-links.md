@@ -1,10 +1,12 @@
 # 힐링펫 화면 링크 (캡처용)
 
-**배포 URL:** https://hanam-pet.vercel.app  
+**배포 URL**
+- Vercel: https://hanam-pet.vercel.app
+- Firebase Hosting: https://hanam-healing-pet.web.app
 
 로컬 개발: `http://localhost:8081` (`npx expo start --web`)
 
-아래 링크는 배포 주소 기준이에요.
+아래 화면 링크는 Vercel 배포 주소 기준이에요. (Firebase Hosting도 동일 웹 빌드 호스팅)
 
 ---
 

@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   View,
   Text,
-  Image,
   Pressable,
   StyleSheet,
   Modal,
   Platform,
+  Animated,
+  Easing,
   useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { X, ArrowSquareOut } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { OVERLAY_SCRIM } from './ui/AppOverlay'
 import {
   extractYoutubeVideoId,
   youtubeEmbedUrl,
@@ -25,13 +25,18 @@ import {
   releaseTabBarOverlay,
 } from '../lib/tabBarOverlay'
 
+/** 영상 포커스용 — 공통 스크림보다 조금 짙게 */
+const VIDEO_SCRIM = 'rgba(91, 57, 39, 0.48)'
+
 type YouTubeVideoModalProps = {
   visible: boolean
   onClose: () => void
   title?: string
+  /** 제목 아래 보조 메타 (예: 불안 · 12분) */
+  subtitle?: string
   /** YouTube watch / embed / short URL */
   externalUrl?: string
-  /** 리스트와 동일한 썸네일 — 포스터 / video id 폴백 */
+  /** 리스트와 동일한 썸네일 — video id 폴백 */
   thumbnailUrl?: string
 }
 
@@ -50,19 +55,30 @@ export function YouTubeVideoModal({
   visible,
   onClose,
   title,
+  subtitle,
   externalUrl,
   thumbnailUrl,
 }: YouTubeVideoModalProps) {
   useTabBarCoverWhileVisible(visible)
   const insets = useSafeAreaInsets()
   const { width } = useWindowDimensions()
-  const [playerReady, setPlayerReady] = useState(false)
+  const closingRef = useRef(false)
+
+  const backdropOpacity = useRef(new Animated.Value(0)).current
+  const cardOpacity = useRef(new Animated.Value(0)).current
+  const cardY = useRef(new Animated.Value(22)).current
 
   const videoId = useMemo(
     () => extractYoutubeVideoId(externalUrl, thumbnailUrl),
     [externalUrl, thumbnailUrl],
   )
-  const embedUri = videoId ? youtubeEmbedUrl(videoId) : null
+  /** 앱에서 재생 탭 → 모달 열리면 바로 재생. 웹은 브라우저 정책상 mute 필요. */
+  const embedUri = videoId
+    ? youtubeEmbedUrl(videoId, {
+        autoplay: true,
+        mute: Platform.OS === 'web',
+      })
+    : null
   const watchUri = videoId
     ? youtubeWatchUrl(videoId)
     : externalUrl?.startsWith('http')
@@ -71,11 +87,70 @@ export function YouTubeVideoModal({
 
   const playerWidth = Math.min(width - 40, 560)
   const playerHeight = Math.round((playerWidth * 9) / 16)
-  const showPoster = Boolean(thumbnailUrl && embedUri && !playerReady)
 
   useEffect(() => {
-    if (!visible) setPlayerReady(false)
-  }, [visible, embedUri])
+    if (!visible) {
+      closingRef.current = false
+      backdropOpacity.setValue(0)
+      cardOpacity.setValue(0)
+      cardY.setValue(22)
+      return
+    }
+
+    closingRef.current = false
+    backdropOpacity.setValue(0)
+    cardOpacity.setValue(0)
+    cardY.setValue(22)
+
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardOpacity, {
+        toValue: 1,
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardY, {
+        toValue: 0,
+        friction: 8,
+        tension: 68,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [visible, backdropOpacity, cardOpacity, cardY])
+
+  const requestClose = () => {
+    if (!visible || closingRef.current) return
+    closingRef.current = true
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 160,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 150,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardY, {
+        toValue: 14,
+        duration: 150,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      closingRef.current = false
+      if (finished) onClose()
+    })
+  }
 
   const openOnYoutube = () => {
     if (!watchUri) return
@@ -86,42 +161,63 @@ export function YouTubeVideoModal({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       presentationStyle="overFullScreen"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={requestClose}
     >
       <View
         style={[
           styles.root,
           {
-            paddingTop: Math.max(insets.top, 16),
-            paddingBottom: Math.max(insets.bottom, 16),
+            paddingTop: Math.max(insets.top, 20),
+            paddingBottom: Math.max(insets.bottom, 20),
           },
         ]}
+        pointerEvents="box-none"
       >
+        <Animated.View
+          style={[styles.scrim, { opacity: backdropOpacity }]}
+          pointerEvents="none"
+        />
         <Pressable
           style={StyleSheet.absoluteFill}
-          onPress={onClose}
+          onPress={requestClose}
           accessibilityRole="button"
           accessibilityLabel="닫기"
         />
-        <View style={[styles.card, { maxWidth: playerWidth + 32 }]}>
+        <Animated.View
+          style={[
+            styles.card,
+            {
+              maxWidth: playerWidth + 36,
+              opacity: cardOpacity,
+              transform: [{ translateY: cardY }],
+            },
+          ]}
+        >
           <View style={styles.chrome}>
-            <Text style={styles.title} numberOfLines={2}>
-              {title ?? '영상 보기'}
-            </Text>
+            <View style={styles.titleBlock}>
+              <Text style={styles.title} numberOfLines={2}>
+                {title ?? '영상 보기'}
+              </Text>
+              {subtitle ? (
+                <Text style={styles.subtitle} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              ) : null}
+            </View>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="닫기"
-              onPress={onClose}
-              hitSlop={8}
+              onPress={requestClose}
+              hitSlop={12}
               style={({ pressed }) => [
                 styles.closeBtn,
                 pressed && styles.pressed,
               ]}
             >
-              <X size={20} color={Colors.cocoa} weight="bold" />
+              <X size={18} color={Colors.cocoa} weight="bold" />
             </Pressable>
           </View>
 
@@ -131,8 +227,15 @@ export function YouTubeVideoModal({
               { width: playerWidth, height: playerHeight },
             ]}
           >
-            {embedUri ? (
+            {!embedUri ? (
+              <View style={styles.fallback}>
+                <Text style={styles.fallbackText}>
+                  재생할 영상을 찾을 수 없어요.
+                </Text>
+              </View>
+            ) : visible ? (
               <WebView
+                key={embedUri}
                 source={{ uri: embedUri }}
                 style={styles.webview}
                 allowsFullscreenVideo
@@ -142,21 +245,6 @@ export function YouTubeVideoModal({
                 domStorageEnabled
                 startInLoadingState
                 setSupportMultipleWindows={false}
-                onLoadEnd={() => setPlayerReady(true)}
-              />
-            ) : (
-              <View style={styles.fallback}>
-                <Text style={styles.fallbackText}>
-                  재생할 영상을 찾을 수 없어요.
-                </Text>
-              </View>
-            )}
-            {showPoster && thumbnailUrl ? (
-              <Image
-                source={{ uri: thumbnailUrl }}
-                style={styles.poster}
-                resizeMode="cover"
-                accessibilityIgnoresInvertColors
               />
             ) : null}
           </View>
@@ -172,14 +260,14 @@ export function YouTubeVideoModal({
               ]}
             >
               <ArrowSquareOut
-                size={16}
+                size={17}
                 color={Colors.selected}
                 weight="bold"
               />
               <Text style={styles.youtubeBtnText}>유튜브에서 보기</Text>
             </Pressable>
           ) : null}
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   )
@@ -188,7 +276,6 @@ export function YouTubeVideoModal({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: OVERLAY_SCRIM,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -196,35 +283,53 @@ const styles = StyleSheet.create({
       ? ({ position: 'fixed', inset: 0, zIndex: 10000 } as object)
       : null),
   },
+  scrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: VIDEO_SCRIM,
+  },
   card: {
     alignSelf: 'center',
     width: '100%',
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 20,
+    zIndex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 22,
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: 16,
     paddingBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
     ...Shadows.elevation,
   },
   chrome: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: 12,
+    gap: 12,
+    marginBottom: 14,
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+    paddingTop: 2,
+    paddingRight: 4,
+    gap: 4,
   },
   title: {
-    flex: 1,
     fontSize: 16,
     fontWeight: '700',
     color: Colors.cocoa,
     lineHeight: 22,
-    paddingTop: 4,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -238,12 +343,6 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-    backgroundColor: '#1A1A1A',
-  },
-  poster: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
     backgroundColor: '#1A1A1A',
   },
   fallback: {
@@ -261,19 +360,21 @@ const styles = StyleSheet.create({
   },
   youtubeBtn: {
     marginTop: 14,
-    alignSelf: 'center',
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: Colors.creamyBeige,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   youtubeBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.selected,
   },

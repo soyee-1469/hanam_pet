@@ -1,47 +1,52 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { router } from 'expo-router'
+import { Redirect } from 'expo-router'
 import { Colors } from '../constants/Colors'
-import {
-  isOnboardingCompleted,
-  markOnboardingCompleted,
-} from '../lib/onboardingStorage'
+import { isOnboardingCompleted } from '../lib/onboardingStorage'
 import { resetCoachmarkWelcome } from '../lib/coachmarkStorage'
 import { resetHomeGuideTips } from '../lib/homeGuideTipsStorage'
-import { resetPetClaimState } from '../lib/petClaimCooldown'
 import { seedCareUseReadyForDev } from '../lib/petStock'
 
 /**
- * 피그마 맞춤 검수 중: 온보딩(A) 완료 후 탭(B~) 검수.
- * 온보딩 다시 보려면 `/onboarding/splash` 로 직접 이동.
+ * 앱 시작점.
+ * - 온보딩 미완료 → 스플래시 → 게이트부터 시작
+ * - 온보딩 완료 → 나의 펫(탭)
  */
 export default function EntryScreen() {
+  const [ready, setReady] = useState(false)
+  const [done, setDone] = useState(false)
+
   useEffect(() => {
     let alive = true
-    void (async () => {
-      const done = await isOnboardingCompleted()
-      if (!done) await markOnboardingCompleted()
-      // DEV: cm-01 시트 재확인용 (프로덕션에선 생략)
-      if (__DEV__) {
-        await resetCoachmarkWelcome()
-        await resetHomeGuideTips()
-        await resetPetClaimState()
-        // 사료·장난감 재고 + 오늘 주기 카운트 0 → 「사료 주기」「놀아 주기」바로 테스트
-        await seedCareUseReadyForDev()
+    ;(async () => {
+      try {
+        const completed = await isOnboardingCompleted()
+        // DEV: 홈 검수용 상태 초기화 (온보딩 완료 후에만)
+        if (__DEV__ && completed) {
+          await resetCoachmarkWelcome()
+          await resetHomeGuideTips()
+          await seedCareUseReadyForDev()
+        }
+        if (alive) setDone(completed)
+      } finally {
+        if (alive) setReady(true)
       }
-      if (!alive) return
-      router.replace('/(tabs)')
     })()
     return () => {
       alive = false
     }
   }, [])
 
-  return (
-    <View style={styles.boot}>
-      <ActivityIndicator color={Colors.primary} />
-    </View>
-  )
+  if (!ready) {
+    return (
+      <View style={styles.boot}>
+        <ActivityIndicator color={Colors.primary} />
+      </View>
+    )
+  }
+
+  if (done) return <Redirect href="/(tabs)" />
+  return <Redirect href="/onboarding/splash" />
 }
 
 const styles = StyleSheet.create({

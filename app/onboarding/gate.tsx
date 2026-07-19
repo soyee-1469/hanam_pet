@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
 import { PrimaryButton, SecondaryButton } from '../../components/ui'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { nextGateMascot } from '../../constants/OnboardingMascot'
@@ -20,7 +21,7 @@ const goResume = () => router.push('/onboarding/resume')
 
 export default function OnboardingGate() {
   const { height: screenH } = useDesignWindow()
-  const coverSize = Math.min(200, Math.round(screenH * 0.24))
+  const coverSize = Math.min(188, Math.round(screenH * 0.22))
   const coverSource = useRef(nextGateMascot('fun')).current
 
   const breath = useRef(new Animated.Value(0)).current
@@ -30,13 +31,13 @@ export default function OnboardingGate() {
       Animated.sequence([
         Animated.timing(breath, {
           toValue: 1,
-          duration: 2000,
+          duration: 2200,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(breath, {
           toValue: 0,
-          duration: 2000,
+          duration: 2200,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
@@ -50,14 +51,14 @@ export default function OnboardingGate() {
 
   const coverScale = breath.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 1.02],
+    outputRange: [1, 1.025],
   })
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
         <Animated.View
-          style={[styles.coverWrap, { transform: [{ scale: coverScale }] }]}
+          style={[styles.coverGlow, { transform: [{ scale: coverScale }] }]}
         >
           <Image
             source={coverSource}
@@ -75,7 +76,7 @@ export default function OnboardingGate() {
         <PrimaryButton
           label={copy.primary}
           emphasized
-          onPress={() => router.push('/onboarding/intro')}
+          onPress={() => router.push('/onboarding/welcome-prep')}
         />
         <View style={styles.gap} />
         <SecondaryButton label={copy.secondary} onPress={goResume} />
@@ -94,36 +95,48 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Layout.screenPaddingH + 4,
+    paddingBottom: 12,
   },
-  coverWrap: {
-    marginBottom: 22,
+  coverGlow: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '900',
     color: Colors.textPrimary,
-    letterSpacing: -0.9,
-    marginBottom: 6,
+    letterSpacing: -0.8,
+    marginBottom: 10,
+    textAlign: 'center',
   },
   sub: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 18,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 20,
+    paddingTop: 8,
   },
   gap: {
-    height: 12,
+    height: 10,
   },
   hint: {
-    marginTop: 14,
+    marginTop: 16,
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
     textAlign: 'center',
     lineHeight: 18,
+    paddingHorizontal: 8,
   },
 })

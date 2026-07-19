@@ -198,53 +198,6 @@ function formatHistoryTime(raw: string) {
   return `${month}월 ${day}일 ${m[4]}:${m[5]}`
 }
 
-/** 펼침 본문 — 증감 설명 (감성 멘트 없음) */
-function historyDeltaExplain(item: HistoryEntry): string {
-  const n = Math.abs(item.delta)
-  if (item.tab === 'energy') {
-    switch (item.category) {
-      case 'chat':
-        return `대화에 에너지 ${n}개를 사용했어요`
-      case 'meal':
-        return item.delta === 0
-          ? '사료 주기 보상이 적립되지 않았어요'
-          : `사료 주기로 에너지 ${item.delta}개를 얻었어요`
-      case 'play':
-        return item.delta === 0
-          ? '놀아 주기 보상이 적립되지 않았어요'
-          : `놀아 주기로 에너지 ${item.delta}개를 얻었어요`
-      case 'diary':
-        return item.delta === 0
-          ? '마음일기 보상이 적립되지 않았어요'
-          : `마음일기 작성으로 에너지 ${item.delta}개를 얻었어요`
-      case 'attend':
-        return item.delta === 0
-          ? '출석 보상이 적립되지 않았어요'
-          : `출석으로 에너지 ${item.delta}개를 얻었어요`
-      default:
-        return item.delta === 0
-          ? '에너지 변동이 없어요'
-          : item.delta > 0
-            ? `에너지 ${item.delta}개를 얻었어요`
-            : `에너지 ${n}개를 사용했어요`
-    }
-  }
-  switch (item.category) {
-    case 'use':
-      return item.kind === 'food'
-        ? `사료 ${n}개를 사용했어요`
-        : `장난감 ${n}개를 사용했어요`
-    case 'play':
-      return `장난감 ${n}개를 사용했어요`
-    case 'claim':
-      return item.kind === 'food'
-        ? `사료 ${n}개를 받았어요`
-        : `장난감 ${n}개를 받았어요`
-    default:
-      return formatDelta(item.delta, '개')
-  }
-}
-
 function StockIcon({
   kind,
   size = 28,
@@ -341,7 +294,6 @@ export default function StorageScreen() {
     energy: 0,
   })
   const [tab, setTab] = useState<HistoryTab>('item')
-  const [openId, setOpenId] = useState<string | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -367,20 +319,20 @@ export default function StorageScreen() {
   )
 
   const entries = useMemo(
-    () => HISTORY.filter((e) => e.tab === tab),
+    () =>
+      HISTORY.filter((e) => {
+        if (e.tab !== tab) return false
+        // 에너지 탭: 한도·부분 적립 안내(detail)가 있는 기록만
+        if (tab === 'energy') return Boolean(e.detail?.trim())
+        return true
+      }),
     [tab],
   )
 
   const switchTab = (next: HistoryTab) => {
     if (next === tab) return
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setOpenId(null)
     setTab(next)
-  }
-
-  const toggleRow = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setOpenId((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -526,9 +478,27 @@ export default function StorageScreen() {
               const positive = item.delta > 0
               const zero = item.delta === 0
               const isEnergy = tab === 'energy'
-              const open = isEnergy && openId === item.id
-              const rowBody = (
-                <>
+              const note = item.detail?.trim()
+              const noteLabel =
+                isEnergy && note
+                  ? note.startsWith('※')
+                    ? note
+                    : `※ ${note}`
+                  : null
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.row,
+                    noteLabel ? styles.rowWithNote : undefined,
+                    index > 0 ? styles.rowDivider : undefined,
+                  ]}
+                  accessibilityLabel={
+                    noteLabel
+                      ? `${item.title}, ${deltaLabel}, ${noteLabel}`
+                      : `${item.title}, ${deltaLabel}`
+                  }
+                >
                   <View
                     style={[
                       styles.rowIcon,
@@ -546,10 +516,16 @@ export default function StorageScreen() {
                     <Text style={styles.rowTime}>
                       {formatHistoryTime(item.time)}
                     </Text>
+                    {noteLabel ? (
+                      <View style={styles.detailWrap}>
+                        <Text style={styles.detailNote}>{noteLabel}</Text>
+                      </View>
+                    ) : null}
                   </View>
                   <Text
                     style={[
                       styles.rowDelta,
+                      noteLabel ? styles.rowDeltaTop : undefined,
                       positive &&
                         (isEnergy
                           ? styles.rowDeltaPlusEnergy
@@ -560,45 +536,6 @@ export default function StorageScreen() {
                   >
                     {deltaLabel}
                   </Text>
-                </>
-              )
-              return (
-                <View
-                  key={item.id}
-                  style={index > 0 ? styles.rowDivider : undefined}
-                >
-                  {isEnergy ? (
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{ expanded: open }}
-                      accessibilityLabel={`${item.title}, ${deltaLabel}`}
-                      onPress={() => toggleRow(item.id)}
-                      style={({ pressed }) => [
-                        styles.row,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      {rowBody}
-                    </Pressable>
-                  ) : (
-                    <View
-                      style={styles.row}
-                      accessibilityLabel={`${item.title}, ${deltaLabel}`}
-                    >
-                      {rowBody}
-                    </View>
-                  )}
-                  {open ? (
-                    <View style={styles.detailWrap}>
-                      <Text style={styles.detailText}>
-                        {historyDeltaExplain(item)}
-                      </Text>
-                      <Text style={styles.detailMeta}>{item.time}</Text>
-                      {item.detail ? (
-                        <Text style={styles.detailNote}>{item.detail}</Text>
-                      ) : null}
-                    </View>
-                  ) : null}
                 </View>
               )
             })}
@@ -792,6 +729,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     minHeight: 56,
   },
+  rowWithNote: {
+    alignItems: 'flex-start',
+  },
   rowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
@@ -833,6 +773,9 @@ const styles = StyleSheet.create({
     minWidth: 44,
     textAlign: 'right',
   },
+  rowDeltaTop: {
+    marginTop: 2,
+  },
   rowDeltaPlus: {
     color: Colors.primary,
   },
@@ -846,35 +789,18 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   detailWrap: {
-    marginLeft: 50,
-    marginRight: 4,
-    marginTop: -4,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
     backgroundColor: Colors.creamyBeige,
-    gap: 4,
-  },
-  detailText: {
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 20,
-    color: Colors.textPrimary,
-  },
-  detailMeta: {
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 18,
-    color: Colors.textDisabled,
-    fontVariant: ['tabular-nums'],
+    alignSelf: 'stretch',
   },
   detailNote: {
     fontSize: 12,
     fontWeight: '500',
     lineHeight: 18,
     color: Colors.textSecondary,
-    marginTop: 2,
   },
   historyEmpty: {
     alignItems: 'center',

@@ -9,7 +9,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -21,12 +20,11 @@ import {
   ONBOARDING_STEPS,
   getOnboardingDraft,
   setOnboardingDraft,
-  resetOnboardingDraft,
   type AgeGroup,
   type GenderChoice,
 } from '../../lib/onboardingDraft'
-import { completeOnboarding, type PetChoice, NICKNAME_MAX } from '../../lib/onboardingStorage'
-import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
+import { type PetChoice, NICKNAME_MAX } from '../../lib/onboardingStorage'
+import { getOnboardingCopy } from '../../lib/onboarding'
 import { defaultPetName } from '../../lib/petProfile'
 import {
   keyboardAvoidingBehavior,
@@ -50,7 +48,6 @@ export default function OnboardingProfile() {
   const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(draft.ageGroup)
   const [gender, setGender] = useState<GenderChoice | null>(draft.gender)
   const [focused, setFocused] = useState(false)
-  const [busy, setBusy] = useState(false)
   const scrollRef = useRef<ScrollView>(null)
 
   const scrollFieldIntoView = useCallback(() => {
@@ -74,32 +71,11 @@ export default function OnboardingProfile() {
   const cheerText =
     trimmed.length === 0 ? copy.cheerEmpty : copy.cheerWith(trimmed)
 
-  const goNext = async () => {
-    if (!valid || !ageGroup || !gender || busy) return
+  const goNext = () => {
+    if (!valid || !ageGroup || !gender) return
     setOnboardingDraft({ nickname: trimmed, ageGroup, gender })
-
-    // v2: 기본 정보 다음 → 펫 선택
-    if (ONBOARDING_VERSION === 'v2') {
-      router.push('/onboarding/pet-select')
-      return
-    }
-
-    // v1: 프로필이 마지막 설정 단계
-    if (!draft.petId) {
-      router.replace('/onboarding/pet-select')
-      return
-    }
-    setBusy(true)
-    try {
-      await completeOnboarding({
-        nickname: trimmed,
-        petId: draft.petId,
-      })
-      resetOnboardingDraft()
-      router.replace('/(tabs)')
-    } finally {
-      setBusy(false)
-    }
+    // 프로필은 다음 온보딩 단계(펫 선택)로만 이동 — 탭(나의 펫)으로 점프하지 않음
+    router.push('/onboarding/pet-select')
   }
 
   const borderColor = tooShort
@@ -240,18 +216,12 @@ export default function OnboardingProfile() {
 
         <View style={styles.footer}>
           <ProgressDots total={ONBOARDING_STEPS} index={1} />
-          {busy ? (
-            <ActivityIndicator color={Colors.primary} />
-          ) : (
-            <PrimaryButton
-              label={copy.cta}
-              disabled={!valid}
-              emphasized={valid}
-              onPress={() => {
-                void goNext()
-              }}
-            />
-          )}
+          <PrimaryButton
+            label={copy.cta}
+            disabled={!valid}
+            emphasized={valid}
+            onPress={goNext}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -269,25 +239,25 @@ const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 20,
   },
   headline: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '900',
     color: Colors.textPrimary,
     marginBottom: 8,
-    lineHeight: 28,
+    lineHeight: 30,
   },
   sub: {
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 14,
+    lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 28,
+    marginBottom: 24,
   },
   fieldBlock: {
     width: '100%',
-    marginBottom: 22,
+    marginBottom: 20,
   },
   label: {
     fontSize: 13,
@@ -362,7 +332,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   chipOff: {
-    backgroundColor: '#EFE9E1',
+    backgroundColor: Colors.creamyBeige,
   },
   chipOn: {
     backgroundColor: Colors.selected,
@@ -378,13 +348,13 @@ const styles = StyleSheet.create({
   cheer: {
     alignItems: 'center',
     paddingTop: 4,
-    paddingBottom: 4,
+    paddingBottom: 6,
     paddingHorizontal: 16,
     overflow: 'visible',
   },
   cheerPet: {
-    width: 108,
-    height: 108,
+    width: 100,
+    height: 100,
     marginBottom: 8,
   },
   cheerBubble: {
@@ -393,7 +363,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.divider,
     paddingHorizontal: 14,
     paddingVertical: 10,
     ...Shadows.elevation,

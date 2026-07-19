@@ -125,9 +125,9 @@ export function getMindCheck(id: string | undefined): MindCheckItem | null {
   return MIND_CHECKS.find((c) => c.id === id) ?? null
 }
 
-/** 목록용 업로드일 (예: 26.3.12) */
+/** 목록용 업로드일 (예: 2026.3.12) */
 export function formatPublishedAt(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   if (!y || !m || !d) return iso
-  return `${String(y).slice(-2)}.${m}.${d}`
+  return `${y}.${m}.${d}`
 }

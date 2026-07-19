@@ -22,9 +22,9 @@ import {
   X,
   Heart,
   CaretDown,
-  PencilSimple,
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { HelpContactsSheet } from '../../components/HelpContactsSheet'
 import { tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
@@ -570,6 +570,7 @@ export default function PetHomeScreen() {
   /** 헤더↔하단 케어바 사이 중간 영역 높이 (펫 사이즈 산출용) */
   const [petZoneH, setPetZoneH] = useState(0)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [helpContactsOpen, setHelpContactsOpen] = useState(false)
   const [coachWelcomeOpen, setCoachWelcomeOpen] = useState(false)
   /** false until this tab actually focuses — avoids deep-link to other tabs showing home Modals */
   const [homeFocused, setHomeFocused] = useState(false)
@@ -859,7 +860,7 @@ export default function PetHomeScreen() {
     }
   }, [])
 
-  // __DEV__: Fast Refresh 직후에도 주기 버튼이 바로 켜지도록 재고·일일 카운트 시드
+  // __DEV__: Fast Refresh 직후에도 주기·받기 버튼이 바로 켜지도록 재고·일일·쿨다운 시드
   useEffect(() => {
     if (!__DEV__) return
     let cancelled = false
@@ -867,10 +868,12 @@ export default function PetHomeScreen() {
       if (didDevCareUseSeed) return
       didDevCareUseSeed = true
       const stock = await seedCareUseReadyForDev()
+      const claims = await loadPetClaimState()
       if (cancelled) return
       setEnergy(stock.energy)
       setFoodCount(stock.food)
       setToyCount(stock.toy)
+      setClaimState(claims)
     })()
     return () => {
       cancelled = true
@@ -888,6 +891,8 @@ export default function PetHomeScreen() {
         if (__DEV__ && !didDevCareUseSeed) {
           didDevCareUseSeed = true
           await seedCareUseReadyForDev()
+          const claims = await loadPetClaimState()
+          if (!cancelled) setClaimState(claims)
         }
         const stock = await loadPetStock()
         if (cancelled) return
@@ -1364,18 +1369,33 @@ export default function PetHomeScreen() {
                 </Text>
               )}
             </View>
-            <Pressable
-              style={styles.bellBtn}
-              onPress={() => router.push('/notifications')}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="알림"
-            >
-              <View>
-                <Bell size={24} color={Colors.textPrimary} weight="light" />
-                <View style={styles.notifDot} />
-              </View>
-            </Pressable>
+            <View style={styles.headerActions}>
+              <Pressable
+                style={styles.bellBtn}
+                onPress={() => setHelpContactsOpen(true)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="상담·도움 연락처"
+              >
+                <Image
+                  source={require('../../assets/images/help.png')}
+                  style={styles.helpShortcutIcon}
+                  accessibilityElementsHidden
+                />
+              </Pressable>
+              <Pressable
+                style={styles.bellBtn}
+                onPress={() => router.push('/notifications')}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="알림"
+              >
+                <View>
+                  <Bell size={24} color={Colors.textPrimary} weight="light" />
+                  <View style={styles.notifDot} />
+                </View>
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.menuRow}>
@@ -1525,11 +1545,6 @@ export default function PetHomeScreen() {
               <Text style={styles.petName} numberOfLines={1}>
                 {petName}
               </Text>
-              <PencilSimple
-                size={14}
-                color={Colors.textSecondary}
-                weight="bold"
-              />
             </Pressable>
           </View>
         </View>
@@ -1630,6 +1645,11 @@ export default function PetHomeScreen() {
         visible={coachCompleteOpen && homeFocused}
         petName={petName}
         onMeet={dismissPetTourComplete}
+      />
+
+      <HelpContactsSheet
+        visible={helpContactsOpen}
+        onClose={() => setHelpContactsOpen(false)}
       />
 
       <BottomSheet
@@ -1876,6 +1896,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.textPrimary,
     letterSpacing: -0.3,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  helpShortcutIcon: {
+    width: 24,
+    height: 24,
   },
   bellBtn: {
     width: 40,

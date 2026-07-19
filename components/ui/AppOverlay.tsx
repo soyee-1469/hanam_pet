@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  KeyboardAvoidingView,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
@@ -15,6 +16,11 @@ import {
   acquireTabBarOverlay,
   releaseTabBarOverlay,
 } from '../../lib/tabBarOverlay'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../../lib/useKeyboardAvoidInset'
 
 /** 전체 오버레이 공통 — 팝업·시트 모두 동일 틴트 */
 export const OVERLAY_SCRIM = 'rgba(91, 57, 39, 0.35)'
@@ -76,7 +82,8 @@ export function CenterDialog({
 }
 
 /**
- * 바텀시트 셸 — 메뉴·약관·도움말·권한 안내
+ * 바텀시트 셸 — 메뉴·약관·도움말·권한 안내·이름 입력
+ * 웹(모바일) soft keyboard: visualViewport inset으로 시트 위로 올림
  */
 export function BottomSheet({
   visible,
@@ -91,6 +98,7 @@ export function BottomSheet({
 }) {
   useTabBarCoverWhileVisible(visible)
   const insets = useSafeAreaInsets()
+  const { webKeyboardInset } = useKeyboardAvoidInset({ enabled: visible })
   const handleBackdrop =
     onBackdropPress === false
       ? undefined
@@ -105,7 +113,15 @@ export function BottomSheet({
       statusBarTranslucent
       onRequestClose={onRequestClose}
     >
-      <View style={styles.sheetRoot}>
+      <KeyboardAvoidingView
+        style={[
+          styles.sheetRoot,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
+      >
         {handleBackdrop ? (
           <Pressable style={styles.sheetDismiss} onPress={handleBackdrop} />
         ) : (
@@ -121,7 +137,7 @@ export function BottomSheet({
           {showHandle ? <View style={styles.handle} /> : null}
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }

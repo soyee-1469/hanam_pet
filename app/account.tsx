@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -19,6 +19,11 @@ import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import { getOnboardingProfile, NICKNAME_MAX } from '../lib/onboardingStorage'
 import { showToast } from '../lib/toast'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../lib/useKeyboardAvoidInset'
 
 const FALLBACK_NICKNAME = '몽이지킴이'
 const NICKNAME_KEY = 'hp_nickname'
@@ -28,6 +33,15 @@ export default function AccountScreen() {
   const [savedNickname, setSavedNickname] = useState(FALLBACK_NICKNAME)
   const [focused, setFocused] = useState(false)
   const [saving, setSaving] = useState(false)
+  const scrollRef = useRef<ScrollView>(null)
+
+  const scrollFieldIntoView = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
+  }, [])
+
+  const { webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollFieldIntoView,
+  })
 
   useEffect(() => {
     void getOnboardingProfile().then((profile) => {
@@ -82,10 +96,16 @@ export default function AccountScreen() {
       </View>
 
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <ScrollView
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.body}
           keyboardShouldPersistTaps="handled"
@@ -97,7 +117,10 @@ export default function AccountScreen() {
               <TextInput
                 value={nickname}
                 onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
-                onFocus={() => setFocused(true)}
+                onFocus={() => {
+                  setFocused(true)
+                  scrollFieldIntoView()
+                }}
                 onBlur={() => setFocused(false)}
                 placeholder="닉네임을 입력해 주세요"
                 placeholderTextColor={Colors.textDisabled}

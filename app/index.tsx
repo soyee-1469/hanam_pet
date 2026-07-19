@@ -9,6 +9,7 @@ import {
 import { resetCoachmarkWelcome } from '../lib/coachmarkStorage'
 import { resetHomeGuideTips } from '../lib/homeGuideTipsStorage'
 import { resetPetClaimState } from '../lib/petClaimCooldown'
+import { seedCareUseReadyForDev } from '../lib/petStock'
 
 /**
  * 피그마 맞춤 검수 중: 온보딩(A) 완료 후 탭(B~) 검수.
@@ -25,6 +26,8 @@ export default function EntryScreen() {
         await resetCoachmarkWelcome()
         await resetHomeGuideTips()
         await resetPetClaimState()
+        // 사료·장난감 재고 + 오늘 주기 카운트 0 → 「사료 주기」「놀아 주기」바로 테스트
+        await seedCareUseReadyForDev()
       }
       if (!alive) return
       router.replace('/(tabs)')

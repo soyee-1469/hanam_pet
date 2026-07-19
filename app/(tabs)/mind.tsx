@@ -325,7 +325,7 @@ export default function MindScreen() {
                         <Text style={styles.videoTitle} numberOfLines={2}>
                           {item.title}
                         </Text>
-                        <Text style={styles.videoMeta} numberOfLines={1}>
+                        <Text style={styles.videoMeta}>
                           {item.mood} · {formatPublishedAt(item.publishedAt)}
                         </Text>
                       </View>
@@ -834,6 +834,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   videoMeta: {
+    flexShrink: 0,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,

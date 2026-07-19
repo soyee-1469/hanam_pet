@@ -1,4 +1,11 @@
-import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { BottomSheet } from './ui/AppOverlay'
@@ -6,6 +13,9 @@ import {
   HELP_CONTACTS,
   dialHelpContact,
 } from '../lib/helpContacts'
+
+/** 핸들·헤더·닫기 링크·세이프에리어 대략치 — 스크롤 영역 max용 */
+const SHEET_CHROME = 200
 
 type HelpContactsSheetProps = {
   visible: boolean
@@ -17,11 +27,15 @@ export function HelpContactsSheet({
   visible,
   onClose,
 }: HelpContactsSheetProps) {
+  const { height: winH } = useWindowDimensions()
+  const sheetMaxHeight = Math.round(winH * 0.82)
+  const scrollMaxHeight = Math.max(240, sheetMaxHeight - SHEET_CHROME)
+
   return (
     <BottomSheet
       visible={visible}
       onRequestClose={onClose}
-      sheetStyle={styles.sheet}
+      sheetStyle={[styles.sheet, { maxHeight: sheetMaxHeight }]}
     >
       <View style={styles.header}>
         <Text style={styles.title}>혼자 견디지 않아도 괜찮아요</Text>
@@ -31,7 +45,7 @@ export function HelpContactsSheet({
       </View>
 
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, { maxHeight: scrollMaxHeight }]}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -81,7 +95,6 @@ export function HelpContactsSheet({
 
 const styles = StyleSheet.create({
   sheet: {
-    maxHeight: '82%',
     backgroundColor: Colors.background,
   },
   header: {
@@ -103,10 +116,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scroll: {
-    // Cap height so the sheet fits content, but never collapses to 0 on web.
+    // Hug content (flexGrow: 0); maxHeight from window — long list scrolls.
     flexGrow: 0,
     flexShrink: 1,
-    maxHeight: 360,
     marginBottom: 8,
   },
   list: {

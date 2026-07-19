@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -28,6 +28,11 @@ import {
 import { completeOnboarding, type PetChoice, NICKNAME_MAX } from '../../lib/onboardingStorage'
 import { getOnboardingCopy, ONBOARDING_VERSION } from '../../lib/onboarding'
 import { defaultPetName } from '../../lib/petProfile'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../../lib/useKeyboardAvoidInset'
 
 const copy = getOnboardingCopy().profile
 
@@ -46,6 +51,15 @@ export default function OnboardingProfile() {
   const [gender, setGender] = useState<GenderChoice | null>(draft.gender)
   const [focused, setFocused] = useState(false)
   const [busy, setBusy] = useState(false)
+  const scrollRef = useRef<ScrollView>(null)
+
+  const scrollFieldIntoView = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
+  }, [])
+
+  const { webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollFieldIntoView,
+  })
 
   const trimmed = nickname.trim()
   const tooShort = trimmed.length > 0 && trimmed.length < 2
@@ -101,11 +115,16 @@ export default function OnboardingProfile() {
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
 
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <ScrollView
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.body}
           keyboardShouldPersistTaps="handled"
@@ -125,7 +144,10 @@ export default function OnboardingProfile() {
                 maxLength={NICKNAME_MAX}
                 autoCapitalize="none"
                 autoCorrect={false}
-                onFocus={() => setFocused(true)}
+                onFocus={() => {
+                  setFocused(true)
+                  scrollFieldIntoView()
+                }}
                 onBlur={() => setFocused(false)}
                 style={styles.input}
                 returnKeyType="done"

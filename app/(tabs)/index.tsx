@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   StyleSheet,
   Animated,
+  Easing,
   TextInput,
   Platform,
 } from 'react-native'
@@ -49,6 +50,7 @@ import {
   getCareUseGate,
   loadPetStock,
   recordCareUse,
+  seedCareUseReadyForDev,
   useFood,
   useToy,
 } from '../../lib/petStock'
@@ -93,6 +95,9 @@ import {
   startPetTourFromWelcome,
   subscribePetTour,
 } from '../../lib/coachmarkTourState'
+
+/** __DEV__: 홈 포커스당 세션 1회 — 주기 테스트용 재고·일일 카운트 */
+let didDevCareUseSeed = false
 
 const PET = {
   name: '하치',
@@ -170,6 +175,11 @@ const HEART_BURST: {
   { top: '54%', right: '10%', size: 18 },
 ]
 
+/** 케어 아이템(밥통·장난감) 비행 오버레이 크기 */
+const CARE_FLY_SIZE = 44
+const BOWL_FLY_SIZE = CARE_FLY_SIZE
+const TOY_FLY_SIZE = CARE_FLY_SIZE
+
 const CLAIM_FEED_LINES = [
   '우와! 좋아하는 맘마예요. 정말 기뻐할 거예요!',
   '잘 챙겼어요. 꼬리 흔들며 기다리고 있을게요!',
@@ -237,6 +247,8 @@ type CareStockCardProps = {
   grayIconWhenEmpty?: boolean
   /** 코치마크 하이라이트 */
   tourHighlight?: boolean
+  /** 사료 비행 애니메이션 측정용 */
+  anchorRef?: RefObject<View | null>
 }
 
 /** 케어 CTA — creamyBeige 면 + selected 테두리 (오렌지 절제) */
@@ -249,6 +261,7 @@ function CareStockCard({
   onAcquire,
   grayIconWhenEmpty = false,
   tourHighlight = false,
+  anchorRef,
 }: CareStockCardProps) {
   const enabled = count > 0
   const scale = useRef(new Animated.Value(1)).current
@@ -273,41 +286,43 @@ function CareStockCard({
   }
 
   return (
-    <Animated.View style={[styles.stockCardWrap, { transform: [{ scale }] }]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={enabled ? useLabel : acquireLabel}
-        // Nudge: disabled 금지 — 카드 전체가 CTA
-        onPress={enabled ? onUse : onAcquire}
-        onHoverIn={() => setHovered(true)}
-        onHoverOut={() => setHovered(false)}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[
-          styles.stockCard,
-          hovered && styles.stockCardHovered,
-          tourHighlight && styles.stockCardTour,
-          { cursor: 'pointer' } as object,
-        ]}
-      >
-        <Text style={styles.stockActionLabel} numberOfLines={1}>
-          {enabled ? useLabel : acquireLabel}
-        </Text>
-        <View style={styles.stockIconCountRow}>
-          <Image
-            source={icon}
-            style={[
-              styles.stockIcon,
-              grayIconWhenEmpty && !enabled && styles.stockIconMuted,
-            ]}
-            resizeMode="contain"
-          />
-          <Text style={styles.stockCount} numberOfLines={1}>
-            {count}개
+    <View ref={anchorRef} collapsable={false} style={styles.stockCardWrap}>
+      <Animated.View style={{ flex: 1, transform: [{ scale }] }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={enabled ? useLabel : acquireLabel}
+          // Nudge: disabled 금지 — 카드 전체가 CTA
+          onPress={enabled ? onUse : onAcquire}
+          onHoverIn={() => setHovered(true)}
+          onHoverOut={() => setHovered(false)}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={[
+            styles.stockCard,
+            hovered && styles.stockCardHovered,
+            tourHighlight && styles.stockCardTour,
+            { cursor: 'pointer' } as object,
+          ]}
+        >
+          <Text style={styles.stockActionLabel} numberOfLines={1}>
+            {enabled ? useLabel : acquireLabel}
           </Text>
-        </View>
-      </Pressable>
-    </Animated.View>
+          <View style={styles.stockIconCountRow}>
+            <Image
+              source={icon}
+              style={[
+                styles.stockIcon,
+                grayIconWhenEmpty && !enabled && styles.stockIconMuted,
+              ]}
+              resizeMode="contain"
+            />
+            <Text style={styles.stockCount} numberOfLines={1}>
+              {count}개
+            </Text>
+          </View>
+        </Pressable>
+      </Animated.View>
+    </View>
   )
 }
 
@@ -342,17 +357,28 @@ function MenuCooldownRing({
   size: number
   progress: number
 }) {
-  const r = (size - MENU_RING_STROKE) / 2
+  // Stroke sits just outside the opaque circle so it isn't covered.
+  const outset = MENU_RING_STROKE
+  const ringSize = size + outset * 2
+  const r = (ringSize - MENU_RING_STROKE) / 2
   const c = 2 * Math.PI * r
   const ratio = Math.min(1, Math.max(0, progress))
   const offset = c * (1 - ratio)
-  const cx = size / 2
+  const cx = ringSize / 2
 
   return (
     <Svg
-      width={size}
-      height={size}
-      style={styles.menuRingSvg}
+      width={ringSize}
+      height={ringSize}
+      style={[
+        styles.menuRingSvg,
+        {
+          width: ringSize,
+          height: ringSize,
+          left: -outset,
+          top: -outset,
+        },
+      ]}
       pointerEvents="none"
     >
       <Circle
@@ -396,6 +422,7 @@ function MenuQuickItem({
   const [hovered, setHovered] = useState(false)
   const lift = (ready && hovered) || highlighted
   const showRing = cooling && cooldownProgress != null
+  const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
 
   return (
     <Pressable
@@ -417,7 +444,13 @@ function MenuQuickItem({
       ]}
     >
       <View style={styles.menuIconWrap}>
-        <View style={{ width: circleSize, height: circleSize }}>
+        <View
+          style={{
+            width: circleSize,
+            height: circleSize,
+            overflow: 'visible',
+          }}
+        >
           {showRing ? (
             <MenuCooldownRing
               size={circleSize}
@@ -440,26 +473,39 @@ function MenuQuickItem({
           >
             <Image
               source={image}
-              style={{ width: iconSize, height: iconSize }}
+              style={[
+                { width: iconSize, height: iconSize },
+                cooling && styles.menuIconDimmed,
+              ]}
               resizeMode="contain"
             />
+            {cooling && cooldownLabel ? (
+              <View style={styles.menuCooldownTimerWrap} pointerEvents="none">
+                <Text
+                  style={[
+                    styles.menuCooldownTimer,
+                    { fontSize: timerFontSize },
+                  ]}
+                  numberOfLines={1}
+                  allowFontScaling={false}
+                >
+                  {cooldownLabel}
+                </Text>
+              </View>
+            ) : null}
           </View>
+          {ready ? (
+            <View style={styles.menuReadyBadge} pointerEvents="none">
+              <Text style={styles.menuReadyBadgeText} allowFontScaling={false}>
+                완료
+              </Text>
+            </View>
+          ) : null}
         </View>
-        {ready ? <View style={styles.menuReadyDot} /> : null}
       </View>
       <Text style={[styles.menuLabel, { fontSize: labelSize }]} numberOfLines={1}>
         {label}
       </Text>
-      {ready ? (
-        <Text style={styles.menuReadyCaption} numberOfLines={1}>
-          제작 완료
-        </Text>
-      ) : null}
-      {cooling ? (
-        <Text style={styles.menuCooldownCaption} numberOfLines={1}>
-          {cooldownLabel}
-        </Text>
-      ) : null}
     </Pressable>
   )
 }
@@ -549,12 +595,12 @@ export default function PetHomeScreen() {
   const [claimNow, setClaimNow] = useState(() => Date.now())
   /** 빈 재고일 때 상단 받기 메뉴 강조 */
   const [menuNudge, setMenuNudge] = useState<'feed' | 'toy' | null>(null)
-  /** 케어 직후 대화로 유도 */
-  const [chatCtaOn, setChatCtaOn] = useState(false)
   const careBusyRef = useRef(false)
   const menuNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const chatCtaTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tapLineIndex = useRef(0)
+  const feedCardRef = useRef<View>(null)
+  const toyCardRef = useRef<View>(null)
+  const petStageRef = useRef<View>(null)
 
   // 상단 헤더 · 중간 펫존(flex:1) · 하단 케어바 · 탭바 예약
   const tabBarReserve = tabBarReserveHeight(insets.bottom)
@@ -582,12 +628,19 @@ export default function PetHomeScreen() {
   const fxTranslateY = useRef(new Animated.Value(0)).current
   const heartOpacity = useRef(new Animated.Value(0)).current
   const heartLift = useRef(new Animated.Value(0)).current
+  const bowlFlyTX = useRef(new Animated.Value(0)).current
+  const bowlFlyTY = useRef(new Animated.Value(0)).current
+  const bowlFlyOpacity = useRef(new Animated.Value(0)).current
+  const bowlFlyScale = useRef(new Animated.Value(1)).current
+  const toyFlyTX = useRef(new Animated.Value(0)).current
+  const toyFlyTY = useRef(new Animated.Value(0)).current
+  const toyFlyOpacity = useRef(new Animated.Value(0)).current
+  const toyFlyScale = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     return () => {
       if (speechTimer.current) clearTimeout(speechTimer.current)
       if (menuNudgeTimer.current) clearTimeout(menuNudgeTimer.current)
-      if (chatCtaTimer.current) clearTimeout(chatCtaTimer.current)
     }
   }, [])
 
@@ -595,12 +648,6 @@ export default function PetHomeScreen() {
     setMenuNudge(kind)
     if (menuNudgeTimer.current) clearTimeout(menuNudgeTimer.current)
     menuNudgeTimer.current = setTimeout(() => setMenuNudge(null), 3200)
-  }
-
-  const showChatCta = () => {
-    setChatCtaOn(true)
-    if (chatCtaTimer.current) clearTimeout(chatCtaTimer.current)
-    chatCtaTimer.current = setTimeout(() => setChatCtaOn(false), 4500)
   }
 
   const openStorage = () => {
@@ -636,6 +683,142 @@ export default function PetHomeScreen() {
       }),
     ]).start(() => setHeartsOn(false))
   }
+
+  /** 사료 밥통이 케어 버튼 → 캐릭터로 날아감 (~0.65s) */
+  const playBowlFly = () =>
+    new Promise<void>((resolve) => {
+      const fromNode = feedCardRef.current
+      const toNode = petStageRef.current
+      if (!fromNode || !toNode) {
+        resolve()
+        return
+      }
+
+      fromNode.measureInWindow((fx, fy, fw, fh) => {
+        toNode.measureInWindow((tx, ty, tw, th) => {
+          if (fw <= 0 || fh <= 0 || tw <= 0 || th <= 0) {
+            resolve()
+            return
+          }
+          const startX = fx + fw / 2 - BOWL_FLY_SIZE / 2
+          const startY = fy + fh / 2 - BOWL_FLY_SIZE / 2
+          const endX = tx + tw / 2 - BOWL_FLY_SIZE / 2
+          const endY = ty + th * 0.52 - BOWL_FLY_SIZE / 2
+          const ease = Easing.out(Easing.cubic)
+
+          bowlFlyTX.setValue(startX)
+          bowlFlyTY.setValue(startY)
+          bowlFlyOpacity.setValue(1)
+          bowlFlyScale.setValue(0.92)
+
+          Animated.parallel([
+            Animated.timing(bowlFlyTX, {
+              toValue: endX,
+              duration: 640,
+              easing: ease,
+              useNativeDriver: true,
+            }),
+            Animated.timing(bowlFlyTY, {
+              toValue: endY,
+              duration: 640,
+              easing: ease,
+              useNativeDriver: true,
+            }),
+            Animated.sequence([
+              Animated.timing(bowlFlyScale, {
+                toValue: 1.06,
+                duration: 180,
+                easing: Easing.out(Easing.quad),
+                useNativeDriver: true,
+              }),
+              Animated.timing(bowlFlyScale, {
+                toValue: 0.78,
+                duration: 460,
+                easing: ease,
+                useNativeDriver: true,
+              }),
+            ]),
+            Animated.sequence([
+              Animated.delay(420),
+              Animated.timing(bowlFlyOpacity, {
+                toValue: 0,
+                duration: 220,
+                easing: Easing.in(Easing.quad),
+                useNativeDriver: true,
+              }),
+            ]),
+          ]).start(() => resolve())
+        })
+      })
+    })
+
+  /** 장난감이 케어 버튼 → 캐릭터로 날아감 (~0.65s) */
+  const playToyFly = () =>
+    new Promise<void>((resolve) => {
+      const fromNode = toyCardRef.current
+      const toNode = petStageRef.current
+      if (!fromNode || !toNode) {
+        resolve()
+        return
+      }
+
+      fromNode.measureInWindow((fx, fy, fw, fh) => {
+        toNode.measureInWindow((tx, ty, tw, th) => {
+          if (fw <= 0 || fh <= 0 || tw <= 0 || th <= 0) {
+            resolve()
+            return
+          }
+          const startX = fx + fw / 2 - TOY_FLY_SIZE / 2
+          const startY = fy + fh / 2 - TOY_FLY_SIZE / 2
+          const endX = tx + tw / 2 - TOY_FLY_SIZE / 2
+          const endY = ty + th * 0.52 - TOY_FLY_SIZE / 2
+          const ease = Easing.out(Easing.cubic)
+
+          toyFlyTX.setValue(startX)
+          toyFlyTY.setValue(startY)
+          toyFlyOpacity.setValue(1)
+          toyFlyScale.setValue(0.92)
+
+          Animated.parallel([
+            Animated.timing(toyFlyTX, {
+              toValue: endX,
+              duration: 640,
+              easing: ease,
+              useNativeDriver: true,
+            }),
+            Animated.timing(toyFlyTY, {
+              toValue: endY,
+              duration: 640,
+              easing: ease,
+              useNativeDriver: true,
+            }),
+            Animated.sequence([
+              Animated.timing(toyFlyScale, {
+                toValue: 1.06,
+                duration: 180,
+                easing: Easing.out(Easing.quad),
+                useNativeDriver: true,
+              }),
+              Animated.timing(toyFlyScale, {
+                toValue: 0.78,
+                duration: 460,
+                easing: ease,
+                useNativeDriver: true,
+              }),
+            ]),
+            Animated.sequence([
+              Animated.delay(420),
+              Animated.timing(toyFlyOpacity, {
+                toValue: 0,
+                duration: 220,
+                easing: Easing.in(Easing.quad),
+                useNativeDriver: true,
+              }),
+            ]),
+          ]).start(() => resolve())
+        })
+      })
+    })
 
   const showSpeech = (message: string, holdMs = 2400) => {
     if (speechTimer.current) clearTimeout(speechTimer.current)
@@ -676,6 +859,24 @@ export default function PetHomeScreen() {
     }
   }, [])
 
+  // __DEV__: Fast Refresh 직후에도 주기 버튼이 바로 켜지도록 재고·일일 카운트 시드
+  useEffect(() => {
+    if (!__DEV__) return
+    let cancelled = false
+    void (async () => {
+      if (didDevCareUseSeed) return
+      didDevCareUseSeed = true
+      const stock = await seedCareUseReadyForDev()
+      if (cancelled) return
+      setEnergy(stock.energy)
+      setFoodCount(stock.food)
+      setToyCount(stock.toy)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   useFocusEffect(
     useCallback(() => {
       setHomeFocused(true)
@@ -684,6 +885,10 @@ export default function PetHomeScreen() {
       let coachTimer: ReturnType<typeof setTimeout> | null = null
 
       void (async () => {
+        if (__DEV__ && !didDevCareUseSeed) {
+          didDevCareUseSeed = true
+          await seedCareUseReadyForDev()
+        }
         const stock = await loadPetStock()
         if (cancelled) return
         setEnergy(stock.energy)
@@ -983,11 +1188,11 @@ export default function PetHomeScreen() {
         const claims = await recordPetItemUse('feed')
         setClaimState(claims)
         playHearts()
+        await playBowlFly()
         await playPetReact('eat')
         const after = await addEnergy(gain)
         await applyEnergyCredit(after)
         showSpeech(FEED_DONE_SPEECH[petId], 3400)
-        showChatCta()
       } else {
         const next = await useToy(1)
         if (!next) return
@@ -996,11 +1201,11 @@ export default function PetHomeScreen() {
         const claims = await recordPetItemUse('toy')
         setClaimState(claims)
         playHearts()
+        await playToyFly()
         await playPetReact('play')
         const after = await addEnergy(gain)
         await applyEnergyCredit(after)
         showSpeech(PLAY_DONE_SPEECH[petId], 3400)
-        showChatCta()
       }
     } finally {
       careBusyRef.current = false
@@ -1236,7 +1441,11 @@ export default function PetHomeScreen() {
               <Text style={styles.greetingBubbleText}>{bubbleText}</Text>
               <View style={styles.greetingBubbleTail} />
             </Animated.View>
-            <View style={[styles.petStage, { width: petSize, height: petSize }]}>
+            <View
+              ref={petStageRef}
+              collapsable={false}
+              style={[styles.petStage, { width: petSize, height: petSize }]}
+            >
               {fxLabel ? (
                 <Animated.Text
                   style={[
@@ -1302,23 +1511,6 @@ export default function PetHomeScreen() {
                 />
               </Pressable>
             </View>
-            {chatCtaOn ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="대화하러 가기"
-                onPress={() => {
-                  setChatCtaOn(false)
-                  router.push('/(tabs)/chat')
-                }}
-                style={({ pressed }) => [
-                  styles.chatCtaChip,
-                  pressed && styles.headerIconPressed,
-                ]}
-              >
-                <Text style={styles.chatCtaChipText}>대화하러 가기</Text>
-                <CaretRight size={14} color={Colors.primary} weight="bold" />
-              </Pressable>
-            ) : null}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${petName}, 이름 수정`}
@@ -1391,6 +1583,7 @@ export default function PetHomeScreen() {
                 onUse={handleFeedPress}
                 onAcquire={handleAcquireFeed}
                 tourHighlight={tourHighlightCare}
+                anchorRef={feedCardRef}
               />
               <View style={{ width: actionGap }} />
               <CareStockCard
@@ -1402,6 +1595,7 @@ export default function PetHomeScreen() {
                 onUse={handlePlayPress}
                 onAcquire={handleAcquireToy}
                 tourHighlight={tourHighlightCare}
+                anchorRef={toyCardRef}
               />
             </View>
           </View>
@@ -1583,6 +1777,39 @@ export default function PetHomeScreen() {
           </Pressable>
         </View>
       </BottomSheet>
+
+      <Animated.Image
+        pointerEvents="none"
+        source={require('../../assets/images/bowl.png')}
+        style={[
+          styles.bowlFly,
+          {
+            opacity: bowlFlyOpacity,
+            transform: [
+              { translateX: bowlFlyTX },
+              { translateY: bowlFlyTY },
+              { scale: bowlFlyScale },
+            ],
+          },
+        ]}
+        resizeMode="contain"
+      />
+      <Animated.Image
+        pointerEvents="none"
+        source={require('../../assets/images/toy.png')}
+        style={[
+          styles.toyFly,
+          {
+            opacity: toyFlyOpacity,
+            transform: [
+              { translateX: toyFlyTX },
+              { translateY: toyFlyTY },
+              { scale: toyFlyScale },
+            ],
+          },
+        ]}
+        resizeMode="contain"
+      />
     </ImageBackground>
   )
 }
@@ -1619,24 +1846,26 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   tipCloseBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
     width: 22,
     height: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
   },
   stockTip: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 34,
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: Colors.surfaceSecondary,
   },
   stockTipText: {
-    flex: 1,
+    textAlign: 'center',
     fontSize: 12,
     lineHeight: 18,
     fontWeight: '600',
@@ -1758,7 +1987,8 @@ const styles = StyleSheet.create({
   },
   menuIconWrap: {
     position: 'relative',
-    marginBottom: 4,
+    marginBottom: 8,
+    overflow: 'visible',
   },
   menuCircle: {
     alignItems: 'center',
@@ -1766,10 +1996,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(94, 64, 51, 0.12)',
     backgroundColor: Colors.surface,
+    zIndex: 2,
   },
   menuRingSvg: {
+    position: 'absolute',
+    zIndex: 3,
+  },
+  menuIconDimmed: {
+    opacity: 0.28,
+  },
+  menuCooldownTimerWrap: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  menuCooldownTimer: {
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    color: Colors.cocoa,
+    letterSpacing: -0.4,
+    includeFontPadding: false,
+  },
+  menuReadyBadge: {
+    position: 'absolute',
+    top: -3,
+    right: -6,
+    zIndex: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+  },
+  menuReadyBadgeText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: Colors.surface,
+    letterSpacing: -0.2,
   },
   menuCircleReady: {
     borderWidth: 2,
@@ -1790,34 +2053,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.selected,
     backgroundColor: Colors.creamyBeige,
-  },
-  menuReadyDot: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.background,
-  },
-  menuReadyCaption: {
-    marginTop: 2,
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: '700',
-    color: Colors.primary,
-    textAlign: 'center',
-  },
-  menuCooldownCaption: {
-    marginTop: 2,
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: '700',
-    color: Colors.error,
-    textAlign: 'center',
-    fontVariant: ['tabular-nums'],
   },
   menuLabel: {
     width: '100%',
@@ -1855,25 +2090,6 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
-  },
-  chatCtaChip: {
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    alignSelf: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    ...Shadows.elevation,
-  },
-  chatCtaChipText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.primary,
   },
   petName: {
     fontSize: 16,
@@ -1994,6 +2210,22 @@ const styles = StyleSheet.create({
   heartFxItem: {
     position: 'absolute',
   },
+  bowlFly: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: BOWL_FLY_SIZE,
+    height: BOWL_FLY_SIZE,
+    zIndex: 50,
+  },
+  toyFly: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: TOY_FLY_SIZE,
+    height: TOY_FLY_SIZE,
+    zIndex: 50,
+  },
   sheet: {
     zIndex: 4,
     borderTopLeftRadius: 24,
@@ -2015,6 +2247,7 @@ const styles = StyleSheet.create({
   greetingBubble: {
     zIndex: 10,
     alignSelf: 'center',
+    alignItems: 'center',
     maxWidth: 280,
     marginBottom: 10,
     paddingHorizontal: 18,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -27,6 +27,11 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 import { PET_NAME_MAX } from '../../lib/petProfile'
 import { DogExpr } from '../../constants/DogExpr'
 import { Heart } from 'phosphor-react-native'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../../lib/useKeyboardAvoidInset'
 
 const copy = getOnboardingCopy().petSelect
 
@@ -164,6 +169,15 @@ export default function OnboardingPetSelect() {
   const [petId, setPetId] = useState<PetChoice | null>(draft.petId)
   const [petName, setPetName] = useState(draft.petName)
   const [nameFocused, setNameFocused] = useState(false)
+  const scrollRef = useRef<ScrollView>(null)
+
+  const scrollNameIntoView = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
+  }, [])
+
+  const { webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollNameIntoView,
+  })
 
   const selectedPet = copy.pets.find((p) => p.id === petId)
   const trimmedName = petName.trim()
@@ -201,11 +215,16 @@ export default function OnboardingPetSelect() {
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
 
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <ScrollView
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.body}
           keyboardShouldPersistTaps="handled"
@@ -238,7 +257,10 @@ export default function OnboardingPetSelect() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={petId != null}
-                onFocus={() => setNameFocused(true)}
+                onFocus={() => {
+                  setNameFocused(true)
+                  scrollNameIntoView()
+                }}
                 onBlur={() => setNameFocused(false)}
                 style={styles.input}
                 returnKeyType="done"

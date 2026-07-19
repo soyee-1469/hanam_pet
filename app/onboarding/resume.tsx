@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react'
 import {
   View,
   Text,
@@ -29,6 +29,11 @@ import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../../lib/useKeyboardAvoidInset'
 
 const copy = getOnboardingCopy().resume
 const DEMO_RESTORE_CODE = getOnboardingCopy().restoreCode.dummyCode
@@ -112,6 +117,16 @@ export default function OnboardingResume() {
   const [busy, setBusy] = useState(false)
   const [codeError, setCodeError] = useState(false)
   const inputs = useRef<(RNTextInput | null)[]>([])
+  const scrollRef = useRef<ScrollView>(null)
+
+  const scrollOtpIntoView = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
+  }, [])
+
+  const { webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollOtpIntoView,
+    enabled: step === 'code',
+  })
 
   const code = digits.join('')
   const codeOk = /^\d{8}$/.test(code)
@@ -377,10 +392,16 @@ export default function OnboardingResume() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <ScrollView
+          ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={styles.body}
           keyboardShouldPersistTaps="handled"
@@ -397,7 +418,10 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
-              onFocus={setFocused}
+              onFocus={(i) => {
+                setFocused(i)
+                scrollOtpIntoView()
+              }}
             />
             <Text style={styles.otpSep}>·</Text>
             <OtpGroup
@@ -407,7 +431,10 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
-              onFocus={setFocused}
+              onFocus={(i) => {
+                setFocused(i)
+                scrollOtpIntoView()
+              }}
             />
           </View>
 

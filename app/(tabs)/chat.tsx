@@ -43,6 +43,11 @@ import {
   getChatClearToken,
   subscribeChatClear,
 } from '../../lib/chatSession'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../../lib/useKeyboardAvoidInset'
 
 const TYPING_MS = 1800
 
@@ -233,9 +238,20 @@ export default function ChatScreen() {
     return () => clearInterval(id)
   }, [typing])
 
-  const scrollToEnd = () => {
+  const scrollToEnd = useCallback(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
-  }
+  }, [])
+
+  /** 키보드 열림 → 펫·말풍선이 가려지지 않도록 레이아웃/스크롤 조정 */
+  const { keyboardOpen, webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollToEnd,
+  })
+
+  const composerBottomPad = keyboardOpen
+    ? Math.max(insets.bottom, 8)
+    : tabBarSpace + 8
+  const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
+  const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
 
   const sendMessage = async () => {
     const trimmed = message.trim()
@@ -333,9 +349,13 @@ export default function ChatScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={8}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <View style={styles.header}>
           <Pressable
@@ -354,35 +374,55 @@ export default function ChatScreen() {
         {!chatting && !depleted ? (
           <Animated.View
             style={[
-              styles.stage,
+              styles.flex,
               {
                 opacity: greetOpacity,
                 transform: [{ translateY: greetLift }],
               },
             ]}
           >
-            <View style={styles.greetWrap}>
-              <View style={styles.greetBubble}>
-                <Text style={styles.greetText}>
-                  {'오늘 마음은 어떤가요?\n편하게 이야기를 들려주세요.'}
-                </Text>
+            <ScrollView
+              style={styles.flex}
+              contentContainerStyle={[
+                styles.stage,
+                keyboardOpen && styles.stageKeyboard,
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              bounces={false}
+            >
+              <View style={styles.greetWrap}>
+                <View style={styles.greetBubble}>
+                  <Text style={styles.greetText}>
+                    {'오늘 마음은 어떤가요?\n편하게 이야기를 들려주세요.'}
+                  </Text>
+                </View>
+                <View style={styles.greetTail} />
               </View>
-              <View style={styles.greetTail} />
-            </View>
-            <Image
-              source={petImage}
-              style={styles.petIdle}
-              resizeMode="contain"
-              accessibilityLabel={petName}
-            />
+              <Image
+                source={petImage}
+                style={petIdleStyle}
+                resizeMode="contain"
+                accessibilityLabel={petName}
+              />
+            </ScrollView>
           </Animated.View>
         ) : !chatting && depleted ? (
-          <View style={styles.depletedStage}>
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={[
+              styles.depletedStage,
+              keyboardOpen && styles.stageKeyboard,
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
+          >
             <Text style={styles.stamp}>{formatStamp(new Date())}</Text>
             {depletedBubble}
             <Image
               source={petImage}
-              style={styles.petIdle}
+              style={petIdleStyle}
               resizeMode="contain"
               accessibilityLabel={petName}
             />
@@ -395,7 +435,7 @@ export default function ChatScreen() {
                 {petName} 에너지 소진
               </Text>
             </View>
-          </View>
+          </ScrollView>
         ) : (
           <ScrollView
             ref={scrollRef}
@@ -403,6 +443,7 @@ export default function ChatScreen() {
             contentContainerStyle={styles.chatContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
           >
             <Text style={styles.stamp}>{stamp}</Text>
 
@@ -465,7 +506,7 @@ export default function ChatScreen() {
 
               <Image
                 source={petImage}
-                style={styles.petChat}
+                style={petChatStyle}
                 resizeMode="contain"
                 accessibilityLabel={petName}
               />
@@ -488,7 +529,7 @@ export default function ChatScreen() {
         <View
           style={[
             styles.composerWrap,
-            { paddingBottom: tabBarSpace + 8 },
+            { paddingBottom: composerBottomPad },
             tourHighlightComposer && styles.composerWrapTour,
           ]}
         >
@@ -500,7 +541,7 @@ export default function ChatScreen() {
             </View>
           ) : (
             <>
-              {chatting ? <HelpContactsBanner /> : null}
+              {chatting && !keyboardOpen ? <HelpContactsBanner /> : null}
 
               <View
                 style={[
@@ -513,7 +554,10 @@ export default function ChatScreen() {
                   style={styles.input}
                   value={message}
                   onChangeText={setMessage}
-                  onFocus={() => setInputFocused(true)}
+                  onFocus={() => {
+                    setInputFocused(true)
+                    scrollToEnd()
+                  }}
                   onBlur={() => setInputFocused(false)}
                   placeholder="마음을 들려주세요."
                   placeholderTextColor={Colors.textDisabled}
@@ -598,15 +642,20 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   stage: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 12,
     paddingBottom: 24,
   },
+  stageKeyboard: {
+    justifyContent: 'flex-end',
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
   depletedStage: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
@@ -645,6 +694,10 @@ const styles = StyleSheet.create({
   petIdle: {
     width: 240,
     height: 240,
+  },
+  petIdleKeyboard: {
+    width: 160,
+    height: 160,
   },
   chatContent: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -777,6 +830,10 @@ const styles = StyleSheet.create({
   petChat: {
     width: 200,
     height: 200,
+  },
+  petChatKeyboard: {
+    width: 140,
+    height: 140,
   },
   statusPill: {
     flexDirection: 'row',

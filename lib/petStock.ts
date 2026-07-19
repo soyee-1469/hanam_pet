@@ -323,6 +323,26 @@ export async function recordCareUse(
 }
 
 /**
+ * __DEV__ 전용 — 「사료 주기」「놀아 주기」바로 눌러볼 수 있게
+ * 재고·일일 사용 카운트만 맞춤 (claim 쿨다운은 건드리지 않음).
+ */
+export async function seedCareUseReadyForDev(): Promise<PetStock> {
+  const stock = await savePetStock({
+    energy: 20,
+    food: 3,
+    toy: 3,
+  })
+  const daily = await loadPetDailyState()
+  await savePetDailyState({
+    ...daily,
+    energyEarned: 0,
+    feedUses: 0,
+    playUses: 0,
+  })
+  return stock
+}
+
+/**
  * 일기 첫 저장 1회만 +ENERGY_DIARY_GAIN.
  * 이미 지급했거나 한도로 0이면 credited=0.
  */

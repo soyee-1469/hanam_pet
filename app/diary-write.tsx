@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -24,6 +24,11 @@ import { findDiaryEntry } from '../lib/diaryRecords'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../lib/toast'
+import {
+  keyboardAvoidingBehavior,
+  keyboardVerticalOffset,
+  useKeyboardAvoidInset,
+} from '../lib/useKeyboardAvoidInset'
 
 const MOTION_MS = 200
 const easeOut = Easing.out(Easing.cubic)
@@ -108,7 +113,16 @@ export default function DiaryWriteScreen() {
   const [exitOpen, setExitOpen] = useState(false)
   const [tagsExpanded, setTagsExpanded] = useState(false)
   const allowLeave = useRef(false)
+  const scrollRef = useRef<ScrollView>(null)
   const visibleTags = tagsExpanded ? TAGS : TAGS.slice(0, TAGS_COLLAPSED)
+
+  const scrollNoteIntoView = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
+  }, [])
+
+  const { webKeyboardInset } = useKeyboardAvoidInset({
+    onOpen: scrollNoteIntoView,
+  })
 
   const petOpacity = useRef(new Animated.Value(1)).current
   const petScale = useRef(new Animated.Value(1)).current
@@ -330,9 +344,13 @@ export default function DiaryWriteScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        style={[
+          styles.flex,
+          Platform.OS === 'web' &&
+            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+        ]}
+        behavior={keyboardAvoidingBehavior()}
+        keyboardVerticalOffset={keyboardVerticalOffset}
       >
         <View style={styles.header}>
           <Pressable
@@ -353,6 +371,7 @@ export default function DiaryWriteScreen() {
         </View>
 
         <ScrollView
+          ref={scrollRef}
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -490,6 +509,7 @@ export default function DiaryWriteScreen() {
               textAlignVertical="top"
               placeholder="이 감정이나 순간을 기억하도록 무슨 일이 있었는지 편하게 기록해 보세요."
               placeholderTextColor={Colors.textDisabled}
+              onFocus={scrollNoteIntoView}
               onContentSizeChange={(e) => {
                 const h = e.nativeEvent.contentSize.height
                 setNoteHeight(

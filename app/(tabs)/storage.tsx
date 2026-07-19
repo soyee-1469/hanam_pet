@@ -407,50 +407,53 @@ export default function StorageScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.stockRow}>
-          {STOCK_COLS.map((col) => {
-            const have = toCount(stock[col.key])
-            const empty = have === 0
-            const ratio = Math.min(1, have / col.max)
-            const isEnergy = col.key === 'energy'
-            const fill = isEnergy ? energyBarColor(have) : stockFillColor(col.key)
-            return (
-              <View
-                key={col.key}
-                style={[styles.stockCard, empty && styles.stockCardEmpty]}
-                accessibilityRole="summary"
-                accessibilityLabel={`${col.label} ${have} / ${col.max}${col.unit}`}
-              >
-                <View style={styles.stockIconWell}>
-                  <StockIcon kind={col.key} size={40} empty={empty} />
-                </View>
-                <Text style={styles.stockLabel}>{col.label}</Text>
-                <Text style={styles.stockValue}>
-                  <Text
-                    style={[
-                      styles.stockHave,
-                      isEnergy && styles.stockHaveEnergy,
-                      empty && styles.stockHaveEmpty,
-                    ]}
-                  >
-                    {have}
+        <View style={styles.todayBlock}>
+          <Text style={styles.todayTitle}>지금 내 보관함에 있어요</Text>
+          <View style={styles.stockRow}>
+            {STOCK_COLS.map((col) => {
+              const have = toCount(stock[col.key])
+              const empty = have === 0
+              const ratio = Math.min(1, have / col.max)
+              const isEnergy = col.key === 'energy'
+              const fill = isEnergy ? energyBarColor(have) : stockFillColor(col.key)
+              return (
+                <View
+                  key={col.key}
+                  style={[styles.stockCard, empty && styles.stockCardEmpty]}
+                  accessibilityRole="summary"
+                  accessibilityLabel={`${col.label} ${have} / ${col.max}${col.unit}`}
+                >
+                  <View style={styles.stockIconWell}>
+                    <StockIcon kind={col.key} size={40} empty={empty} />
+                  </View>
+                  <Text style={styles.stockLabel}>{col.label}</Text>
+                  <Text style={styles.stockValue}>
+                    <Text
+                      style={[
+                        styles.stockHave,
+                        isEnergy && styles.stockHaveEnergy,
+                        empty && styles.stockHaveEmpty,
+                      ]}
+                    >
+                      {have}
+                    </Text>
+                    <Text style={styles.stockMax}>{` / ${col.max}`}</Text>
                   </Text>
-                  <Text style={styles.stockMax}>{` / ${col.max}`}</Text>
-                </Text>
-                <View style={styles.stockTrack}>
-                  <View
-                    style={[
-                      styles.stockFill,
-                      {
-                        width: `${Math.round(ratio * 100)}%`,
-                        backgroundColor: empty ? Colors.sand : fill,
-                      },
-                    ]}
-                  />
+                  <View style={styles.stockTrack}>
+                    <View
+                      style={[
+                        styles.stockFill,
+                        {
+                          width: `${Math.round(ratio * 100)}%`,
+                          backgroundColor: empty ? Colors.sand : fill,
+                        },
+                      ]}
+                    />
+                  </View>
                 </View>
-              </View>
-            )
-          })}
+              )
+            })}
+          </View>
         </View>
 
         <View style={styles.todayBlock}>

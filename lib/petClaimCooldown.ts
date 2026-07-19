@@ -99,6 +99,7 @@ export type ClaimMenuStatus =
       label: string
       /**
        * 0 → 1 toward ready (fills as wait elapses).
+       * Same second-ceil clock as `label` (HH:MM:SS).
        * Claim CD: elapsed / FEED|TOY_COOLDOWN_MS.
        * Daily cap: elapsed since last nextReadyAt → midnight.
        */
@@ -110,6 +111,16 @@ export type ClaimMenuStatus =
 
 function clamp01(n: number): number {
   return Math.min(1, Math.max(0, n))
+}
+
+/**
+ * Ring fills toward ready (0→1). Uses the same second-ceil clock as
+ * formatClaimCountdown so the arc ticks with HH:MM:SS.
+ */
+function progressTowardReady(remainingMs: number, totalMs: number): number {
+  const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000))
+  const totalSec = Math.max(1, Math.round(totalMs / 1000))
+  return clamp01(1 - remainingSec / totalSec)
 }
 
 /** Progress ring: fills toward ready while waiting. */
@@ -126,7 +137,7 @@ export function getClaimMenuStatus(
       kind: 'cooldown',
       remainingMs,
       label: formatClaimCountdown(remainingMs),
-      progress: clamp01(1 - remainingMs / Math.max(1, totalMs)),
+      progress: progressTowardReady(remainingMs, totalMs),
     }
   }
   if (b.count >= CLAIM_MAX_PER_DAY) {
@@ -138,7 +149,7 @@ export function getClaimMenuStatus(
       kind: 'cooldown',
       remainingMs,
       label: formatClaimCountdown(remainingMs),
-      progress: clamp01((now - phaseStart) / totalMs),
+      progress: progressTowardReady(remainingMs, totalMs),
     }
   }
   // 2차 수령: 쿨다운 끝났어도 1차 아이템 사용 전엔 불가
@@ -180,10 +191,10 @@ export async function recordPetItemUse(
 ): Promise<PetClaimState> {
   const state = await loadPetClaimState()
   const bucket = normalizeBucket(state[kind])
-  // 사료 사용 직후: 받기 CD가 진행 중이면 남은 시간을 절반(2h)으로 맞춤 (총 4h 유지, 시작점만 이동)
+  // 사료 사용 직후: 받기 CD가 진행 중이면 2.5h 경과(남은 ≈1.5h)로 맞춤 — 총 4h·링 검수 가시성
   const nextReadyAt =
     kind === 'feed' && bucket.nextReadyAt > now
-      ? now + FEED_COOLDOWN_MS / 2
+      ? now + CLAIM_COOLDOWN_MS - CLAIM_COOLDOWN_MS * (2.5 / 4)
       : bucket.nextReadyAt
   if (bucket.usedSinceClaim && nextReadyAt === bucket.nextReadyAt) {
     return state

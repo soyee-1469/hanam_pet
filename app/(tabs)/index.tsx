@@ -308,14 +308,16 @@ function CareStockCard({
             {enabled ? useLabel : acquireLabel}
           </Text>
           <View style={styles.stockIconCountRow}>
-            <Image
-              source={icon}
-              style={[
-                styles.stockIcon,
-                grayIconWhenEmpty && !enabled && styles.stockIconMuted,
-              ]}
-              resizeMode="contain"
-            />
+            <View style={styles.stockIconWell}>
+              <Image
+                source={icon}
+                style={[
+                  styles.stockIcon,
+                  grayIconWhenEmpty && !enabled && styles.stockIconMuted,
+                ]}
+                resizeMode="contain"
+              />
+            </View>
             <Text style={styles.stockCount} numberOfLines={1}>
               {count}개
             </Text>
@@ -2385,7 +2387,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.creamyBeige,
     borderWidth: 1,
     borderColor: 'rgba(94, 64, 51, 0.1)',
     ...Shadows.elevation,
@@ -2423,10 +2425,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
   },
-  stockIcon: {
-    width: 36,
-    height: 36,
+  stockIconWell: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 6,
+  },
+  stockIcon: {
+    width: 32,
+    height: 32,
   },
   stockIconMuted: {
     tintColor: Colors.taupe,

@@ -739,15 +739,14 @@ const styles = StyleSheet.create({
   rowIcon: {
     width: 40,
     height: 40,
-    borderRadius: 11,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rowIconItem: {
-    backgroundColor: 'transparent',
+    backgroundColor: Colors.surface,
   },
   rowIconEnergy: {
-    borderRadius: 20,
     backgroundColor: Colors.accentSoft,
   },
   rowCopy: {

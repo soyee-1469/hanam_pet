@@ -13,6 +13,7 @@ import { CaretLeft, CheckCircle, Lightning, PawPrint } from 'phosphor-react-nati
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
+import { CatExpr } from '../../constants/OnboardingMascot'
 import { PrimaryButton } from '../../components/ui'
 import {
   ATTENDANCE_ENERGY_REWARD,
@@ -21,6 +22,10 @@ import {
   saveAttendanceKeys,
   stampToday,
 } from '../../lib/attendance'
+import {
+  getOnboardingProfile,
+  type PetChoice,
+} from '../../lib/onboardingStorage'
 import { ENERGY_ATTEND_GAIN, ENERGY_MAX, addEnergy } from '../../lib/petStock'
 import { showToast } from '../../lib/toast'
 
@@ -53,11 +58,11 @@ export default function AttendanceScreen() {
   const month = today.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const todayKey = dateKey(today)
-  const todayDay = today.getDate()
   const cells = useMemo(() => getMonthMatrix(year, month), [year, month])
 
   const [stamped, setStamped] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
+  const [petId, setPetId] = useState<PetChoice>('mongi')
 
   useFocusEffect(
     useCallback(() => {
@@ -68,8 +73,10 @@ export default function AttendanceScreen() {
           keys = demoKeysForMonth(year, month, today)
           await saveAttendanceKeys(keys)
         }
+        const profile = await getOnboardingProfile()
         if (!alive) return
         setStamped(new Set(keys))
+        setPetId(profile?.petId ?? 'mongi')
       })()
       return () => {
         alive = false
@@ -88,6 +95,8 @@ export default function AttendanceScreen() {
 
   const monthEnergy = monthStampCount * ATTENDANCE_ENERGY_REWARD
   const stampedToday = stamped.has(todayKey)
+  const petExpr = petId === 'nami' ? CatExpr : DogExpr
+  const petImage = stampedToday ? petExpr.wink : petExpr.soft
 
   const onStamp = async () => {
     if (busy || stampedToday) return
@@ -151,15 +160,14 @@ export default function AttendanceScreen() {
             <View style={styles.energyPill}>
               <Lightning size={14} color={Colors.accent} weight="fill" />
               <Text style={styles.energyPillText}>
-                이번 달{' '}
+                이번달 모은 에너지{' '}
                 <Text style={styles.energyPillEm}>{monthEnergy}</Text>
-                {' 에너지'}
               </Text>
             </View>
           </View>
           <View style={styles.heroImageWrap}>
             <Image
-              source={stampedToday ? DogExpr.wink : DogExpr.soft}
+              source={petImage}
               style={styles.heroImage}
               resizeMode="contain"
               accessibilityLabel="펫"
@@ -202,7 +210,6 @@ export default function AttendanceScreen() {
               const key = dateKey(new Date(year, month, day))
               const isStamped = stamped.has(key)
               const isToday = key === todayKey
-              const isFuture = day > todayDay
               return (
                 <View key={key} style={styles.cell}>
                   {isStamped ? (
@@ -226,14 +233,12 @@ export default function AttendanceScreen() {
                         styles.dayDisk,
                         styles.emptyDisk,
                         isToday && styles.emptyDiskToday,
-                        isFuture && styles.emptyDiskFuture,
                       ]}
                     >
                       <Text
                         style={[
                           styles.dayText,
                           isToday && styles.dayTextToday,
-                          isFuture && styles.dayTextFuture,
                         ]}
                       >
                         {day}
@@ -254,7 +259,7 @@ export default function AttendanceScreen() {
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendDotEmpty]} />
-              <Text style={styles.legendText}>도장 없는 날</Text>
+              <Text style={styles.legendText}>출석 못한 날</Text>
             </View>
           </View>
 
@@ -273,26 +278,14 @@ export default function AttendanceScreen() {
                 <Text style={styles.doneBtnText}>오늘 출석 완료!</Text>
               </View>
             ) : (
-              <>
-                <View style={styles.ctaHint}>
-                  <Lightning size={14} color={Colors.accent} weight="fill" />
-                  <Text style={styles.ctaHintText}>
-                    출석 보상{' '}
-                    <Text style={styles.ctaHintEm}>
-                      +{ATTENDANCE_ENERGY_REWARD}
-                    </Text>
-                    {' 에너지'}
-                  </Text>
-                </View>
-                <PrimaryButton
-                  label={`출석하고 ${ATTENDANCE_ENERGY_REWARD}개 에너지 받기`}
-                  emphasized
-                  disabled={busy}
-                  onPress={() => {
-                    void onStamp()
-                  }}
-                />
-              </>
+              <PrimaryButton
+                label={`출석하고 ${ATTENDANCE_ENERGY_REWARD}개 에너지 받기`}
+                emphasized
+                disabled={busy}
+                onPress={() => {
+                  void onStamp()
+                }}
+              />
             )}
           </View>
         </View>
@@ -386,19 +379,15 @@ const styles = StyleSheet.create({
     color: Colors.accent,
   },
   heroImageWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.surface,
-    borderWidth: 3,
-    borderColor: Colors.surface,
+    width: 112,
+    height: 112,
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   heroImage: {
-    width: 84,
-    height: 84,
+    width: 112,
+    height: 112,
   },
   calCard: {
     backgroundColor: Colors.surface,
@@ -481,9 +470,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.selected,
   },
-  emptyDiskFuture: {
-    backgroundColor: 'transparent',
-  },
   dayText: {
     fontSize: 14,
     fontWeight: '600',
@@ -492,10 +478,6 @@ const styles = StyleSheet.create({
   dayTextToday: {
     fontWeight: '700',
     color: Colors.selected,
-  },
-  dayTextFuture: {
-    fontWeight: '500',
-    color: Colors.textDisabled,
   },
   legendRow: {
     flexDirection: 'row',
@@ -532,22 +514,6 @@ const styles = StyleSheet.create({
   },
   stampCta: {
     marginTop: 16,
-    gap: 10,
-  },
-  ctaHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-  },
-  ctaHintText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  ctaHintEm: {
-    fontWeight: '700',
-    color: Colors.accent,
   },
   doneBtn: {
     height: 54,

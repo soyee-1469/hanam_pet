@@ -9,29 +9,26 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, CheckCircle, Lightning, PawPrint } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, HeaderTitleStyle } from '../../constants/Layout'
-import { DogExpr } from '../../constants/DogExpr'
-import { CatExpr } from '../../constants/OnboardingMascot'
-import { PrimaryButton } from '../../components/ui'
+import { CaretLeft, CheckCircle, PawPrint } from 'phosphor-react-native'
+import { Colors, Shadows } from '../constants/Colors'
+import { Layout, HeaderTitleStyle } from '../constants/Layout'
+import { EnergyIcon } from '../components/EnergyIcon'
+import { DogExpr } from '../constants/DogExpr'
+import { CatExpr } from '../constants/OnboardingMascot'
+import { PrimaryButton } from '../components/ui'
 import {
   ATTENDANCE_ENERGY_REWARD,
   dateKey,
   loadAttendanceKeys,
   saveAttendanceKeys,
   stampToday,
-} from '../../lib/attendance'
+} from '../lib/attendance'
 import {
   getOnboardingProfile,
   type PetChoice,
-} from '../../lib/onboardingStorage'
-import { ENERGY_ATTEND_GAIN, ENERGY_MAX, addEnergy } from '../../lib/petStock'
-import { showToast } from '../../lib/toast'
-import {
-  acquireTabBarOverlay,
-  releaseTabBarOverlay,
-} from '../../lib/tabBarOverlay'
+} from '../lib/onboardingStorage'
+import { ENERGY_ATTEND_GAIN, ENERGY_MAX, addEnergy } from '../lib/petStock'
+import { showToast } from '../lib/toast'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
@@ -70,7 +67,6 @@ export default function AttendanceScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      acquireTabBarOverlay()
       let alive = true
       void (async () => {
         let keys = await loadAttendanceKeys()
@@ -85,7 +81,6 @@ export default function AttendanceScreen() {
       })()
       return () => {
         alive = false
-        releaseTabBarOverlay()
       }
     }, [year, month, today]),
   )
@@ -138,7 +133,10 @@ export default function AttendanceScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={8}
-          onPress={() => router.navigate('/(tabs)/index')}
+          onPress={() => {
+            if (router.canGoBack()) router.back()
+            else router.replace('/(tabs)')
+          }}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
@@ -162,7 +160,7 @@ export default function AttendanceScreen() {
               하루 1회 · +{ATTENDANCE_ENERGY_REWARD} 에너지
             </Text>
             <View style={styles.energyPill}>
-              <Lightning size={14} color={Colors.accent} weight="fill" />
+              <EnergyIcon size={14} />
               <Text style={styles.energyPillText}>
                 이번달 모은 에너지{' '}
                 <Text style={styles.energyPillEm}>{monthEnergy}</Text>

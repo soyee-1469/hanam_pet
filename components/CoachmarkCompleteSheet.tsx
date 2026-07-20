@@ -23,7 +23,7 @@ export function CoachmarkCompleteSheet({
     >
       <View style={styles.iconWrap} accessibilityElementsHidden>
         <Image
-          source={require('../assets/images/fireworks.png')}
+          source={require('../assets/images/아이콘/폭죽.png')}
           style={styles.icon}
           resizeMode="contain"
           importantForAccessibility="no"
@@ -48,7 +48,7 @@ export function CoachmarkCompleteSheet({
 }
 
 const styles = StyleSheet.create({
-  // fireworks.png is 814×940 — square cover crops confetti; keep aspect + padding
+  // 폭죽.png is 814×940 — square cover crops confetti; keep aspect + padding
   iconWrap: {
     alignSelf: 'center',
     width: 80,

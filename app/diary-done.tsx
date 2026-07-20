@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Lightning } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { TypeStyle } from '../constants/Typography'
@@ -12,6 +11,7 @@ import {
   GhostButton,
   onboardingFooterStyle,
 } from '../components/ui'
+import { EnergyIcon } from '../components/EnergyIcon'
 import {
   ENERGY_DIARY_GAIN,
   energyCreditMessage,
@@ -74,7 +74,7 @@ export default function DiaryDoneScreen() {
         {showReward ? (
           <View style={styles.reward}>
             <View style={styles.rewardIcon}>
-              <Lightning size={16} color={Colors.accent} weight="fill" />
+              <EnergyIcon size={16} />
             </View>
             <Text style={styles.rewardText}>{rewardText}</Text>
           </View>

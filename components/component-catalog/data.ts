@@ -182,8 +182,8 @@ export const CHROME_CANDIDATES: CandidateItem[] = [
       'app/mind-report.tsx',
       'app/diary-*.tsx',
       'app/notifications.tsx',
-      'app/(tabs)/attendance.tsx',
-      'app/(tabs)/storage.tsx',
+      'app/attendance.tsx',
+      'app/storage.tsx',
       '…외 다수',
     ],
   },
@@ -221,7 +221,7 @@ export const CHROME_CANDIDATES: CandidateItem[] = [
     note: '콘텐츠|검사 · 에너지|아이템 · 검사 종류. selected underline',
     paths: [
       'app/(tabs)/mind.tsx',
-      'app/(tabs)/storage.tsx',
+      'app/storage.tsx',
       'app/mind-report.tsx',
     ],
   },
@@ -242,7 +242,7 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
       'app/mind-report.tsx',
       'app/diary-list.tsx',
       'app/notifications.tsx',
-      'app/(tabs)/attendance.tsx',
+      'app/attendance.tsx',
     ],
   },
   {
@@ -266,7 +266,7 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
       'app/diary-list.tsx',
       'app/notifications.tsx',
       'app/mind-report.tsx',
-      'app/(tabs)/storage.tsx',
+      'app/storage.tsx',
       'app/mind-content.tsx',
       'app/guide-doc.tsx',
       'app/(tabs)/mind.tsx',
@@ -300,17 +300,17 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
   {
     name: '출석 히어로 카드 / AttendanceHeroCard',
     note: 'stamped / unstamped 펫 표정',
-    paths: ['app/(tabs)/attendance.tsx'],
+    paths: ['app/attendance.tsx'],
   },
   {
     name: '출석 캘린더 카드 / AttendanceCalendarCard',
     note: 'stamp disk · empty · today · future + 범례',
-    paths: ['app/(tabs)/attendance.tsx'],
+    paths: ['app/attendance.tsx'],
   },
   {
     name: '보관함 이력 행 / StockHistoryRow',
     note: 'collapsed / expanded · ±delta(energy vs item)',
-    paths: ['app/(tabs)/storage.tsx'],
+    paths: ['app/storage.tsx'],
   },
   {
     name: '액션 시트 메뉴 / ActionSheetMenu',
@@ -544,22 +544,22 @@ export const PET_CANDIDATES: CandidateItem[] = [
   {
     name: '보관함 스톡 타일 / StockTile',
     note: '아이콘 웰 + 라벨 + have/max + 트랙 · empty',
-    paths: ['app/(tabs)/storage.tsx'],
+    paths: ['app/storage.tsx'],
   },
   {
     name: '오늘 획득 칩 / TodayGainChip',
     note: 'gained/cap · energy accent(옐로)',
-    paths: ['app/(tabs)/storage.tsx'],
+    paths: ['app/storage.tsx'],
   },
   {
     name: '에너지 보상 필 / EnergyRewardPill',
     note: 'Lightning + “+N 에너지”',
-    paths: ['app/(tabs)/attendance.tsx', 'app/diary-done.tsx'],
+    paths: ['app/attendance.tsx', 'app/diary-done.tsx'],
   },
   {
     name: '출석 완료 배지 / AttendanceDoneBadge',
     note: 'CheckCircle + 「오늘 출석 완료!」',
-    paths: ['app/(tabs)/attendance.tsx'],
+    paths: ['app/attendance.tsx'],
   },
 ]
 

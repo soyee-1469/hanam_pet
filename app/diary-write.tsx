@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
-import { CaretDown, CaretLeft, Heart } from 'phosphor-react-native'
+import { CaretDown, CaretLeft, CaretUp, Heart } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
@@ -114,15 +114,32 @@ export default function DiaryWriteScreen() {
   const [tagsExpanded, setTagsExpanded] = useState(false)
   const allowLeave = useRef(false)
   const scrollRef = useRef<ScrollView>(null)
+  const noteSectionY = useRef(0)
   const visibleTags = tagsExpanded ? TAGS : TAGS.slice(0, TAGS_COLLAPSED)
 
   const scrollNoteIntoView = useCallback(() => {
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
+    const y = Math.max(0, noteSectionY.current - 4)
+    // 키보드·KeyboardAvoidingView 레이아웃이 잡힌 뒤 스크롤
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y, animated: true })
+    }, 120)
   }, [])
 
-  const { webKeyboardInset } = useKeyboardAvoidInset({
+  const { webKeyboardInset, keyboardOpen } = useKeyboardAvoidInset({
     onOpen: scrollNoteIntoView,
   })
+
+  // 키보드 패딩이 잡힌 뒤 한 번 더 — 제목이 잘리지 않게
+  useEffect(() => {
+    if (!keyboardOpen) return
+    const t = setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        y: Math.max(0, noteSectionY.current - 4),
+        animated: true,
+      })
+    }, 200)
+    return () => clearTimeout(t)
+  }, [keyboardOpen])
 
   const petOpacity = useRef(new Animated.Value(1)).current
   const petScale = useRef(new Animated.Value(1)).current
@@ -373,7 +390,11 @@ export default function DiaryWriteScreen() {
         <ScrollView
           ref={scrollRef}
           style={styles.flex}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            // 키보드 때 제목이 맨 위로 올라갈 스크롤 여유
+            keyboardOpen && { paddingBottom: 280 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -457,72 +478,96 @@ export default function DiaryWriteScreen() {
           </View>
 
           <Text style={styles.sectionTitle}>무엇 때문에 그런 마음이 들었나요?</Text>
-          <View style={styles.tagWrap}>
-            {visibleTags.map((t) => {
-              const selected = tags.includes(t)
-              return (
-                <Pressable
-                  key={t}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  android_ripple={{ color: 'transparent' }}
-                  onPress={() => toggleTag(t)}
-                  style={({ pressed }) => [pressed && styles.pressedSoft]}
-                >
-                  <View
-                    style={[styles.tag, selected && styles.tagOn]}
-                    collapsable={false}
-                  >
-                    <Text
-                      style={[styles.tagText, selected && styles.tagTextOn]}
-                      numberOfLines={1}
+          <View style={styles.tagSection}>
+            <View style={styles.tagRow}>
+              <View style={styles.tagWrap}>
+                {visibleTags.map((t) => {
+                  const selected = tags.includes(t)
+                  return (
+                    <Pressable
+                      key={t}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      android_ripple={{ color: 'transparent' }}
+                      onPress={() => toggleTag(t)}
+                      style={({ pressed }) => [pressed && styles.pressedSoft]}
                     >
-                      {t}
-                    </Text>
-                  </View>
+                      <View
+                        style={[styles.tag, selected && styles.tagOn]}
+                        collapsable={false}
+                      >
+                        <Text
+                          style={[styles.tagText, selected && styles.tagTextOn]}
+                          numberOfLines={1}
+                        >
+                          {t}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )
+                })}
+              </View>
+              {TAGS.length > TAGS_COLLAPSED ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    tagsExpanded ? '태그 접기' : '태그 더보기'
+                  }
+                  onPress={() => setTagsExpanded((v) => !v)}
+                  style={({ pressed }) => [
+                    styles.tagExpand,
+                    pressed && styles.pressedSoft,
+                  ]}
+                >
+                  {tagsExpanded ? (
+                    <CaretUp
+                      size={18}
+                      color={Colors.textSecondary}
+                      weight="bold"
+                    />
+                  ) : (
+                    <CaretDown
+                      size={18}
+                      color={Colors.textSecondary}
+                      weight="bold"
+                    />
+                  )}
                 </Pressable>
-              )
-            })}
-            {!tagsExpanded && TAGS.length > TAGS_COLLAPSED ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="태그 더보기"
-                onPress={() => setTagsExpanded(true)}
-                style={({ pressed }) => [
-                  styles.tagExpand,
-                  pressed && styles.pressedSoft,
-                ]}
-              >
-                <CaretDown size={16} color={Colors.textDisabled} weight="bold" />
-              </Pressable>
-            ) : null}
+              ) : null}
+            </View>
           </View>
 
-          <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
-          <View style={styles.noteWrap}>
-            <TextInput
-              style={[
-                styles.note,
-                { height: Math.max(NOTE_MIN_H, noteHeight) },
-              ]}
-              value={note}
-              onChangeText={(t) => setNote(t.slice(0, NOTE_MAX_LEN))}
-              multiline
-              maxLength={NOTE_MAX_LEN}
-              textAlignVertical="top"
-              placeholder="이 감정이나 순간을 기억하도록 무슨 일이 있었는지 편하게 기록해 보세요."
-              placeholderTextColor={Colors.textDisabled}
-              onFocus={scrollNoteIntoView}
-              onContentSizeChange={(e) => {
-                const h = e.nativeEvent.contentSize.height
-                setNoteHeight(
-                  Math.min(Math.max(NOTE_MIN_H, h + 28), NOTE_MAX_H)
-                )
-              }}
-            />
-            <Text style={styles.noteCount}>
-              {note.length}/{NOTE_MAX_LEN}자
-            </Text>
+          <View
+            onLayout={(e) => {
+              noteSectionY.current = e.nativeEvent.layout.y
+            }}
+          >
+            <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
+            <View style={styles.noteWrap}>
+              <TextInput
+                style={[
+                  styles.note,
+                  { height: Math.max(NOTE_MIN_H, noteHeight) },
+                ]}
+                value={note}
+                onChangeText={(t) => setNote(t.slice(0, NOTE_MAX_LEN))}
+                multiline
+                maxLength={NOTE_MAX_LEN}
+                textAlignVertical="top"
+                placeholder="이 감정이나 순간을 기억하도록 무슨 일이 있었는지 편하게 기록해 보세요."
+                placeholderTextColor={Colors.textDisabled}
+                onFocus={scrollNoteIntoView}
+                onContentSizeChange={(e) => {
+                  const h = e.nativeEvent.contentSize.height
+                  setNoteHeight(
+                    Math.min(Math.max(NOTE_MIN_H, h + 28), NOTE_MAX_H)
+                  )
+                }}
+              />
+              <Text style={styles.noteCount}>
+                {note.length}/{NOTE_MAX_LEN}자
+              </Text>
+            </View>
           </View>
         </ScrollView>
 
@@ -700,10 +745,17 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 12,
   },
+  tagSection: {
+    marginBottom: 20,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   tagWrap: {
+    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 20,
   },
   tag: {
     height: 36,
@@ -736,7 +788,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginLeft: 4,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   noteWrap: {
     position: 'relative',

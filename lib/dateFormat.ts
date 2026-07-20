@@ -3,6 +3,10 @@
  *
  * - formatDate      → 2026.07.08
  * - formatDateTime  → 2026.07.08 14:20:28
+ * - formatDateTimeWithWeekday → 2026.07.08 (수) 14:20:28
+ * - formatMonthDayTimeWithWeekday → 07.08 (수) 14:20:28
+ * - formatTime      → 14:20:28
+ * - formatYearMonth → 2026년 7월
  */
 const TZ = 'Asia/Seoul'
 
@@ -86,6 +90,48 @@ export function formatDateTime(input: Date | string | number): string {
   if (!d) return typeof input === 'string' ? input : ''
   const { year, month, day, hour, minute, second } = seoulParts(d)
   return `${year}.${month}.${day} ${hour}:${minute}:${second}`
+}
+
+/** 2026.07.08 (수) 14:20:28 */
+export function formatDateTimeWithWeekday(
+  input: Date | string | number,
+): string {
+  const d = toSeoulDate(input)
+  if (!d) return typeof input === 'string' ? input : ''
+  const { year, month, day, hour, minute, second } = seoulParts(d)
+  const weekday = seoulWeekdayShort(d)
+  return `${year}.${month}.${day} (${weekday}) ${hour}:${minute}:${second}`
+}
+
+/** 07.08 (수) 14:20:28 — 연·월로 묶인 리스트용 */
+export function formatMonthDayTimeWithWeekday(
+  input: Date | string | number,
+): string {
+  const d = toSeoulDate(input)
+  if (!d) return typeof input === 'string' ? input : ''
+  const { month, day, hour, minute, second } = seoulParts(d)
+  const weekday = seoulWeekdayShort(d)
+  return `${month}.${day} (${weekday}) ${hour}:${minute}:${second}`
+}
+
+function seoulWeekdayShort(d: Date): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: TZ,
+    weekday: 'short',
+  }).format(d)
+}
+
+/** 14:20:28 (날짜는 이미 묶여 있을 때) */
+export function formatTime(input: Date | string | number): string {
+  const d = toSeoulDate(input)
+  if (!d) return typeof input === 'string' ? input : ''
+  const { hour, minute, second } = seoulParts(d)
+  return `${hour}:${minute}:${second}`
+}
+
+/** 연·월 → 2026년 7월 */
+export function formatYearMonth(y: number, m: number): string {
+  return `${y}년 ${m}월`
 }
 
 /** 연·월·일 숫자 → 2026.07.08 */

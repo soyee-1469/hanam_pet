@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, Lightning, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { CaretLeft, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
@@ -22,6 +22,8 @@ import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpContactsBanner } from '../../components/HelpContactsBanner'
+import { TabSceneGate } from '../../components/TabSceneGate'
+import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import {
   CHAT_ENERGY_COST,
@@ -67,6 +69,14 @@ type ChatMessage = {
 }
 
 export default function ChatScreen() {
+  return (
+    <TabSceneGate>
+      <ChatScreenBody />
+    </TabSceneGate>
+  )
+}
+
+function ChatScreenBody() {
   const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollView>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -291,7 +301,7 @@ export default function ChatScreen() {
     <View style={styles.petBubbleContainer}>
       <View style={styles.depletedBubble}>
         <View style={styles.depletedTitleRow}>
-          <Lightning size={18} color={Colors.accent} weight="fill" />
+          <EnergyIcon size={18} />
           <Text style={styles.depletedTitle}>에너지를 다 썼어요</Text>
         </View>
         <Text style={styles.depletedBody}>

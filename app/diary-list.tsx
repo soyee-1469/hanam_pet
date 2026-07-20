@@ -22,13 +22,20 @@ import {
   type DiaryEntry,
 } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
+import { EmptyRecordsCard } from '../components/EmptyRecordsCard'
 import { BottomSheet, ConfirmDialog, PrimaryButton } from '../components/ui'
 import {
   hydrateDiaryRecords,
   listDiaryEntries,
   subscribeDiaryRecords,
 } from '../lib/diaryRecords'
-import { formatDateFromYmd, formatDateTime } from '../lib/dateFormat'
+import {
+  formatDateFromYmd,
+  formatDateTime,
+  formatMonthDayTimeWithWeekday,
+  formatTime,
+  formatYearMonth,
+} from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
 
 function moodMeta(id: DiaryEntry['moodId']) {
@@ -81,7 +88,7 @@ export default function DiaryListScreen() {
 
   const summaryLabel = isDayMode
     ? formatDateFromYmd(year, month, day!)
-    : `${year}.${String(month).padStart(2, '0')}`
+    : formatYearMonth(year, month)
 
   const closeMenu = () => setMenuEntry(null)
 
@@ -152,43 +159,29 @@ export default function DiaryListScreen() {
         showsVerticalScrollIndicator={false}
       >
         {list.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>
-              {isDayMode ? '이 날의 기록이 없어요' : '아직 기록이 없어요'}
-            </Text>
-            <Text style={styles.emptyBody}>
-              {isDayMode
+          <EmptyRecordsCard
+            icon={require('../assets/images/아이콘/메모장.png')}
+            title={
+              isDayMode
+                ? '이 날의 기록이 없어요'
+                : '아직 마음을 남겨 보기 전이에요!'
+            }
+            body={
+              isDayMode
                 ? '지금 바로 마음을 남겨 볼까요?'
-                : '달력에서 날짜를 눌러 마음을 남겨 보세요.'}
-            </Text>
-            {isDayMode ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={openWrite}
-                style={({ pressed }) => [
-                  styles.emptyCta,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.emptyCtaText}>마음을 기록할게요</Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.replace('/(tabs)/diary')}
-                style={({ pressed }) => [
-                  styles.emptyCta,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.emptyCtaText}>달력으로 가기</Text>
-              </Pressable>
-            )}
-          </View>
+                : '달력에서 첫 기록을 남기면,\n여기에서 모아 볼 수 있어요.'
+            }
+            ctaLabel={isDayMode ? '마음을 기록할게요' : '달력으로 가기'}
+            onPressCta={
+              isDayMode ? openWrite : () => router.replace('/(tabs)/diary')
+            }
+          />
         ) : (
           list.map((entry) => {
             const mood = moodMeta(entry.moodId)
-            const timeLabel = formatDateTime(entry.createdAt)
+            const timeLabel = isDayMode
+              ? formatTime(entry.createdAt)
+              : formatMonthDayTimeWithWeekday(entry.createdAt)
             return (
               <Pressable
                 key={entry.id}
@@ -399,38 +392,6 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: Layout.screenPaddingH,
     gap: 10,
-  },
-  empty: {
-    paddingTop: 48,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-  emptyBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 18,
-  },
-  emptyCta: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  emptyCtaText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.primary,
   },
   card: {
     flexDirection: 'row',

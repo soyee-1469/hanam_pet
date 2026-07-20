@@ -13,7 +13,6 @@ import {
   Gear,
   House,
   Info,
-  Lightning,
   Moon,
   Notebook,
   PawPrint,
@@ -35,6 +34,7 @@ import {
 } from '../ui'
 import { MoodEmoji } from '../MoodEmoji'
 import { HelpContactsBanner } from '../HelpContactsBanner'
+import { EnergyIcon } from '../EnergyIcon'
 import { styles as catalogStyles } from './ui'
 
 // —— 공통 래퍼 ——
@@ -380,7 +380,7 @@ function MockEnergyBar({ fill = 0.65 }: { fill?: number }) {
   return (
     <View>
       <View style={pv.energyHeader}>
-        <Lightning size={16} color={Colors.energyFill} weight="fill" />
+        <EnergyIcon size={16} />
         <Text style={pv.energyLabel}>
           <Text style={pv.energyCurrent}>65</Text>
           <Text style={pv.energyMax}> / 100</Text>
@@ -732,11 +732,11 @@ export function PetPreviews() {
         </View>
         <View style={[pv.chipRow, pv.gapTop]}>
           <View style={pv.gainChip}>
-            <Lightning size={12} color={Colors.energyFill} weight="fill" />
+            <EnergyIcon size={12} />
             <Text style={pv.gainChipText}>오늘 +12 / 30</Text>
           </View>
           <View style={pv.rewardPill}>
-            <Lightning size={12} color={Colors.energyFill} weight="fill" />
+            <EnergyIcon size={12} />
             <Text style={pv.rewardPillText}>+3 에너지</Text>
           </View>
         </View>

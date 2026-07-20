@@ -23,6 +23,7 @@ import {
   subscribeDiaryRecords,
 } from '../../lib/diaryRecords'
 import { MoodEmoji } from '../../components/MoodEmoji'
+import { TabSceneGate } from '../../components/TabSceneGate'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
@@ -60,6 +61,14 @@ function getMonthMatrix(year: number, month: number) {
 }
 
 export default function DiaryScreen() {
+  return (
+    <TabSceneGate>
+      <DiaryScreenBody />
+    </TabSceneGate>
+  )
+}
+
+function DiaryScreenBody() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const today = useMemo(() => new Date(), [])

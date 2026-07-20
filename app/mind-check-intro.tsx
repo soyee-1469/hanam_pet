@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import {
   View,
   Text,
+  Image,
   Pressable,
   StyleSheet,
   ScrollView,
@@ -234,13 +235,11 @@ export default function MindCheckIntroScreen() {
           </Pressable>
         ) : (
           <View style={styles.recentEmpty}>
-            <View style={styles.recentEmptyIcon}>
-              <WarningCircle
-                size={22}
-                color={Colors.textDisabled}
-                weight="regular"
-              />
-            </View>
+            <Image
+              source={require('../assets/images/아이콘/메모장.png')}
+              style={styles.recentEmptyImage}
+              resizeMode="contain"
+            />
             <Text style={styles.recentEmptyText}>
               아직 마음을 깊이 살펴보기 전이에요!
             </Text>
@@ -458,14 +457,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     ...Shadows.elevation,
   },
-  recentEmptyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: Colors.beige,
-    alignItems: 'center',
-    justifyContent: 'center',
+  recentEmptyImage: {
+    width: 64,
+    height: 64,
   },
   recentEmptyText: {
     fontSize: 14,

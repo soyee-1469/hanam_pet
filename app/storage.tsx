@@ -12,9 +12,11 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, HeaderTitleStyle } from '../../constants/Layout'
+import { CaretLeft, ChatCircle, Notebook } from 'phosphor-react-native'
+import { Colors, Shadows } from '../constants/Colors'
+import { Layout, HeaderTitleStyle } from '../constants/Layout'
+import { EnergyIcon } from '../components/EnergyIcon'
+import { EmptyRecordsCard } from '../components/EmptyRecordsCard'
 import {
   ENERGY_DAILY_EARN_CAP,
   ENERGY_MAX,
@@ -23,16 +25,12 @@ import {
   energyBarColor,
   loadPetDailyState,
   loadPetStock,
-} from '../../lib/petStock'
+} from '../lib/petStock'
 import {
   CLAIM_MAX_PER_DAY,
   loadPetClaimState,
-} from '../../lib/petClaimCooldown'
-import { formatDateTime } from '../../lib/dateFormat'
-import {
-  acquireTabBarOverlay,
-  releaseTabBarOverlay,
-} from '../../lib/tabBarOverlay'
+} from '../lib/petClaimCooldown'
+import { formatDateTime } from '../lib/dateFormat'
 
 type StockKind = 'food' | 'toy' | 'energy'
 type HistoryTab = 'item' | 'energy'
@@ -204,19 +202,12 @@ function StockIcon({
   empty?: boolean
 }) {
   if (kind === 'energy') {
-    return (
-      <Lightning
-        size={size}
-        color={Colors.accent}
-        weight="fill"
-        style={empty ? { opacity: 0.38 } : undefined}
-      />
-    )
+    return <EnergyIcon size={size} empty={empty} />
   }
   if (kind === 'food' && empty) {
     return (
       <Image
-        source={require('../../assets/images/null-bowl.png')}
+        source={require('../assets/images/아이콘/빈사료.png')}
         style={{ width: size, height: size }}
         resizeMode="contain"
       />
@@ -226,8 +217,8 @@ function StockIcon({
     <Image
       source={
         kind === 'food'
-          ? require('../../assets/images/bowl.png')
-          : require('../../assets/images/toy.png')
+          ? require('../assets/images/아이콘/사료.png')
+          : require('../assets/images/아이콘/장난감.png')
       }
       style={[
         { width: size, height: size },
@@ -248,7 +239,7 @@ function CategoryIcon({
   energyTab?: boolean
 }) {
   if (energyTab || kind === 'energy') {
-    return <Lightning size={20} color={Colors.accent} weight="fill" />
+    return <EnergyIcon size={20} />
   }
   // 아이템 탭: 홈·상단 카드와 동일 사료/장난감 이미지
   if (kind === 'food' || kind === 'toy') {
@@ -262,9 +253,9 @@ function CategoryIcon({
     case 'diary':
       return <Notebook size={size} color={color} weight="fill" />
     case 'attend':
-      return <Lightning size={size} color={Colors.accent} weight="fill" />
+      return <EnergyIcon size={size} />
     default:
-      return <Lightning size={size} color={color} weight="fill" />
+      return <EnergyIcon size={size} />
   }
 }
 
@@ -293,7 +284,6 @@ export default function StorageScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      acquireTabBarOverlay()
       let alive = true
       void (async () => {
         const [s, daily, claims] = await Promise.all([
@@ -311,7 +301,6 @@ export default function StorageScreen() {
       })()
       return () => {
         alive = false
-        releaseTabBarOverlay()
       }
     }, []),
   )
@@ -340,7 +329,10 @@ export default function StorageScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={8}
-          onPress={() => router.navigate('/(tabs)/index')}
+          onPress={() => {
+            if (router.canGoBack()) router.back()
+            else router.replace('/(tabs)')
+          }}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
@@ -459,16 +451,23 @@ export default function StorageScreen() {
         </View>
 
         {entries.length === 0 ? (
-          <View style={styles.historyEmpty}>
-            <Text style={styles.historyEmptyTitle}>
-              {tab === 'energy' ? '에너지 기록이 없어요' : '아이템 기록이 없어요'}
-            </Text>
-            <Text style={styles.historyEmptyBody}>
-              {tab === 'energy'
+          <EmptyRecordsCard
+            icon={
+              tab === 'energy'
+                ? require('../assets/images/아이콘/에너지.png')
+                : require('../assets/images/아이콘/보관함.png')
+            }
+            title={
+              tab === 'energy'
+                ? '아직 에너지 기록이 없어요'
+                : '아직 아이템 기록이 없어요'
+            }
+            body={
+              tab === 'energy'
                 ? '돌보면 여기에 쌓여요.'
-                : '주고받으면 여기에 쌓여요.'}
-            </Text>
-          </View>
+                : '주고받으면 여기에 쌓여요.'
+            }
+          />
         ) : (
           <View style={styles.list}>
             {entries.map((item, index) => {
@@ -797,24 +796,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 18,
     color: Colors.textSecondary,
-  },
-  historyEmpty: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 12,
-    paddingHorizontal: 24,
-    gap: 4,
-  },
-  historyEmptyTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  historyEmptyBody: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 })

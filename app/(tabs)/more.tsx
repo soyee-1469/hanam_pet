@@ -13,6 +13,7 @@ import { CaretRight } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
+import { TabSceneGate } from '../../components/TabSceneGate'
 
 type RowKind = 'link' | 'version'
 
@@ -127,6 +128,14 @@ function SettingsRow({
 }
 
 export default function MoreScreen() {
+  return (
+    <TabSceneGate>
+      <MoreScreenBody />
+    </TabSceneGate>
+  )
+}
+
+function MoreScreenBody() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
 

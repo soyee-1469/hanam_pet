@@ -38,6 +38,7 @@ import {
 } from '../../lib/mindCheckResults'
 import { openExternalUrl } from '../../components/ExternalLinkModal'
 import { YouTubeVideoModal } from '../../components/YouTubeVideoModal'
+import { TabSceneGate } from '../../components/TabSceneGate'
 import { BottomSheet } from '../../components/ui/AppOverlay'
 import {
   extractYoutubeVideoId,
@@ -88,6 +89,14 @@ function latestForCheck(
 }
 
 export default function MindScreen() {
+  return (
+    <TabSceneGate>
+      <MindScreenBody />
+    </TabSceneGate>
+  )
+}
+
+function MindScreenBody() {
   const insets = useSafeAreaInsets()
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
   const params = useLocalSearchParams<{ segment?: string }>()

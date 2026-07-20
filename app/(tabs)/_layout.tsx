@@ -133,14 +133,17 @@ export default function TabLayout() {
   return (
     <Tabs
       initialRouteName="index"
+      detachInactiveScreens
       screenOptions={{
         headerShown: false,
+        freezeOnBlur: true,
+        lazy: true,
         tabBarShowLabel: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textDisabled,
         // Opaque scenes so inactive tabs (e.g. home welcome Modal) cannot
         // sit under / steal taps from the focused tab on web.
-        sceneStyle: { backgroundColor: Colors.background },
+        sceneStyle: { backgroundColor: Colors.background, flex: 1 },
         tabBarStyle,
         tabBarButton: (props) => (
           <SoftTabButton {...(props as SoftTabButtonProps)} />
@@ -224,20 +227,6 @@ export default function TabLayout() {
               label="설정"
             />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="storage"
-        options={{
-          href: null,
-          title: '보관함',
-        }}
-      />
-      <Tabs.Screen
-        name="attendance"
-        options={{
-          href: null,
-          title: '출석',
         }}
       />
     </Tabs>

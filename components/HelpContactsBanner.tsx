@@ -60,7 +60,7 @@ export function HelpContactsBanner({
           ]}
         >
           <Image
-            source={require('../assets/images/help.png')}
+            source={require('../assets/images/아이콘/도움.png')}
             style={styles.icon}
             accessibilityElementsHidden
           />

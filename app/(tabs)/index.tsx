@@ -16,7 +16,6 @@ import Svg, { Circle } from 'react-native-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import {
-  Lightning,
   CaretRight,
   Bell,
   X,
@@ -25,6 +24,8 @@ import {
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { HelpContactsSheet } from '../../components/HelpContactsSheet'
+import { TabSceneGate } from '../../components/TabSceneGate'
+import { EnergyIcon } from '../../components/EnergyIcon'
 import { tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
@@ -110,31 +111,31 @@ const HEADER_MENU = [
   {
     id: 'feed',
     label: '사료 받기',
-    image: require('../../assets/images/bowl.png'),
+    image: require('../../assets/images/아이콘/사료.png'),
     bgColor: Colors.surface,
   },
   {
     id: 'toy',
     label: '장난감 받기',
-    image: require('../../assets/images/toy.png'),
+    image: require('../../assets/images/아이콘/장난감.png'),
     bgColor: Colors.surface,
   },
   {
     id: 'stamp',
     label: '출석 도장',
-    image: require('../../assets/images/pet-menu-3.png'),
+    image: require('../../assets/images/아이콘/출석도장.png'),
     bgColor: Colors.surface,
   },
   {
     id: 'storage',
     label: '내 보관함',
-    image: require('../../assets/images/pet-menu-4.png'),
+    image: require('../../assets/images/아이콘/보관함.png'),
     bgColor: Colors.surface,
   },
   {
     id: 'guide',
     label: '안내',
-    image: require('../../assets/images/pet-menu-5.png'),
+    image: require('../../assets/images/아이콘/안내.png'),
     bgColor: Colors.surface,
   },
 ] as const
@@ -535,7 +536,7 @@ function LevelEnergyBlock({
     >
       <View style={styles.levelRow}>
         <View style={styles.levelLeft}>
-          <Lightning size={16} color={fillColor} weight="fill" />
+          <EnergyIcon size={16} />
           <Text style={styles.energyLabelInline}>에너지</Text>
         </View>
         <View style={styles.energyNums}>
@@ -559,6 +560,14 @@ function LevelEnergyBlock({
 }
 
 export default function PetHomeScreen() {
+  return (
+    <TabSceneGate>
+      <PetHomeScreenBody />
+    </TabSceneGate>
+  )
+}
+
+function PetHomeScreenBody() {
   const { width: screenWidth, height: screenHeight } = useDesignWindow()
   const insets = useSafeAreaInsets()
   const [energy, setEnergy] = useState(20)
@@ -653,7 +662,7 @@ export default function PetHomeScreen() {
   }
 
   const openStorage = () => {
-    router.navigate('/(tabs)/storage')
+    router.push('/storage')
   }
 
   const playHearts = () => {
@@ -1379,7 +1388,7 @@ export default function PetHomeScreen() {
                 accessibilityLabel="상담·도움 연락처"
               >
                 <Image
-                  source={require('../../assets/images/help.png')}
+                  source={require('../../assets/images/아이콘/도움.png')}
                   style={styles.helpShortcutIcon}
                   accessibilityElementsHidden
                 />
@@ -1434,7 +1443,7 @@ export default function PetHomeScreen() {
                 onPress={() => {
                   if (item.id === 'storage') openStorage()
                   else if (item.id === 'guide') setHelpOpen(true)
-                  else if (item.id === 'stamp') router.navigate('/(tabs)/attendance')
+                  else if (item.id === 'stamp') router.push('/attendance')
                   else if (item.id === 'feed') claimFeed()
                   else if (item.id === 'toy') claimToy()
                 }}
@@ -1591,8 +1600,8 @@ export default function PetHomeScreen() {
                 count={foodCount}
                 icon={
                   foodCount <= 0
-                    ? require('../../assets/images/null-bowl.png')
-                    : require('../../assets/images/bowl.png')
+                    ? require('../../assets/images/아이콘/빈사료.png')
+                    : require('../../assets/images/아이콘/사료.png')
                 }
                 useLabel="사료 주기"
                 acquireLabel="사료 받기"
@@ -1604,7 +1613,7 @@ export default function PetHomeScreen() {
               <View style={{ width: actionGap }} />
               <CareStockCard
                 count={toyCount}
-                icon={require('../../assets/images/toy.png')}
+                icon={require('../../assets/images/아이콘/장난감.png')}
                 useLabel="놀아 주기"
                 acquireLabel="장난감 받기"
                 grayIconWhenEmpty
@@ -1673,7 +1682,7 @@ export default function PetHomeScreen() {
         <View style={styles.helpIconRow} accessibilityElementsHidden>
           <View style={styles.helpIconChip}>
             <Image
-              source={require('../../assets/images/bowl.png')}
+              source={require('../../assets/images/아이콘/사료.png')}
               style={styles.helpIconImg}
               resizeMode="contain"
             />
@@ -1681,7 +1690,7 @@ export default function PetHomeScreen() {
           </View>
           <View style={styles.helpIconChip}>
             <Image
-              source={require('../../assets/images/toy.png')}
+              source={require('../../assets/images/아이콘/장난감.png')}
               style={styles.helpIconImg}
               resizeMode="contain"
             />
@@ -1801,7 +1810,7 @@ export default function PetHomeScreen() {
 
       <Animated.Image
         pointerEvents="none"
-        source={require('../../assets/images/bowl.png')}
+        source={require('../../assets/images/아이콘/사료.png')}
         style={[
           styles.bowlFly,
           {
@@ -1817,7 +1826,7 @@ export default function PetHomeScreen() {
       />
       <Animated.Image
         pointerEvents="none"
-        source={require('../../assets/images/toy.png')}
+        source={require('../../assets/images/아이콘/장난감.png')}
         style={[
           styles.toyFly,
           {

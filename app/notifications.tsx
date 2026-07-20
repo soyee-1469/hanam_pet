@@ -22,6 +22,7 @@ import {
 } from '../lib/notifications'
 import { formatDate } from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
+import { EmptyRecordsCard } from '../components/EmptyRecordsCard'
 
 type FilterId = 'all' | NotifCategory
 
@@ -137,19 +138,17 @@ export default function NotificationsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {sorted.length === 0 ? (
-          <View style={styles.empty}>
-            <View style={styles.emptyIcon}>
-              <Bell size={28} color={Colors.textDisabled} weight="regular" />
-            </View>
-            <Text style={styles.emptyTitle}>
-              {filter === 'all' ? '아직 알림이 없어요' : '해당 알림이 없어요'}
-            </Text>
-            <Text style={styles.emptyBody}>
-              {filter === 'all'
+          <EmptyRecordsCard
+            icon={require('../assets/images/아이콘/안내.png')}
+            title={
+              filter === 'all' ? '아직 알림이 없어요' : '해당 알림이 없어요'
+            }
+            body={
+              filter === 'all'
                 ? '새 소식이 오면 여기에 보여 드릴게요.'
-                : '다른 카테고리를 선택해 보세요.'}
-            </Text>
-          </View>
+                : '다른 카테고리를 선택해 보세요.'
+            }
+          />
         ) : (
           sorted.map((item) => {
             const dateLabel = formatNotifDate(item.date)
@@ -313,33 +312,6 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 40,
     flexGrow: 1,
-  },
-  empty: {
-    paddingTop: 64,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: Colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 8,
-  },
-  emptyBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
   card: {
     flexDirection: 'row',

@@ -11,6 +11,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { CaretLeft, CaretRight, Info } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { EmptyRecordsCard } from '../components/EmptyRecordsCard'
 import {
   getSeverityBand,
   getSeverityBands,
@@ -152,26 +153,20 @@ export default function MindReportScreen() {
         </Text>
 
         {list.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>
-              아직 이 검사 기록이 없어요.{'\n'}첫 점검을 시작해 볼까요?
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() =>
-                router.push({
-                  pathname: '/mind-check-intro',
-                  params: { id: tab },
-                })
-              }
-              style={({ pressed }) => [
-                styles.emptyCta,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.emptyCtaText}>검사하러 가기</Text>
-            </Pressable>
-          </View>
+          <EmptyRecordsCard
+            icon={require('../assets/images/아이콘/메모장.png')}
+            title="아직 마음을 깊이 살펴보기 전이에요!"
+            body={
+              '첫 점검을 남겨 두면,\n지나온 마음을 여기서 모아 볼 수 있어요.'
+            }
+            ctaLabel="검사하러 가기"
+            onPressCta={() =>
+              router.push({
+                pathname: '/mind-check-intro',
+                params: { id: tab },
+              })
+            }
+          />
         ) : (
           list.map((item) => {
             const band = getSeverityBand(item.score, tab)
@@ -331,35 +326,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 12,
-  },
-  emptyCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    ...Shadows.elevation,
-  },
-  emptyText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  emptyCta: {
-    backgroundColor: Colors.primary,
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
-  emptyCtaText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   card: {
     backgroundColor: Colors.surface,

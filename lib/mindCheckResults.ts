@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { AssessmentId } from '../constants/MindAssessments'
+import { formatDate, formatDateTime } from './dateFormat'
 
 const KEY = 'hp_mind_check_results'
 const SEED_KEY = `${KEY}_seeded`
@@ -130,23 +131,14 @@ export async function clearMindCheckResults(): Promise<void> {
 }
 
 export function formatResultDate(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
+  return formatDateTime(iso)
 }
 
 export function formatResultDateShort(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return `${d.getMonth() + 1}/${d.getDate()}`
+  return formatDate(iso)
 }
 
-/** 목록용 YYYY-MM-DD */
+/** @deprecated formatDate 와 동일 */
 export function formatResultDateYmd(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return formatDate(iso)
 }

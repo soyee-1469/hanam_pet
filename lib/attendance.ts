@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { dayKey } from './dayKey'
+import { ENERGY_ATTEND_GAIN } from './petStock'
 
 const KEY = 'hp_attendance_days'
 
@@ -38,4 +39,5 @@ export async function stampToday(today = new Date()): Promise<string[] | null> {
   return next
 }
 
-export const ATTENDANCE_ENERGY_REWARD = 2
+/** UI·월간 합산 — petStock ENERGY_ATTEND_GAIN 과 동일 */
+export const ATTENDANCE_ENERGY_REWARD = ENERGY_ATTEND_GAIN

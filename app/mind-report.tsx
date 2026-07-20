@@ -282,8 +282,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.divider,
   },
   tabBtn: {
-    paddingTop: 4,
-    paddingBottom: 12,
+    paddingTop: Layout.tabMenuPaddingTop,
+    paddingBottom: Layout.tabMenuPaddingBottom,
     position: 'relative',
   },
   tabLabel: {

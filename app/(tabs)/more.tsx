@@ -11,7 +11,8 @@ import { router } from 'expo-router'
 import Constants from 'expo-constants'
 import { CaretRight } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
+import { TypeStyle } from '../../constants/Typography'
 
 type RowKind = 'link' | 'version'
 
@@ -45,7 +46,6 @@ const SECTIONS: SettingsSection[] = [
     id: 'records',
     title: '기록 관리',
     rows: [
-      { id: 'new-chat', title: '새로운 대화 시작하기' },
       { id: 'new-diary', title: '새로운 마음일기 쓰기' },
       { id: 'new-mind', title: '새로운 마음 살피기' },
     ],
@@ -138,9 +138,6 @@ export default function MoreScreen() {
       case 'nickname':
         router.push('/account')
         return
-      case 'new-chat':
-        router.push({ pathname: '/record-reset', params: { kind: 'chat' } })
-        return
       case 'new-diary':
         router.push({ pathname: '/record-reset', params: { kind: 'diary' } })
         return
@@ -227,9 +224,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.tab,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -240,7 +236,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginLeft: 4,
-    fontSize: 15,
+    ...TypeStyle.sectionTitle,
     fontWeight: '800',
     color: Colors.textPrimary,
   },

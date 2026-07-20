@@ -1,5 +1,6 @@
 import { Image, View, Text, Pressable, StyleSheet } from 'react-native'
 import { Colors } from '../constants/Colors'
+import { TypeStyle } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
 
 type CoachmarkCompleteSheetProps = {
@@ -64,8 +65,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...TypeStyle.modalTitle,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 32,

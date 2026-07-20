@@ -73,7 +73,7 @@ function TabIcon({
         {customIcon ??
           (IconComponent ? (
             <IconComponent
-              size={20}
+              size={24}
               color={color}
               weight={focused ? 'fill' : 'light'}
             />
@@ -117,7 +117,7 @@ export default function TabLayout() {
             right: 0,
             bottom: 0,
             height: tabHeight,
-            paddingTop: 4,
+            paddingTop: 5,
             paddingBottom: tabBottomPad,
             backgroundColor: Colors.cardRecessed,
             borderTopWidth: StyleSheet.hairlineWidth,
@@ -151,7 +151,7 @@ export default function TabLayout() {
         },
         tabBarIconStyle: {
           width: '100%',
-          height: 42,
+          height: 50,
         },
       }}
     >
@@ -164,7 +164,7 @@ export default function TabLayout() {
               focused={focused}
               label="대화"
               customIcon={
-                <ChatTabIcon focused={focused} size={26} color={String(color)} />
+                <ChatTabIcon focused={focused} size={31} color={String(color)} />
               }
             />
           ),
@@ -253,16 +253,16 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   tabIconWrap: {
-    height: 28,
-    width: 28,
+    height: 34,
+    width: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tabLabel: {
     width: '100%',
-    marginTop: 1,
-    fontSize: 11,
-    lineHeight: 13,
+    marginTop: 2,
+    fontSize: 13,
+    lineHeight: 16,
     textAlign: 'center',
   },
   tabLabelActive: {

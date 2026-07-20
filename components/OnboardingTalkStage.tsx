@@ -1,5 +1,6 @@
 import { View, Text, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { TypeStyle } from '../constants/Typography'
 
 type OnboardingTalkStageProps = {
   image: ImageSourcePropType
@@ -67,8 +68,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   bubbleText: {
-    fontWeight: '600',
-    fontSize: 15,
+    ...TypeStyle.bubble,
     color: Colors.textPrimary,
     lineHeight: 24,
     textAlign: 'center',
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   title: {
-    fontSize: 22,
+    ...TypeStyle.modalTitle,
     color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.4,
@@ -94,8 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   body: {
-    fontSize: 15,
-    fontWeight: '500',
+    ...TypeStyle.bodyMedium,
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,

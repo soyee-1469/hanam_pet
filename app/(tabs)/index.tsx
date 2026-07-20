@@ -26,6 +26,7 @@ import {
 import { Colors, Shadows } from '../../constants/Colors'
 import { HelpContactsSheet } from '../../components/HelpContactsSheet'
 import { tabBarReserveHeight } from '../../constants/Layout'
+import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { useDesignWindow } from '../../components/AppViewport'
@@ -308,16 +309,14 @@ function CareStockCard({
             {enabled ? useLabel : acquireLabel}
           </Text>
           <View style={styles.stockIconCountRow}>
-            <View style={styles.stockIconWell}>
-              <Image
-                source={icon}
-                style={[
-                  styles.stockIcon,
-                  grayIconWhenEmpty && !enabled && styles.stockIconMuted,
-                ]}
-                resizeMode="contain"
-              />
-            </View>
+            <Image
+              source={icon}
+              style={[
+                styles.stockIcon,
+                grayIconWhenEmpty && !enabled && styles.stockIconMuted,
+              ]}
+              resizeMode="contain"
+            />
             <Text style={styles.stockCount} numberOfLines={1}>
               {count}개
             </Text>
@@ -654,7 +653,7 @@ export default function PetHomeScreen() {
   }
 
   const openStorage = () => {
-    router.push('/storage')
+    router.navigate('/(tabs)/storage')
   }
 
   const playHearts = () => {
@@ -1435,7 +1434,7 @@ export default function PetHomeScreen() {
                 onPress={() => {
                   if (item.id === 'storage') openStorage()
                   else if (item.id === 'guide') setHelpOpen(true)
-                  else if (item.id === 'stamp') router.push('/attendance')
+                  else if (item.id === 'stamp') router.navigate('/(tabs)/attendance')
                   else if (item.id === 'feed') claimFeed()
                   else if (item.id === 'toy') claimToy()
                 }}
@@ -1937,7 +1936,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   helpTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.cocoa,
   },
@@ -2134,7 +2133,7 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   nameModalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -2293,8 +2292,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   greetingBubbleText: {
-    fontWeight: '600',
-    fontSize: 15,
+    ...TypeStyle.bubble,
     lineHeight: 22,
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -2424,15 +2422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-  },
-  stockIconWell: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 6,
+    gap: 6,
   },
   stockIcon: {
     width: 32,

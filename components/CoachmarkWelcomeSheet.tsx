@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',

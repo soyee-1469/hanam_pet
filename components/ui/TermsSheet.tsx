@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { X } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { TypeStyle } from '../../constants/Typography'
 import { BottomSheet } from './AppOverlay'
 import { PrimaryButton } from './Button'
 
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 18,
+    ...TypeStyle.screenTitle,
     fontWeight: '700',
     color: Colors.textPrimary,
     paddingRight: 8,

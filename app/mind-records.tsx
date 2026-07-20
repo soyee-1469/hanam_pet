@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.textPrimary,
   },

@@ -1,5 +1,6 @@
 import { Pressable, View, Text, StyleSheet, type ViewStyle } from 'react-native'
 import { Colors, Shadows } from '../../constants/Colors'
+import { Type, TypeStyle } from '../../constants/Typography'
 
 type ButtonProps = {
   label: string
@@ -142,8 +143,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   primaryText: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...TypeStyle.button,
     color: Colors.buttonPrimaryText,
   },
   primaryTextDisabled: {
@@ -169,8 +169,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   secondaryText: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...TypeStyle.button,
     color: Colors.buttonSecondaryText,
   },
   secondaryTextDisabled: {
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.sand,
   },
   ghostText: {
-    fontSize: 15,
+    fontSize: Type.body,
     fontWeight: '600',
     color: Colors.textSecondary,
   },

@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
-import { Layout } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../../constants/Layout'
+import { TypeStyle } from '../../constants/Typography'
 
 type ScreenHeaderProps = {
   title?: string
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   skipText: {
-    fontSize: 14,
+    ...TypeStyle.bodySecondary,
     fontWeight: '600',
     color: Colors.textDisabled,
   },
@@ -104,9 +105,8 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '800',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.screen,
   },
   titleSpacer: {
     flex: 1,

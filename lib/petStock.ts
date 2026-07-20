@@ -17,6 +17,8 @@ export const TOY_MAX = 5
 export const ENERGY_DAILY_EARN_CAP = 20
 /** 사료 주기·놀아 주기 일일 사용 상한 */
 export const CARE_USE_MAX_PER_DAY = 2
+/** 대화(질문) 일일 사용 상한 — 1회당 에너지 1 */
+export const CHAT_USE_MAX_PER_DAY = 50
 
 export const ENERGY_CHAT_COST = 1
 /** 사료 제공 완료 시 — 정책 5.1: 회당 +4 */
@@ -24,7 +26,7 @@ export const ENERGY_FEED_GAIN = 4
 /** 놀이 완료 시 — 정책 5.1: 회당 +4 */
 export const ENERGY_PLAY_GAIN = 4
 export const ENERGY_DIARY_GAIN = 2
-export const ENERGY_ATTEND_GAIN = 2
+export const ENERGY_ATTEND_GAIN = 12
 
 export type PetStock = {
   energy: number
@@ -39,6 +41,8 @@ export type PetDailyState = {
   energyEarned: number
   feedUses: number
   playUses: number
+  /** 오늘 대화(질문) 횟수 */
+  chatUses: number
   /** 오늘 일기 첫 저장으로 +2를 이미 줬는지 */
   diaryGranted: boolean
 }
@@ -84,6 +88,7 @@ function emptyDaily(day = dayKey()): PetDailyState {
     energyEarned: 0,
     feedUses: 0,
     playUses: 0,
+    chatUses: 0,
     diaryGranted: false,
   }
 }
@@ -104,6 +109,10 @@ function normalizeDaily(raw: Partial<PetDailyState> | null): PetDailyState {
     playUses: Math.max(
       0,
       Math.min(CARE_USE_MAX_PER_DAY, Math.floor(Number(raw.playUses) || 0)),
+    ),
+    chatUses: Math.max(
+      0,
+      Math.min(CHAT_USE_MAX_PER_DAY, Math.floor(Number(raw.chatUses) || 0)),
     ),
     diaryGranted: Boolean(raw.diaryGranted),
   }
@@ -320,6 +329,44 @@ export async function recordCareUse(
   return savePetDailyState({
     ...daily,
     playUses: Math.min(CARE_USE_MAX_PER_DAY, daily.playUses + 1),
+  })
+}
+
+export type ChatUseGate =
+  | { ok: true; remaining: number }
+  | { ok: false; reason: 'daily_max' | 'no_energy'; used: number; energy: number }
+
+/** 대화 전송 가능 여부 — 에너지 1 + 일 50회 */
+export async function getChatUseGate(): Promise<ChatUseGate> {
+  const daily = await loadPetDailyState()
+  const stock = await loadPetStock()
+  if (daily.chatUses >= CHAT_USE_MAX_PER_DAY) {
+    return {
+      ok: false,
+      reason: 'daily_max',
+      used: daily.chatUses,
+      energy: stock.energy,
+    }
+  }
+  if (stock.energy < ENERGY_CHAT_COST) {
+    return {
+      ok: false,
+      reason: 'no_energy',
+      used: daily.chatUses,
+      energy: stock.energy,
+    }
+  }
+  return {
+    ok: true,
+    remaining: CHAT_USE_MAX_PER_DAY - daily.chatUses,
+  }
+}
+
+export async function recordChatUse(): Promise<PetDailyState> {
+  const daily = await loadPetDailyState()
+  return savePetDailyState({
+    ...daily,
+    chatUses: Math.min(CHAT_USE_MAX_PER_DAY, daily.chatUses + 1),
   })
 }
 

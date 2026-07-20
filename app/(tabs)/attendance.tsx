@@ -11,7 +11,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, CheckCircle, Lightning, PawPrint } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { PrimaryButton } from '../../components/ui'
@@ -28,6 +28,10 @@ import {
 } from '../../lib/onboardingStorage'
 import { ENERGY_ATTEND_GAIN, ENERGY_MAX, addEnergy } from '../../lib/petStock'
 import { showToast } from '../../lib/toast'
+import {
+  acquireTabBarOverlay,
+  releaseTabBarOverlay,
+} from '../../lib/tabBarOverlay'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
@@ -52,7 +56,7 @@ function getMonthMatrix(year: number, month: number) {
 
 export default function AttendanceScreen() {
   const insets = useSafeAreaInsets()
-  const tabBarSpace = tabBarReserveHeight(insets.bottom)
+  const bottomPad = Math.max(insets.bottom, 8) + 24
   const today = useMemo(() => new Date(), [])
   const year = today.getFullYear()
   const month = today.getMonth()
@@ -66,6 +70,7 @@ export default function AttendanceScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      acquireTabBarOverlay()
       let alive = true
       void (async () => {
         let keys = await loadAttendanceKeys()
@@ -80,6 +85,7 @@ export default function AttendanceScreen() {
       })()
       return () => {
         alive = false
+        releaseTabBarOverlay()
       }
     }, [year, month, today]),
   )
@@ -132,7 +138,7 @@ export default function AttendanceScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={8}
-          onPress={() => router.back()}
+          onPress={() => router.navigate('/(tabs)/index')}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
@@ -145,17 +151,15 @@ export default function AttendanceScreen() {
         style={styles.flex}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: tabBarSpace + 24 },
+          { paddingBottom: bottomPad },
         ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.heroCard}>
           <View style={styles.heroCopy}>
-            <Text style={styles.heroTitle}>
-              {'하루에 한 번씩\n도장을 찍어 주세요'}
-            </Text>
+            <Text style={styles.heroTitle}>출석하면 에너지를 모을 수 있어요</Text>
             <Text style={styles.heroSub}>
-              출석하면 에너지를 모을 수 있어요
+              하루 1회 · +{ATTENDANCE_ENERGY_REWARD} 에너지
             </Text>
             <View style={styles.energyPill}>
               <Lightning size={14} color={Colors.accent} weight="fill" />
@@ -322,10 +326,8 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.2,
+    ...HeaderTitleStyle.screen,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -350,14 +352,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 26,
     letterSpacing: -0.4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   heroSub: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   energyPill: {
     alignSelf: 'flex-start',
@@ -460,13 +461,13 @@ const styles = StyleSheet.create({
   stampDiskToday: {
     backgroundColor: Colors.accentSoft,
     borderWidth: 1.5,
-    borderColor: Colors.accent,
+    borderColor: Colors.selected,
   },
   emptyDisk: {
     backgroundColor: Colors.surfaceSecondary,
   },
   emptyDiskToday: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.accentSoft,
     borderWidth: 1.5,
     borderColor: Colors.selected,
   },

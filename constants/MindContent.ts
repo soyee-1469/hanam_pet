@@ -1,4 +1,5 @@
 /** 마음챙김 콘텐츠 더미 데이터 */
+import { formatDate } from '../lib/dateFormat'
 
 export type MindMoodFilter = 'all' | '우울' | '불안' | '스트레스'
 
@@ -125,9 +126,7 @@ export function getMindCheck(id: string | undefined): MindCheckItem | null {
   return MIND_CHECKS.find((c) => c.id === id) ?? null
 }
 
-/** 목록용 업로드일 (예: 2026.3.12) */
+/** 목록용 업로드일 — formatDate 와 동일 (2026.07.08) */
 export function formatPublishedAt(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  if (!y || !m || !d) return iso
-  return `${y}.${m}.${d}`
+  return formatDate(iso)
 }

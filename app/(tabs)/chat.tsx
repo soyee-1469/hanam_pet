@@ -16,7 +16,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, Lightning, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
+import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
@@ -24,7 +25,9 @@ import { HelpContactsBanner } from '../../components/HelpContactsBanner'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import {
   CHAT_ENERGY_COST,
+  CHAT_USE_MAX_PER_DAY,
   loadChatEnergy,
+  loadChatUsesToday,
   spendChatEnergy,
 } from '../../lib/chatEnergy'
 import { setEnergyCareNudge } from '../../lib/careNudge'
@@ -40,14 +43,11 @@ import {
 } from '../../lib/coachmarkTourState'
 import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
 import {
-  getChatClearToken,
-  subscribeChatClear,
-} from '../../lib/chatSession'
-import {
   keyboardAvoidingBehavior,
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../../lib/useKeyboardAvoidInset'
+import { formatDateTime } from '../../lib/dateFormat'
 
 const TYPING_MS = 1800
 
@@ -66,17 +66,6 @@ type ChatMessage = {
   at: Date
 }
 
-function formatStamp(d: Date) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  const h = d.getHours()
-  const min = String(d.getMinutes()).padStart(2, '0')
-  const period = h < 12 ? '오전' : '오후'
-  const hour12 = h % 12 === 0 ? 12 : h % 12
-  return `${y}-${m}-${day} ${period} ${hour12}:${min}`
-}
-
 export default function ChatScreen() {
   const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollView>(null)
@@ -93,13 +82,16 @@ export default function ChatScreen() {
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
+  const [chatUsesToday, setChatUsesToday] = useState(0)
   const [energyReady, setEnergyReady] = useState(false)
   const [petName, setPetName] = useState('하치')
   const [petId, setPetId] = useState<PetChoice>('mongi')
   const greetOpacity = useRef(new Animated.Value(0)).current
   const greetLift = useRef(new Animated.Value(12)).current
   const tabBarSpace = tabBarReserveHeight(insets.bottom)
-  const depleted = energyReady && energy < CHAT_ENERGY_COST
+  const depleted =
+    energyReady &&
+    (energy < CHAT_ENERGY_COST || chatUsesToday >= CHAT_USE_MAX_PER_DAY)
   const canSend = message.trim().length > 0 && !typing && !depleted
   const chatting = messages.length > 0
   const composing = message.trim().length > 0
@@ -116,24 +108,6 @@ export default function ChatScreen() {
   useEffect(() => {
     return subscribePetTour(() => {
       setTourIndex(getPetTourStepIndex())
-    })
-  }, [])
-
-  useEffect(() => {
-    let token = getChatClearToken()
-    return subscribeChatClear(() => {
-      const next = getChatClearToken()
-      if (next === token) return
-      token = next
-      if (typingTimer.current) {
-        clearTimeout(typingTimer.current)
-        typingTimer.current = null
-      }
-      setTyping(false)
-      setMessage('')
-      setMessages([])
-      setNoticeDone(false)
-      setTipVisible(true)
     })
   }, [])
 
@@ -184,7 +158,7 @@ export default function ChatScreen() {
 
   const stamp = useMemo(() => {
     const first = messages.find((m) => m.role === 'user')
-    return first ? formatStamp(first.at) : ''
+    return first ? formatDateTime(first.at) : ''
   }, [messages])
 
   const userMessages = useMemo(
@@ -202,11 +176,14 @@ export default function ChatScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true
-      void loadChatEnergy().then((n) => {
-        if (!alive) return
-        setEnergy(n)
-        setEnergyReady(true)
-      })
+      void Promise.all([loadChatEnergy(), loadChatUsesToday()]).then(
+        ([n, uses]) => {
+          if (!alive) return
+          setEnergy(n)
+          setChatUsesToday(uses)
+          setEnergyReady(true)
+        },
+      )
       void (async () => {
         const profile = await getOnboardingProfile()
         const id: PetChoice = profile?.petId ?? 'mongi'
@@ -259,10 +236,13 @@ export default function ChatScreen() {
 
     const remaining = await spendChatEnergy()
     if (remaining == null) {
-      setEnergy(0)
+      const uses = await loadChatUsesToday()
+      setChatUsesToday(uses)
+      setEnergy(await loadChatEnergy())
       return
     }
     setEnergy(remaining)
+    setChatUsesToday((u) => Math.min(CHAT_USE_MAX_PER_DAY, u + 1))
 
     const next: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -315,19 +295,23 @@ export default function ChatScreen() {
           <Text style={styles.depletedTitle}>에너지를 다 썼어요</Text>
         </View>
         <Text style={styles.depletedBody}>
-          사료를 주거나 놀아 주면 에너지가 다시 차올라요.
+          {chatUsesToday >= CHAT_USE_MAX_PER_DAY
+            ? '오늘은 대화를 50번 모두 나눴어요. 내일 다시 이야기해요.'
+            : '사료를 주거나 놀아 주면 에너지가 다시 차올라요.'}
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="에너지 채우기"
-          onPress={goRefillEnergy}
-          style={({ pressed }) => [
-            styles.depletedCta,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Text style={styles.depletedCtaText}>에너지 채우기</Text>
-        </Pressable>
+        {chatUsesToday < CHAT_USE_MAX_PER_DAY ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="에너지 채우기"
+            onPress={goRefillEnergy}
+            style={({ pressed }) => [
+              styles.depletedCta,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.depletedCtaText}>에너지 채우기</Text>
+          </Pressable>
+        ) : null}
       </View>
       <View style={styles.depletedTail} />
     </View>
@@ -418,7 +402,7 @@ export default function ChatScreen() {
             keyboardShouldPersistTaps="handled"
             bounces={false}
           >
-            <Text style={styles.stamp}>{formatStamp(new Date())}</Text>
+            <Text style={styles.stamp}>{formatDateTime(new Date())}</Text>
             {depletedBubble}
             <Image
               source={petImage}
@@ -536,7 +520,9 @@ export default function ChatScreen() {
           {depleted ? (
             <View style={styles.energyInsufficient}>
               <Text style={styles.energyInsufficientText}>
-                에너지가 부족해요
+                {chatUsesToday >= CHAT_USE_MAX_PER_DAY
+                  ? '오늘 대화 횟수를 모두 사용했어요'
+                  : '에너지가 부족해요'}
               </Text>
             </View>
           ) : (
@@ -637,9 +623,8 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '800',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.screen,
   },
   stage: {
     flexGrow: 1,
@@ -685,8 +670,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   greetText: {
-    fontWeight: '600',
-    fontSize: 16,
+    ...TypeStyle.bubble,
     lineHeight: 24,
     color: Colors.textPrimary,
     textAlign: 'center',

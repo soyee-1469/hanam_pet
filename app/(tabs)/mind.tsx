@@ -22,7 +22,7 @@ import {
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import {
   MIND_CONTENTS,
   MIND_CHECKS,
@@ -306,9 +306,6 @@ export default function MindScreen() {
                         <View style={styles.thumbPlay} pointerEvents="none">
                           <Play size={14} color="#FFFFFF" weight="fill" />
                         </View>
-                        <View style={styles.durationBadge}>
-                          <Text style={styles.durationText}>{item.minutes}분</Text>
-                        </View>
                       </View>
                       <View style={styles.videoCopy}>
                         <Text style={styles.videoTitle} numberOfLines={2}>
@@ -548,10 +545,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     paddingHorizontal: Layout.screenPaddingH,
-    fontSize: 22,
-    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 14,
+    ...HeaderTitleStyle.tab,
   },
   tabs: {
     flexDirection: 'row',
@@ -561,8 +557,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.divider,
   },
   tabBtn: {
-    paddingTop: 2,
-    paddingBottom: 12,
+    paddingTop: Layout.tabMenuPaddingTop,
+    paddingBottom: Layout.tabMenuPaddingBottom,
     position: 'relative',
   },
   tabPressed: {
@@ -644,7 +640,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   featuredTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
     lineHeight: 26,
@@ -832,20 +828,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 2,
-  },
-  durationBadge: {
-    position: 'absolute',
-    right: 6,
-    bottom: 6,
-    backgroundColor: 'rgba(0,0,0,0.72)',
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-  },
-  durationText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   videoCopy: {
     flex: 1,

@@ -72,7 +72,7 @@ export function markAllNotificationsRead() {
 }
 
 /** 더미 알림 — 시안「앱 알림」기준 (서버 연동 전)
- * date는 YYYY-MM-DD. 목록에서는 YYYY.M.D 로 표시.
+ * date는 YYYY-MM-DD. 목록에서는 2026.07.19 로 표시.
  */
 export const DEMO_NOTIFICATIONS: AppNotification[] = [
   {

@@ -160,9 +160,6 @@ export default function MindCheckScreen() {
           </Pressable>
 
           <View style={styles.headerTitles}>
-            <Text style={styles.toolLabel} numberOfLines={1}>
-              {assessment.title}
-            </Text>
             <Text style={styles.exploreTitle} numberOfLines={1}>
               {assessment.exploreTitle}
             </Text>
@@ -295,14 +292,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingRight: 8,
   },
-  toolLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textDisabled,
-    marginBottom: 2,
-  },
   exploreTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
   },

@@ -17,6 +17,10 @@ function emit() {
   listeners.forEach((l) => l())
 }
 
+function sortByCreatedAtDesc(a: DiaryEntry, b: DiaryEntry) {
+  return a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0
+}
+
 export function subscribeDiaryRecords(listener: Listener): () => void {
   listeners.add(listener)
   return () => {
@@ -51,24 +55,52 @@ export function isDiaryCleared(): boolean {
 }
 
 export function listDiaryEntries(): DiaryEntry[] {
-  return cleared ? [] : DIARY_DEMO_ENTRIES
+  return cleared ? [] : [...DIARY_DEMO_ENTRIES].sort(sortByCreatedAtDesc)
 }
 
 export function findDiaryEntry(id: string) {
   return listDiaryEntries().find((e) => e.id === id)
 }
 
+/** 해당 날짜의 최신 기록 1건 */
 export function findDiaryEntryByDate(
   year: number,
   month: number,
   day: number,
 ) {
-  return listDiaryEntries().find(
-    (e) => e.year === year && e.month === month && e.day === day,
-  )
+  return listDiaryEntriesByDate(year, month, day)[0]
 }
 
-/** 캘린더용 — 활성 기록이 있는 날만 감정 표시 */
+/** 해당 날짜 기록 전부 (최신순) */
+export function listDiaryEntriesByDate(
+  year: number,
+  month: number,
+  day: number,
+): DiaryEntry[] {
+  return listDiaryEntries()
+    .filter((e) => e.year === year && e.month === month && e.day === day)
+    .sort(sortByCreatedAtDesc)
+}
+
+/** 해당 월 기록 전부 (최신순) */
+export function listDiaryEntriesByMonth(
+  year: number,
+  month: number,
+): DiaryEntry[] {
+  return listDiaryEntries()
+    .filter((e) => e.year === year && e.month === month)
+    .sort(sortByCreatedAtDesc)
+}
+
+export function countDiaryEntriesByDate(
+  year: number,
+  month: number,
+  day: number,
+) {
+  return listDiaryEntriesByDate(year, month, day).length
+}
+
+/** 캘린더용 — 날짜당 가장 최근 감정 */
 export function diaryMoodsForMonth(
   year: number,
   month: number,
@@ -79,12 +111,16 @@ export function diaryMoodsForMonth(
     today.getMonth(),
     today.getDate(),
   ).getTime()
-  const map = new Map<number, DiaryMoodId>()
+  const latest = new Map<number, DiaryEntry>()
   for (const e of listDiaryEntries()) {
     if (e.year !== year || e.month !== month) continue
     const t = new Date(e.year, e.month - 1, e.day).getTime()
     if (t > todayStart) continue
-    if (!map.has(e.day)) map.set(e.day, e.moodId)
+    const prev = latest.get(e.day)
+    if (!prev || e.createdAt > prev.createdAt) latest.set(e.day, e)
   }
-  return [...map.entries()].map(([day, moodId]) => ({ day, moodId }))
+  return [...latest.entries()].map(([day, e]) => ({
+    day,
+    moodId: e.moodId as DiaryMoodId,
+  }))
 }

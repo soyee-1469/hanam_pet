@@ -15,13 +15,14 @@ import {
   TrashSimple,
 } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Layout } from '../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
   DIARY_MOOD_LABEL_COLOR,
   type DiaryEntry,
 } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
+import { formatDateTime } from '../lib/dateFormat'
 import {
   BottomSheet,
   ConfirmDialog,
@@ -140,7 +141,7 @@ export default function DiaryDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.date}>
-          {entry.year}년 {entry.month}월 {entry.day}일 {entry.weekday}
+          {formatDateTime(entry.createdAt)}
         </Text>
 
         <View style={styles.moodBlock}>
@@ -175,7 +176,16 @@ export default function DiaryDetailScreen() {
         <PrimaryButton label="다시 쓸게요" emphasized onPress={onRewrite} />
         <GhostButton
           label="목록으로 돌아가기"
-          onPress={() => router.replace('/diary-list')}
+          onPress={() =>
+            router.replace({
+              pathname: '/diary-list',
+              params: {
+                year: String(entry.year),
+                month: String(entry.month),
+                day: String(entry.day),
+              },
+            })
+          }
         />
       </View>
 
@@ -190,7 +200,7 @@ export default function DiaryDetailScreen() {
             </Text>
           </View>
           <Text style={styles.sheetSummaryDate}>
-            {entry.month}월 {entry.day}일 {entry.weekday}
+            {formatDateTime(entry.createdAt)}
           </Text>
         </View>
         <View style={styles.sheetDivider} />
@@ -294,10 +304,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.2,
+    ...HeaderTitleStyle.screen,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -363,7 +371,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   sheetTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',

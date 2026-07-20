@@ -20,6 +20,7 @@ import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { DIARY_MOODS, type DiaryMoodId } from '../constants/Moods'
 import { DIARY_MOOD_LABEL_COLOR } from '../constants/diaryDemo'
+import { TypeStyle } from '../constants/Typography'
 import { findDiaryEntry } from '../lib/diaryRecords'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
@@ -29,6 +30,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../lib/useKeyboardAvoidInset'
+import { formatDateFromYmd } from '../lib/dateFormat'
 
 const MOTION_MS = 200
 const easeOut = Easing.out(Easing.cubic)
@@ -37,7 +39,6 @@ const NOTE_MAX_H = 260
 
 const TAGS = ['업무', '건강', '수면', '운동', '취미', '관계', '가족', '기타'] as const
 const TAGS_COLLAPSED = 5
-const WEEKDAY_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 const NOTE_MAX_LEN = 500
 
 const PET_IDLE = {
@@ -99,7 +100,6 @@ export default function DiaryWriteScreen() {
   const year = existing?.year ?? (Number(params.year) || now.getFullYear())
   const month = existing?.month ?? (Number(params.month) || now.getMonth() + 1)
   const day = existing?.day ?? (Number(params.day) || now.getDate())
-  const date = useMemo(() => new Date(year, month - 1, day), [year, month, day])
 
   const [moodId, setMoodId] = useState<DiaryMoodId | null>(
     existing?.moodId ?? null,
@@ -156,7 +156,7 @@ export default function DiaryWriteScreen() {
     : isEdit
       ? PET_EDIT
       : PET_IDLE
-  const dateLabel = `${year}년 ${month}월 ${day}일 ${WEEKDAY_KO[date.getDay()]}`
+  const dateLabel = formatDateFromYmd(year, month, day)
 
   const isDirty = useMemo(() => {
     if (saved) return false
@@ -428,7 +428,10 @@ export default function DiaryWriteScreen() {
                 >
                   <Animated.View
                     style={[
-                      styles.moodEmoji,
+                      styles.moodCircle,
+                      selected && {
+                        borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
+                      },
                       {
                         transform: [
                           { translateY: moodLifts[m.id] },
@@ -641,15 +644,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   speechMain: {
-    fontWeight: '600',
-    fontSize: 16,
+    ...TypeStyle.bubble,
     lineHeight: 22,
     color: Colors.textPrimary,
   },
   speechSub: {
+    ...TypeStyle.bubbleSub,
     marginTop: 4,
-    fontWeight: '500',
-    fontSize: 13,
     lineHeight: 18,
     color: Colors.textSecondary,
   },
@@ -666,9 +667,16 @@ const styles = StyleSheet.create({
     width: 62,
     overflow: 'visible',
   },
-  moodEmoji: {
+  moodCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden',
   },
   moodLabel: {
     marginTop: 8,
@@ -688,8 +696,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...TypeStyle.sectionTitle,
     color: Colors.textPrimary,
     marginBottom: 12,
   },

@@ -11,11 +11,10 @@ import {
   getNotificationById,
   markNotificationRead,
 } from '../lib/notifications'
+import { formatDate } from '../lib/dateFormat'
 
 function formatDetailDate(iso: string) {
-  const [y, m, day] = iso.split('-').map(Number)
-  if (!y || !m || !day) return iso
-  return `${y}년 ${m}월 ${day}일`
+  return formatDate(iso)
 }
 
 export default function NotificationDetailScreen() {

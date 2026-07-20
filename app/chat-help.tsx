@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   phone: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.primary,
     letterSpacing: -0.2,

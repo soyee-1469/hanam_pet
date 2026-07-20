@@ -5,6 +5,7 @@ import { router } from 'expo-router'
 import { Lightning } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { TypeStyle } from '../constants/Typography'
 import { DogExpr } from '../constants/DogExpr'
 import {
   PrimaryButton,
@@ -55,7 +56,6 @@ export default function DiaryDoneScreen() {
       <View style={styles.body}>
         <View style={styles.hero}>
           <Text style={styles.title}>마음을 담았어요</Text>
-          <Text style={styles.subtitle}>오늘도 잘 기록했어요</Text>
         </View>
 
         <View style={styles.stage}>
@@ -113,19 +113,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontWeight: '700',
-    fontSize: 26,
+    ...TypeStyle.hero,
     color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.4,
     lineHeight: 34,
-  },
-  subtitle: {
-    fontWeight: '500',
-    fontSize: 15,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
   },
   stage: {
     alignItems: 'center',
@@ -143,8 +135,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   bubbleText: {
-    fontWeight: '600',
-    fontSize: 15,
+    ...TypeStyle.bubble,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 24,

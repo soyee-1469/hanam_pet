@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { TypeStyle } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
 import {
   HELP_CONTACTS,
@@ -102,11 +103,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 18,
+    ...TypeStyle.screenTitle,
     fontWeight: '700',
     color: Colors.textPrimary,
     lineHeight: 26,
-    letterSpacing: -0.2,
     marginBottom: 6,
   },
   lead: {

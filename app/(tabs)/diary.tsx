@@ -10,7 +10,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { CaretLeft, CaretRight, Plus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import {
   DIARY_MOODS,
   type DiaryMoodId,
@@ -18,7 +18,7 @@ import {
 import { DIARY_MOOD_LABEL_COLOR } from '../../constants/diaryDemo'
 import {
   diaryMoodsForMonth,
-  findDiaryEntryByDate,
+  countDiaryEntriesByDate,
   hydrateDiaryRecords,
   subscribeDiaryRecords,
 } from '../../lib/diaryRecords'
@@ -57,19 +57,6 @@ function getMonthMatrix(year: number, month: number) {
   for (let d = 1; d <= daysInMonth; d++) cells.push(d)
   while (cells.length % 7 !== 0) cells.push(null)
   return cells
-}
-
-function monthFeedback(good: number, ok: number, hard: number) {
-  if (good === 0 && ok === 0 && hard === 0) {
-    return '이번 달 이야기를 아직 기다리고 있어요.'
-  }
-  if (good >= ok && good >= hard) {
-    return '이번 달은 웃는 날이 가장 많았어요.'
-  }
-  if (hard >= good && hard >= ok) {
-    return '조금 힘든 날도 있었지만 잘 이겨내고 있어요.'
-  }
-  return '잔잔한 마음으로 하루하루를 채워가고 있어요.'
 }
 
 export default function DiaryScreen() {
@@ -154,15 +141,8 @@ export default function DiaryScreen() {
       bad: 0,
       hard: 0,
     }
-    let good = 0
-    let ok = 0
-    let hard = 0
     moods.forEach((m) => {
       counts[m.moodId] += 1
-      const tone = moodMeta(m.moodId).tone
-      if (tone === 'good') good += 1
-      else if (tone === 'ok') ok += 1
-      else hard += 1
     })
     const chips = DIARY_MOODS.filter((m) => counts[m.id] > 0).map((m) => ({
       id: m.id,
@@ -181,7 +161,6 @@ export default function DiaryScreen() {
       count: moods.length,
       chips,
       legend,
-      comment: monthFeedback(good, ok, hard),
     }
   }, [moods])
 
@@ -195,29 +174,43 @@ export default function DiaryScreen() {
     return t > startOfDay(today)
   }
 
-  const openDay = (day: number) => {
-    if (isFutureDay(day)) return
-    setSelectedDay(day)
-  }
-
-  const selectedEntry = useMemo(() => {
+  const resolveSelectedYmd = () => {
     const useToday = isFutureDay(selectedDay)
     const y = useToday ? today.getFullYear() : year
     const m = useToday ? today.getMonth() + 1 : month + 1
     const d = useToday ? today.getDate() : selectedDay
-    return findDiaryEntryByDate(y, m, d)
+    return { y, m, d }
+  }
+
+  const openDayList = (day: number) => {
+    if (isFutureDay(day)) return
+    setSelectedDay(day)
+    router.push({
+      pathname: '/diary-list',
+      params: {
+        year: String(year),
+        month: String(month + 1),
+        day: String(day),
+      },
+    })
+  }
+
+  const selectedDayCount = useMemo(() => {
+    const { y, m, d } = resolveSelectedYmd()
+    return countDiaryEntriesByDate(y, m, d)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, diaryEpoch])
 
   const openSelectedOrWrite = () => {
-    const useToday = isFutureDay(selectedDay)
-    const y = useToday ? today.getFullYear() : year
-    const m = useToday ? today.getMonth() + 1 : month + 1
-    const d = useToday ? today.getDate() : selectedDay
-    const entry = findDiaryEntryByDate(y, m, d)
-    if (entry) {
+    const { y, m, d } = resolveSelectedYmd()
+    if (selectedDayCount > 0) {
       router.push({
-        pathname: '/diary-detail',
-        params: { id: entry.id },
+        pathname: '/diary-list',
+        params: {
+          year: String(y),
+          month: String(m),
+          day: String(d),
+        },
       })
       return
     }
@@ -227,6 +220,16 @@ export default function DiaryScreen() {
         year: String(y),
         month: String(m),
         day: String(d),
+      },
+    })
+  }
+
+  const openMonthList = () => {
+    router.push({
+      pathname: '/diary-list',
+      params: {
+        year: String(year),
+        month: String(month + 1),
       },
     })
   }
@@ -282,7 +285,6 @@ export default function DiaryScreen() {
                 style={[
                   styles.weekday,
                   i === 0 && styles.weekdaySun,
-                  i === 6 && styles.weekdaySat,
                 ]}
               >
                 {w}
@@ -316,7 +318,7 @@ export default function DiaryScreen() {
                               : `${day}일 마음일기 쓰기`
                           }
                           disabled={future}
-                          onPress={() => openDay(day)}
+                          onPress={() => openDayList(day)}
                           style={({ pressed }) => [
                             styles.dayPressable,
                             !future && ({ cursor: 'pointer' } as object),
@@ -392,36 +394,32 @@ export default function DiaryScreen() {
             )}
           </View>
 
-          {dist.count > 0 ? (
-            <View style={styles.legendRow}>
-              {dist.legend.map((item) => (
-                <View key={item.id} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendSwatch,
-                      { backgroundColor: item.swatchColor },
-                    ]}
-                  />
-                  <Text style={styles.legendLabel}>
-                    {item.label} {item.count}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
-
-          <Text style={styles.feedback}>{dist.comment}</Text>
+          <View style={styles.legendRow}>
+            {dist.legend.map((item) => (
+              <View key={item.id} style={styles.legendItem}>
+                <View
+                  style={[
+                    styles.legendSwatch,
+                    { backgroundColor: item.swatchColor },
+                  ]}
+                />
+                <Text style={styles.legendLabel}>
+                  {item.label} {item.count}
+                </Text>
+              </View>
+            ))}
+          </View>
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="기록한 마음일기 전체 보기"
-            onPress={() => router.push('/diary-list')}
+            accessibilityLabel="기록한 마음일기 보러가기"
+            onPress={openMonthList}
             style={({ pressed }) => [
               styles.listLinkRow,
               pressed && styles.iconBtnPressed,
             ]}
           >
-            <Text style={styles.listLinkText}>기록한 마음 모아보기</Text>
+            <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
             <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
           </Pressable>
         </View>
@@ -438,7 +436,7 @@ export default function DiaryScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            selectedEntry ? '기록 보러갈께요' : '마음을 기록할게요'
+            selectedDayCount > 0 ? '기록 보러갈께요' : '마음을 기록할게요'
           }
           onPress={openSelectedOrWrite}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
@@ -450,11 +448,13 @@ export default function DiaryScreen() {
             collapsable={false}
           >
             <View style={styles.cta} collapsable={false}>
-              {selectedEntry ? null : (
+              {selectedDayCount > 0 ? null : (
                 <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
               )}
               <Text style={styles.ctaText}>
-                {selectedEntry ? '기록 보러갈께요' : '마음을 기록할게요'}
+                {selectedDayCount > 0
+                  ? '기록 보러갈께요'
+                  : '마음을 기록할게요'}
               </Text>
             </View>
           </View>
@@ -501,9 +501,8 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.tab,
   },
   iconBtn: {
     width: 40,
@@ -556,7 +555,7 @@ const styles = StyleSheet.create({
   monthLabel: {
     minWidth: 120,
     textAlign: 'center',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
@@ -585,9 +584,6 @@ const styles = StyleSheet.create({
   },
   weekdaySun: {
     color: Colors.primary,
-  },
-  weekdaySat: {
-    color: Colors.secondary,
   },
   daysGrid: {
     width: '100%',
@@ -734,13 +730,6 @@ const styles = StyleSheet.create({
   legendLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  feedback: {
-    marginTop: 12,
-    fontSize: 14,
-    lineHeight: 22,
-    fontWeight: '500',
     color: Colors.textSecondary,
   },
   listLinkRow: {

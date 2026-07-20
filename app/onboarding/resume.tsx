@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
     padding: 0,
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   giveUpTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     color: Colors.textPrimary,
     marginBottom: 16,

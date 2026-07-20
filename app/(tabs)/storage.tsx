@@ -14,7 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
 import { CaretLeft, ChatCircle, Lightning, Notebook } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../../constants/Layout'
 import {
   ENERGY_DAILY_EARN_CAP,
   ENERGY_MAX,
@@ -28,6 +28,11 @@ import {
   CLAIM_MAX_PER_DAY,
   loadPetClaimState,
 } from '../../lib/petClaimCooldown'
+import { formatDateTime } from '../../lib/dateFormat'
+import {
+  acquireTabBarOverlay,
+  releaseTabBarOverlay,
+} from '../../lib/tabBarOverlay'
 
 type StockKind = 'food' | 'toy' | 'energy'
 type HistoryTab = 'item' | 'energy'
@@ -189,15 +194,6 @@ function formatDelta(delta: number, unit: string) {
   return `0${unit}`
 }
 
-/** "2026-07-08 14:20:28" → "7월 8일 14:20" */
-function formatHistoryTime(raw: string) {
-  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/)
-  if (!m) return raw
-  const month = Number(m[2])
-  const day = Number(m[3])
-  return `${month}월 ${day}일 ${m[4]}:${m[5]}`
-}
-
 function StockIcon({
   kind,
   size = 28,
@@ -286,7 +282,7 @@ if (
 
 export default function StorageScreen() {
   const insets = useSafeAreaInsets()
-  const tabBarSpace = tabBarReserveHeight(insets.bottom)
+  const bottomPad = Math.max(insets.bottom, 8) + 20
   const [stock, setStock] = useState(STOCK_FALLBACK)
   const [todayGain, setTodayGain] = useState<StockMap>({
     food: 0,
@@ -297,6 +293,7 @@ export default function StorageScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      acquireTabBarOverlay()
       let alive = true
       void (async () => {
         const [s, daily, claims] = await Promise.all([
@@ -314,6 +311,7 @@ export default function StorageScreen() {
       })()
       return () => {
         alive = false
+        releaseTabBarOverlay()
       }
     }, []),
   )
@@ -342,7 +340,7 @@ export default function StorageScreen() {
           accessibilityRole="button"
           accessibilityLabel="뒤로"
           hitSlop={8}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => router.navigate('/(tabs)/index')}
           style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
@@ -355,7 +353,7 @@ export default function StorageScreen() {
         style={styles.flex}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: tabBarSpace + 20 },
+          { paddingBottom: bottomPad },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -514,7 +512,7 @@ export default function StorageScreen() {
                   <View style={styles.rowCopy}>
                     <Text style={styles.rowTitle}>{item.title}</Text>
                     <Text style={styles.rowTime}>
-                      {formatHistoryTime(item.time)}
+                      {formatDateTime(item.time)}
                     </Text>
                     {noteLabel ? (
                       <View style={styles.detailWrap}>
@@ -574,10 +572,8 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.2,
+    ...HeaderTitleStyle.screen,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -698,13 +694,14 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 4,
+    paddingTop: Layout.tabMenuPaddingTop,
+    paddingBottom: 2,
   },
   tabLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textDisabled,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   tabLabelActive: {
     fontWeight: '700',

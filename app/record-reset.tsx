@@ -12,12 +12,11 @@ import { CaretRight, Question } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { ConfirmDialog, ScreenHeader } from '../components/ui'
-import { clearChatSession } from '../lib/chatSession'
 import { clearDiaryRecords } from '../lib/diaryRecords'
 import { clearMindCheckResults } from '../lib/mindCheckResults'
 import { showToast } from '../lib/toast'
 
-type ResetKind = 'chat' | 'diary' | 'mind'
+type ResetKind = 'diary' | 'mind'
 
 type ResetConfig = {
   title: string
@@ -35,21 +34,6 @@ const WARNING =
   '삭제하거나 초기화를 하면 하남이와 처음 만난 날의 상태로 돌아가요. 기록을 다시 찾을 수 없으니 신중하게 해주세요.'
 
 const CONFIG: Record<ResetKind, ResetConfig> = {
-  chat: {
-    title: '새로운 대화 시작하기',
-    actionTitle: '새로운 대화 시작하기',
-    actionDesc:
-      '지금까지 주고 받은 대화를 모두 비우고 새로운 대화를 시작해요.',
-    confirmTitle: '대화를 모두 비울까요?',
-    confirmBody:
-      '지금까지의 대화가 모두 사라져요. 이 작업은 되돌릴 수 없어요.',
-    confirmLabel: '비울래요',
-    doneMessage: '대화를 비웠어요. 새로 시작해 볼까요?',
-    afterHref: '/(tabs)/chat',
-    clear: () => {
-      clearChatSession()
-    },
-  },
   diary: {
     title: '새로운 마음일기 쓰기',
     actionTitle: '새로운 마음일기 쓰기',
@@ -80,7 +64,7 @@ const CONFIG: Record<ResetKind, ResetConfig> = {
 
 function parseKind(raw: string | string[] | undefined): ResetKind | null {
   const v = Array.isArray(raw) ? raw[0] : raw
-  if (v === 'chat' || v === 'diary' || v === 'mind') return v
+  if (v === 'diary' || v === 'mind') return v
   return null
 }
 

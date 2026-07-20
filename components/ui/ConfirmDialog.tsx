@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Trash, Warning } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { TypeStyle } from '../../constants/Typography'
 import { CenterDialog } from './AppOverlay'
 
 type ConfirmTone = 'danger' | 'warning'
@@ -99,15 +100,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accentSoft,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...TypeStyle.modalTitle,
+    fontSize: TypeStyle.screenTitle.fontSize,
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: 10,
   },
   body: {
-    fontSize: 14,
+    ...TypeStyle.bodySecondary,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,

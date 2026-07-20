@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { TypeStyle } from '../constants/Typography'
 import { PrimaryButton, ScreenHeader, onboardingFooterStyle } from './ui'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
@@ -116,8 +117,7 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   headline: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...TypeStyle.modalTitle,
     color: Colors.cocoa,
     lineHeight: 32,
     letterSpacing: -0.3,

@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   primaryTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 12,

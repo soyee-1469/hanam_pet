@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useFocusEffect, type Href } from 'expo-router'
 import { Bell, CalendarBlank, CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Layout } from '../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../constants/Layout'
 import {
   DEMO_NOTIFICATIONS,
   markAllNotificationsRead,
@@ -20,15 +20,10 @@ import {
   type AppNotification,
   type NotifCategory,
 } from '../lib/notifications'
+import { formatDate } from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
 
 type FilterId = 'all' | NotifCategory
-
-type NotifSection = {
-  key: string
-  title: string
-  data: AppNotification[]
-}
 
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -36,27 +31,9 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'service', label: '서비스' },
 ]
 
-/** 목록용 날짜 — 마인드 목록과 동일 (예: 2026.7.19) */
+/** 목록용 날짜 — 2026.07.08 */
 function formatNotifDate(iso: string) {
-  const [y, m, day] = iso.split('-').map(Number)
-  if (!y || !m || !day) return iso
-  return `${y}.${m}.${day}`
-}
-
-function buildSections(items: AppNotification[]): NotifSection[] {
-  const buckets = new Map<string, AppNotification[]>()
-  for (const item of items) {
-    const list = buckets.get(item.date)
-    if (list) list.push(item)
-    else buckets.set(item.date, [item])
-  }
-  return [...buckets.entries()]
-    .sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0))
-    .map(([date, data]) => ({
-      key: date,
-      title: formatNotifDate(date),
-      data,
-    }))
+  return formatDate(iso)
 }
 
 export default function NotificationsScreen() {
@@ -74,7 +51,13 @@ export default function NotificationsScreen() {
     return items.filter((n) => n.category === filter)
   }, [filter, items])
 
-  const sections = useMemo(() => buildSections(filtered), [filtered])
+  const sorted = useMemo(
+    () =>
+      [...filtered].sort((a, b) =>
+        a.date < b.date ? 1 : a.date > b.date ? -1 : 0,
+      ),
+    [filtered],
+  )
   const unreadCount = useMemo(
     () => items.filter((n) => n.unread).length,
     [items],
@@ -153,7 +136,7 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {sections.length === 0 ? (
+        {sorted.length === 0 ? (
           <View style={styles.empty}>
             <View style={styles.emptyIcon}>
               <Bell size={28} color={Colors.textDisabled} weight="regular" />
@@ -168,88 +151,83 @@ export default function NotificationsScreen() {
             </Text>
           </View>
         ) : (
-          sections.map((section) => (
-            <View key={section.key}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              {section.data.map((item) => {
-                const dateLabel = formatNotifDate(item.date)
-                return (
-                  <Pressable
-                    key={item.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${item.unread ? '읽지 않음, ' : ''}${item.title}, ${dateLabel}`}
-                    onPress={() => openItem(item)}
-                    style={({ pressed }) => [
-                      styles.card,
-                      item.unread && styles.cardUnread,
-                      pressed && styles.pressed,
-                      Platform.OS === 'web' && styles.cardWeb,
-                    ]}
-                  >
-                    <View
+          sorted.map((item) => {
+            const dateLabel = formatNotifDate(item.date)
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.unread ? '읽지 않음, ' : ''}${item.title}, ${dateLabel}`}
+                onPress={() => openItem(item)}
+                style={({ pressed }) => [
+                  styles.card,
+                  item.unread && styles.cardUnread,
+                  pressed && styles.pressed,
+                  Platform.OS === 'web' && styles.cardWeb,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconBox,
+                    item.unread ? styles.iconBoxUnread : styles.iconBoxRead,
+                    styles.noPointer,
+                  ]}
+                >
+                  {item.icon === 'calendar' ? (
+                    <CalendarBlank
+                      size={22}
+                      color={
+                        item.unread ? Colors.selected : Colors.textSecondary
+                      }
+                      weight="regular"
+                    />
+                  ) : (
+                    <Bell
+                      size={22}
+                      color={
+                        item.unread ? Colors.selected : Colors.textSecondary
+                      }
+                      weight="regular"
+                    />
+                  )}
+                </View>
+                <View style={[styles.rowBody, styles.noPointer]}>
+                  <View style={styles.rowTop}>
+                    <Text
                       style={[
-                        styles.iconBox,
-                        item.unread ? styles.iconBoxUnread : styles.iconBoxRead,
-                        styles.noPointer,
+                        styles.rowTitle,
+                        !item.unread && styles.rowTitleRead,
                       ]}
+                      numberOfLines={1}
                     >
-                      {item.icon === 'calendar' ? (
-                        <CalendarBlank
-                          size={22}
-                          color={
-                            item.unread ? Colors.selected : Colors.textSecondary
-                          }
-                          weight="regular"
-                        />
-                      ) : (
-                        <Bell
-                          size={22}
-                          color={
-                            item.unread ? Colors.selected : Colors.textSecondary
-                          }
-                          weight="regular"
-                        />
-                      )}
-                    </View>
-                    <View style={[styles.rowBody, styles.noPointer]}>
-                      <View style={styles.rowTop}>
-                        <Text
-                          style={[
-                            styles.rowTitle,
-                            !item.unread && styles.rowTitleRead,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {item.title}
-                        </Text>
-                        <Text style={styles.rowDate}>{dateLabel}</Text>
-                      </View>
-                      <Text
-                        style={[
-                          styles.rowBodyText,
-                          !item.unread && styles.rowBodyTextRead,
-                        ]}
-                        numberOfLines={2}
-                      >
-                        {item.body}
-                      </Text>
-                    </View>
-                    {item.unread ? (
-                      <View
-                        accessibilityElementsHidden
-                        importantForAccessibility="no"
-                        style={[styles.unreadDot, styles.noPointer]}
-                      />
-                    ) : (
-                      <View
-                        style={[styles.unreadPlaceholder, styles.noPointer]}
-                      />
-                    )}
-                  </Pressable>
-                )
-              })}
-            </View>
-          ))
+                      {item.title}
+                    </Text>
+                    <Text style={styles.rowDate}>{dateLabel}</Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.rowBodyText,
+                      !item.unread && styles.rowBodyTextRead,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {item.body}
+                  </Text>
+                </View>
+                {item.unread ? (
+                  <View
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    style={[styles.unreadDot, styles.noPointer]}
+                  />
+                ) : (
+                  <View
+                    style={[styles.unreadPlaceholder, styles.noPointer]}
+                  />
+                )}
+              </Pressable>
+            )
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -278,9 +256,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '700',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.screen,
   },
   markAllBtn: {
     minWidth: 64,
@@ -337,13 +314,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     flexGrow: 1,
   },
-  sectionTitle: {
-    marginTop: 14,
-    marginBottom: 8,
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
   empty: {
     paddingTop: 64,
     paddingHorizontal: 12,
@@ -359,7 +329,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 8,

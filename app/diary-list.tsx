@@ -6,38 +6,58 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { router, useLocalSearchParams } from 'expo-router'
 import {
   CaretLeft,
-  CalendarBlank,
   DotsThreeVertical,
   PencilSimple,
   TrashSimple,
 } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { Layout } from '../constants/Layout'
+import { Layout, HeaderTitleStyle } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import {
   DIARY_MOOD_LABEL_COLOR,
   type DiaryEntry,
 } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
-import { BottomSheet, ConfirmDialog } from '../components/ui'
+import { BottomSheet, ConfirmDialog, PrimaryButton } from '../components/ui'
 import {
   hydrateDiaryRecords,
   listDiaryEntries,
   subscribeDiaryRecords,
 } from '../lib/diaryRecords'
+import { formatDateFromYmd, formatDateTime } from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
 
 function moodMeta(id: DiaryEntry['moodId']) {
   return DIARY_MOODS.find((m) => m.id === id)!
 }
 
+function parseNum(raw: string | string[] | undefined, fallback: number) {
+  const v = Array.isArray(raw) ? raw[0] : raw
+  const n = Number(v)
+  return Number.isFinite(n) && n > 0 ? n : fallback
+}
+
 export default function DiaryListScreen() {
-  const [year] = useState(2026)
-  const [month] = useState(7)
+  const insets = useSafeAreaInsets()
+  const params = useLocalSearchParams<{
+    year?: string
+    month?: string
+    day?: string
+  }>()
+  const now = useMemo(() => new Date(), [])
+  const year = parseNum(params.year, now.getFullYear())
+  const month = parseNum(params.month, now.getMonth() + 1)
+  const dayParam = Array.isArray(params.day) ? params.day[0] : params.day
+  const day =
+    dayParam != null && dayParam !== ''
+      ? parseNum(dayParam, 0)
+      : null
+  const isDayMode = day != null && day > 0
+
   const [entries, setEntries] = useState<DiaryEntry[]>(() => listDiaryEntries())
   const [menuEntry, setMenuEntry] = useState<DiaryEntry | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -47,15 +67,34 @@ export default function DiaryListScreen() {
     return subscribeDiaryRecords(() => setEntries(listDiaryEntries()))
   }, [])
 
-  const list = useMemo(
-    () =>
-      entries
-        .filter((e) => e.year === year && e.month === month)
-        .sort((a, b) => b.day - a.day),
-    [entries, year, month],
-  )
+  const list = useMemo(() => {
+    const sorted = [...entries].sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+    )
+    if (isDayMode && day != null) {
+      return sorted.filter(
+        (e) => e.year === year && e.month === month && e.day === day,
+      )
+    }
+    return sorted.filter((e) => e.year === year && e.month === month)
+  }, [entries, year, month, day, isDayMode])
+
+  const summaryLabel = isDayMode
+    ? formatDateFromYmd(year, month, day!)
+    : `${year}.${String(month).padStart(2, '0')}`
 
   const closeMenu = () => setMenuEntry(null)
+
+  const openWrite = () => {
+    router.push({
+      pathname: '/diary-write',
+      params: {
+        year: String(year),
+        month: String(month),
+        day: String(isDayMode && day != null ? day : now.getDate()),
+      },
+    })
+  }
 
   const onRewrite = () => {
     if (!menuEntry) return
@@ -94,53 +133,67 @@ export default function DiaryListScreen() {
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
-        <Text style={styles.headerTitle}>마음일기장</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="달력으로"
-          onPress={() => router.replace('/(tabs)/diary')}
-          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
-        >
-          <CalendarBlank size={22} color={Colors.textPrimary} weight="regular" />
-        </Pressable>
+        <Text style={styles.headerTitle}>
+          {isDayMode ? '이날의 마음' : '마음일기장'}
+        </Text>
+        <View style={styles.sideBtn} />
       </View>
 
       <View style={styles.summary}>
-        <Text style={styles.summaryMonth}>
-          {year}년 {month}월
-        </Text>
+        <Text style={styles.summaryMonth}>{summaryLabel}</Text>
         <Text style={styles.summaryCount}>총 {list.length}개 기록</Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: isDayMode ? 100 : 32 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {list.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>아직 기록이 없어요</Text>
-            <Text style={styles.emptyBody}>
-              달력에서 날짜를 눌러 마음을 남겨 보세요.
+            <Text style={styles.emptyTitle}>
+              {isDayMode ? '이 날의 기록이 없어요' : '아직 기록이 없어요'}
             </Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.replace('/(tabs)/diary')}
-              style={({ pressed }) => [
-                styles.emptyCta,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.emptyCtaText}>달력으로 가기</Text>
-            </Pressable>
+            <Text style={styles.emptyBody}>
+              {isDayMode
+                ? '지금 바로 마음을 남겨 볼까요?'
+                : '달력에서 날짜를 눌러 마음을 남겨 보세요.'}
+            </Text>
+            {isDayMode ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={openWrite}
+                style={({ pressed }) => [
+                  styles.emptyCta,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.emptyCtaText}>마음을 기록할게요</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.replace('/(tabs)/diary')}
+                style={({ pressed }) => [
+                  styles.emptyCta,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.emptyCtaText}>달력으로 가기</Text>
+              </Pressable>
+            )}
           </View>
         ) : (
           list.map((entry) => {
             const mood = moodMeta(entry.moodId)
+            const timeLabel = formatDateTime(entry.createdAt)
             return (
               <Pressable
                 key={entry.id}
                 accessibilityRole="button"
-                accessibilityLabel={`${entry.month}월 ${entry.day}일 ${mood.label}`}
+                accessibilityLabel={`${timeLabel} ${mood.label}`}
                 onPress={() =>
                   router.push({
                     pathname: '/diary-detail',
@@ -165,9 +218,7 @@ export default function DiaryListScreen() {
                 </View>
                 <View style={styles.cardCopy}>
                   <View style={styles.cardHead}>
-                    <Text style={styles.cardDate}>
-                      {entry.month}월 {entry.day}일 {entry.weekday}
-                    </Text>
+                    <Text style={styles.cardDate}>{timeLabel}</Text>
                   </View>
                   <Text style={styles.cardPreview} numberOfLines={2}>
                     {entry.preview}
@@ -202,6 +253,21 @@ export default function DiaryListScreen() {
         )}
       </ScrollView>
 
+      {isDayMode ? (
+        <View
+          style={[
+            styles.writeBar,
+            { paddingBottom: Math.max(insets.bottom, 12) },
+          ]}
+        >
+          <PrimaryButton
+            label="마음을 기록할게요"
+            emphasized
+            onPress={openWrite}
+          />
+        </View>
+      ) : null}
+
       <BottomSheet
         visible={menuEntry != null}
         onRequestClose={closeMenu}
@@ -223,7 +289,7 @@ export default function DiaryListScreen() {
               </Text>
             </View>
             <Text style={styles.sheetSummaryDate}>
-              {menuEntry.month}월 {menuEntry.day}일 {menuEntry.weekday}
+              {formatDateTime(menuEntry.createdAt)}
             </Text>
           </View>
         ) : null}
@@ -310,9 +376,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '800',
     color: Colors.textPrimary,
+    ...HeaderTitleStyle.screen,
   },
   summary: {
     flexDirection: 'row',
@@ -333,7 +398,6 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 32,
     gap: 10,
   },
   empty: {
@@ -342,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 8,
@@ -436,11 +500,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
+  writeBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 12,
+    backgroundColor: Colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.divider,
+  },
   sheet: {
     backgroundColor: Colors.background,
   },
   sheetTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -470,9 +545,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   sheetSummaryDate: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
+    flexShrink: 1,
+    textAlign: 'right',
   },
   actionRow: {
     flexDirection: 'row',

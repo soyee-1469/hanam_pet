@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native'
 import { ArrowUpRight } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { TypeStyle } from '../constants/Typography'
 import { CenterDialog } from './ui/AppOverlay'
 
 type ExternalLinkModalProps = {
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 18,
+    ...TypeStyle.screenTitle,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',

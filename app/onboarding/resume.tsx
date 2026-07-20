@@ -16,7 +16,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import {
+  CaretDown,
   CaretRight,
+  CaretUp,
   DeviceMobile,
   Images,
   Lock,
@@ -116,6 +118,7 @@ export default function OnboardingResume() {
   const [focused, setFocused] = useState(0)
   const [busy, setBusy] = useState(false)
   const [codeError, setCodeError] = useState(false)
+  const [tipOpen, setTipOpen] = useState(true)
   const inputs = useRef<(RNTextInput | null)[]>([])
   const scrollRef = useRef<ScrollView>(null)
 
@@ -444,6 +447,30 @@ export default function OnboardingResume() {
             <Text style={styles.codeError}>{copy.code.wrongCode}</Text>
           ) : null}
 
+          <View style={styles.tipCard}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: tipOpen }}
+              accessibilityLabel={copy.code.tipTitle}
+              disabled={busy}
+              onPress={() => setTipOpen((v) => !v)}
+              style={({ pressed }) => [
+                styles.tipHeader,
+                pressed && styles.tipHeaderPressed,
+              ]}
+            >
+              <Text style={styles.tipTitle}>{copy.code.tipTitle}</Text>
+              {tipOpen ? (
+                <CaretUp size={16} color={Colors.textPrimary} weight="bold" />
+              ) : (
+                <CaretDown size={16} color={Colors.textPrimary} weight="bold" />
+              )}
+            </Pressable>
+            {tipOpen ? (
+              <Text style={styles.tipBody}>{copy.code.tipBody}</Text>
+            ) : null}
+          </View>
+
           <Pressable
             accessibilityRole="button"
             disabled={busy}
@@ -571,6 +598,35 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  tipCard: {
+    marginTop: 20,
+    backgroundColor: Colors.creamyBeige,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  tipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  tipHeaderPressed: {
+    opacity: 0.85,
+  },
+  tipTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  tipBody: {
+    marginTop: 10,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
   },
   otpCellWrap: {
     flexGrow: 1,

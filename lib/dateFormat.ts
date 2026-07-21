@@ -6,9 +6,9 @@
  * - formatDateTimeWithWeekday → 2026.07.08 (수) 14:20:28
  * - formatMonthDayTimeWithWeekday → 07.08 (수) 14:20:28
  * - formatTime      → 14:20:28
- * - formatYearMonth → 2026년 7월
- */
-const TZ = 'Asia/Seoul'
+ * - formatDateFromYmd → 2026.07.08
+ * - formatDateFromYmdWithWeekday → 2026.07.08 (수)
+ */const TZ = 'Asia/Seoul'
 
 type SeoulParts = {
   year: string

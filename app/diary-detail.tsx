@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingVertical: 22,
     minHeight: 160,
   },

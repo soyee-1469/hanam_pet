@@ -1,4 +1,5 @@
 import { View, Text, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
+import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import { TypeStyle } from '../constants/Typography'
 
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   wrap: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Layout.spaceXl,
     paddingBottom: 8,
   },
   stage: {
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     backgroundColor: Colors.surface,
     borderRadius: 18,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     marginBottom: 14,
     borderWidth: 1,

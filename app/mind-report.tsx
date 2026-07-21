@@ -248,9 +248,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
-    paddingBottom: 8,
+    paddingBottom: Layout.headerContentGap,
     minHeight: 52,
   },
   backBtn: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 16,
+    paddingTop: Layout.blockGap,
     paddingBottom: 40,
   },
   infoBanner: {
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 14,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
     marginBottom: 12,
     ...Shadows.elevation,
   },

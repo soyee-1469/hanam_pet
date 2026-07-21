@@ -1,4 +1,5 @@
 import { Image, View, Text, Pressable, StyleSheet } from 'react-native'
+import { Layout } from '../constants/Layout'
 import { Colors } from '../constants/Colors'
 import { TypeStyle } from '../constants/Typography'
 import { BottomSheet } from './ui/AppOverlay'
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
   },
   ctaText: {
     fontSize: 16,

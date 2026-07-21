@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
-    paddingTop: 16,
+    paddingTop: Layout.blockGap,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
   },

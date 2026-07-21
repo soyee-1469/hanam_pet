@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: Layout.headerPaddingTop + 24,
-    paddingBottom: 24,
+    paddingTop: Layout.headerPaddingTop + Layout.contentPaddingBottom,
+    paddingBottom: Layout.contentPaddingBottom,
   },
   title: {
     fontSize: 22,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 16,
   },
   copy: {

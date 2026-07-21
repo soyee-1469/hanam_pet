@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
     marginBottom: 28,
     ...Shadows.elevation,

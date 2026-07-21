@@ -15,6 +15,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
@@ -312,8 +313,8 @@ const styles = StyleSheet.create({
   },
   body: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: Layout.sectionGapLg,
   },
   headline: {
     fontSize: 22,
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     paddingTop: 28,
-    paddingBottom: 16,
+    paddingBottom: Layout.blockGap,
     paddingHorizontal: 10,
     borderRadius: 20,
     overflow: 'visible',

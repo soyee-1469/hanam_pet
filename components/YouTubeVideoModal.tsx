@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { X, ArrowSquareOut } from 'phosphor-react-native'
+import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import {
   extractYoutubeVideoId,
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     ...(Platform.OS === 'web'
       ? ({ position: 'fixed', inset: 0, zIndex: 10000 } as object)
       : null),
@@ -293,9 +294,9 @@ const styles = StyleSheet.create({
     zIndex: 1,
     backgroundColor: Colors.surface,
     borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingTop: Layout.blockGap,
+    paddingBottom: Layout.blockGap,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.elevation,
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     backgroundColor: Colors.surfaceSecondary,
   },
   fallbackText: {
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 48,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     borderRadius: 14,
     backgroundColor: Colors.creamyBeige,
     borderWidth: 1,

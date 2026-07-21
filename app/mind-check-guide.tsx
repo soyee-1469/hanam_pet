@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 16,
+    paddingBottom: Layout.blockGap,
   },
   lead: {
     fontSize: 14,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 4,
     marginBottom: 20,
     ...Shadows.elevation,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: Colors.textSecondary,
     paddingLeft: 4,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
   },
   howRow: {
     paddingVertical: 2,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 20,
     color: Colors.textSecondary,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
   },
   notice: {
     flexDirection: 'row',
@@ -412,6 +412,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
-    paddingTop: 12,
+    paddingTop: Layout.sectionGap,
   },
 })

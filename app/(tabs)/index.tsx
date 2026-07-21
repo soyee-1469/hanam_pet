@@ -26,7 +26,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { HelpContactsSheet } from '../../components/HelpContactsSheet'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
-import { tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
@@ -1860,7 +1860,7 @@ const styles = StyleSheet.create({
   },
   headerLayer: {
     zIndex: 3,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingBottom: 8,
     backgroundColor: 'transparent',
   },
@@ -1966,7 +1966,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     borderRadius: 16,
     backgroundColor: Colors.creamyBeige,
   },
@@ -2105,7 +2105,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     overflow: 'visible',
   },
   petCluster: {
@@ -2270,7 +2270,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 14,
     paddingBottom: 10,
     overflow: 'visible',
@@ -2289,7 +2289,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: 280,
     marginBottom: 10,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 12,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
@@ -2393,7 +2393,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 16,
     paddingVertical: 14,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     backgroundColor: Colors.creamyBeige,
     borderWidth: 1,
     borderColor: 'rgba(94, 64, 51, 0.1)',

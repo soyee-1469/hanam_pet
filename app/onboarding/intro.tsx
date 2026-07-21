@@ -310,12 +310,12 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     maxWidth: 320,
   },
   helpSlide: {
     paddingTop: 4,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
   },
   helpIconWrap: {
     alignItems: 'center',
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.selected,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 10,
   },
   connectText: {

@@ -8,6 +8,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native'
 import { Colors, Shadows } from '../constants/Colors'
+import { Layout } from '../constants/Layout'
 
 type Props = {
   title: string
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.divider,
     paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingHorizontal: Layout.screenPaddingH,
     alignItems: 'center',
     ...Shadows.elevation,
   },

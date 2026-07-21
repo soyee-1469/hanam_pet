@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     backgroundColor: Colors.surface,
     borderRadius: 18,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     borderWidth: 1,
     borderColor: Colors.border,

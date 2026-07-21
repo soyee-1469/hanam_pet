@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 28,
-    paddingBottom: 16,
+    paddingBottom: Layout.blockGap,
   },
   hero: {
     alignItems: 'center',
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingVertical: 20,
     gap: 14,
     ...Shadows.elevation,

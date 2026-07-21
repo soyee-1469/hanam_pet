@@ -1,6 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Linking, Alert } from 'react-native'
 import { ArrowUpRight } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { Layout } from '../constants/Layout'
 import { TypeStyle } from '../constants/Typography'
 import { CenterDialog } from './ui/AppOverlay'
 
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: Colors.surfaceSecondary,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 12,
     marginBottom: 20,
   },

@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
@@ -82,9 +83,9 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.surface,
     borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingTop: Layout.blockGap,
+    paddingBottom: Layout.blockGap,
     ...Shadows.elevation,
   },
   topRow: {
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   nextBtn: {
     minWidth: 88,
     height: 40,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     borderRadius: 12,
     backgroundColor: Colors.primary,
     alignItems: 'center',

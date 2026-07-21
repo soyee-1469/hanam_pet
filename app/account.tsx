@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: Layout.blockGap,
   },
   fieldBlock: {
     marginBottom: 20,

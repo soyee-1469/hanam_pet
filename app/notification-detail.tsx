@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Layout.screenPaddingH,
   },
   emptyText: {
     fontSize: 15,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
     paddingTop: 8,
   },
 })

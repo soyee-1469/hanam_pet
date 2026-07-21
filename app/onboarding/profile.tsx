@@ -32,6 +32,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../../lib/useKeyboardAvoidInset'
+import { TextKeyboardProps } from '../../lib/inputKeyboard'
 
 const copy = getOnboardingCopy().profile
 
@@ -114,6 +115,7 @@ export default function OnboardingProfile() {
             <Text style={styles.label}>{copy.label}</Text>
             <View style={[styles.inputShell, { borderColor }]}>
               <TextInput
+                {...TextKeyboardProps}
                 value={nickname}
                 onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
                 placeholder={copy.placeholder}

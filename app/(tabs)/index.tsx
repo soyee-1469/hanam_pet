@@ -28,6 +28,7 @@ import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
+import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { useDesignWindow } from '../../components/AppViewport'
@@ -1758,6 +1759,7 @@ function PetHomeScreenBody() {
           ]}
         >
           <TextInput
+            {...TextKeyboardProps}
             style={styles.nameModalInput}
             value={nameDraft}
             onChangeText={(t) => setNameDraft(t.slice(0, PET_NAME_MAX))}
@@ -1765,6 +1767,8 @@ function PetHomeScreenBody() {
             placeholder={defaultPetName(petId)}
             placeholderTextColor={Colors.textDisabled}
             autoFocus
+            autoCapitalize="none"
+            autoCorrect={false}
             returnKeyType="done"
             onSubmitEditing={() => {
               void saveNameEdit()

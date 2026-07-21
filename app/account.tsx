@@ -24,6 +24,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../lib/useKeyboardAvoidInset'
+import { TextKeyboardProps } from '../lib/inputKeyboard'
 
 const FALLBACK_NICKNAME = '몽이지킴이'
 const NICKNAME_KEY = 'hp_nickname'
@@ -115,6 +116,7 @@ export default function AccountScreen() {
             <Text style={styles.label}>닉네임</Text>
             <View style={[styles.inputShell, { borderColor }]}>
               <TextInput
+                {...TextKeyboardProps}
                 value={nickname}
                 onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
                 onFocus={() => {
@@ -125,6 +127,8 @@ export default function AccountScreen() {
                 placeholder="닉네임을 입력해 주세요"
                 placeholderTextColor={Colors.textDisabled}
                 maxLength={NICKNAME_MAX}
+                autoCapitalize="none"
+                autoCorrect={false}
                 style={styles.input}
                 returnKeyType="done"
               />

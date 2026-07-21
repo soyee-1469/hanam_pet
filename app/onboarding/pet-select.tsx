@@ -33,6 +33,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../../lib/useKeyboardAvoidInset'
+import { TextKeyboardProps } from '../../lib/inputKeyboard'
 
 const copy = getOnboardingCopy().petSelect
 
@@ -250,6 +251,7 @@ export default function OnboardingPetSelect() {
             <Text style={styles.nameLabel}>{copy.nameLabel}</Text>
             <View style={[styles.inputShell, { borderColor }]}>
               <TextInput
+                {...TextKeyboardProps}
                 value={petName}
                 onChangeText={(t) => setPetName(t.slice(0, PET_NAME_MAX))}
                 placeholder={copy.namePlaceholder}

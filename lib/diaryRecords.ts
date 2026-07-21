@@ -100,7 +100,7 @@ export function countDiaryEntriesByDate(
   return listDiaryEntriesByDate(year, month, day).length
 }
 
-/** 캘린더용 — 날짜당 가장 최근 감정 */
+/** 캘린더용 — 날짜당 가장 최근 감정 + 기록 건수 */
 export function diaryMoodsForMonth(
   year: number,
   month: number,
@@ -112,15 +112,19 @@ export function diaryMoodsForMonth(
     today.getDate(),
   ).getTime()
   const latest = new Map<number, DiaryEntry>()
+  const counts = new Map<number, number>()
   for (const e of listDiaryEntries()) {
     if (e.year !== year || e.month !== month) continue
     const t = new Date(e.year, e.month - 1, e.day).getTime()
     if (t > todayStart) continue
+    counts.set(e.day, (counts.get(e.day) ?? 0) + 1)
     const prev = latest.get(e.day)
     if (!prev || e.createdAt > prev.createdAt) latest.set(e.day, e)
   }
   return [...latest.entries()].map(([day, e]) => ({
     day,
     moodId: e.moodId as DiaryMoodId,
+    /** 그날 기록 수 — 2건 이상이면 달력에 +N 표시 */
+    count: counts.get(day) ?? 1,
   }))
 }

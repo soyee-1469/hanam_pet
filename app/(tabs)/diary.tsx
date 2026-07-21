@@ -38,6 +38,8 @@ import { getPetName } from '../../lib/petProfile'
 type DayMood = {
   day: number
   moodId: DiaryMoodId
+  /** 그날 기록 수 (2건 이상이면 달력에 +N) */
+  count: number
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const
@@ -323,7 +325,9 @@ function DiaryScreenBody() {
                           accessibilityRole="button"
                           accessibilityLabel={
                             mood
-                              ? `${day}일 ${moodMeta(mood.moodId).label} 마음일기`
+                              ? mood.count > 1
+                                ? `${day}일 ${moodMeta(mood.moodId).label} 마음일기 ${mood.count}건`
+                                : `${day}일 ${moodMeta(mood.moodId).label} 마음일기`
                               : `${day}일 마음일기 쓰기`
                           }
                           disabled={future}
@@ -366,6 +370,11 @@ function DiaryScreenBody() {
                                       },
                                     ]}
                                   />
+                                  {mood.count > 1 ? (
+                                    <Text style={styles.moodCountBadge}>
+                                      +{mood.count}
+                                    </Text>
+                                  ) : null}
                                 </>
                               ) : null}
                             </View>
@@ -606,7 +615,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 0,
-    height: 68,
+    height: 72,
     minWidth: 0,
   },
   dayPressable: {
@@ -624,7 +633,7 @@ const styles = StyleSheet.create({
   },
   dayInner: {
     width: 42,
-    height: 62,
+    height: 66,
     borderRadius: 12,
     alignItems: 'center',
     alignSelf: 'center',
@@ -664,7 +673,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   dayMoodSlot: {
-    height: 30,
+    minHeight: 30,
     width: 28,
     marginTop: 2,
     alignItems: 'center',
@@ -677,6 +686,14 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
+  },
+  /** 같은 날 2건 이상 — 색 점 아래 +N */
+  moodCountBadge: {
+    fontSize: 9,
+    lineHeight: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    letterSpacing: -0.2,
   },
   distCard: {
     marginTop: 14,

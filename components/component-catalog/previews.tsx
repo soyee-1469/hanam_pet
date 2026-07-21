@@ -25,6 +25,8 @@ import {
 } from 'phosphor-react-native'
 import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
+import { DIARY_MOODS } from '../../constants/Moods'
+import { DIARY_MOOD_LABEL_COLOR } from '../../constants/diaryDemo'
 import {
   PrimaryButton,
   SecondaryButton,
@@ -463,12 +465,19 @@ function MockMoodPicker() {
 }
 
 function MockMoodDistBar() {
-  // 브랜드 규칙: 좋음/보통/힘듦 파스텔 8px stacked bar
+  // 분포 바: 파스텔 8px / 범례: 이모지 + 기준색 테두리
   const segs = [
     { flex: 4, color: '#F7D7B8', label: '좋음', count: 4 },
     { flex: 3, color: '#E4EBB8', label: '보통', count: 3 },
     { flex: 2, color: '#C5DFF0', label: '힘듦', count: 2 },
   ]
+  const legend = DIARY_MOODS.map((m) => ({
+    id: m.id,
+    label: m.shortLabel,
+    emojiIndex: m.emojiIndex,
+    borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
+    count: m.id === 'great' ? 4 : m.id === 'ok' ? 3 : m.id === 'hard' ? 2 : 0,
+  }))
   return (
     <View>
       <View style={pv.distBar}>
@@ -480,11 +489,15 @@ function MockMoodDistBar() {
         ))}
       </View>
       <View style={pv.legendRow}>
-        {segs.map((s) => (
-          <View key={s.label} style={pv.legendItem}>
-            <View style={[pv.legendSwatch, { backgroundColor: s.color }]} />
+        {legend.map((item) => (
+          <View key={item.id} style={pv.legendItem}>
+            <View
+              style={[pv.legendEmojiRing, { borderColor: item.borderColor }]}
+            >
+              <MoodEmoji index={item.emojiIndex} size={18} />
+            </View>
             <Text style={pv.legendLabel}>
-              {s.label} <Text style={pv.legendCount}>{s.count}</Text>
+              {item.label} <Text style={pv.legendCount}>{item.count}</Text>
             </Text>
           </View>
         ))}
@@ -1824,12 +1837,16 @@ const pv = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  legendSwatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
+  legendEmojiRing: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
   },
   legendLabel: {
     fontSize: 12,

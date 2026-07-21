@@ -243,9 +243,7 @@ function ChatScreenBody() {
     onOpen: scrollToEnd,
   })
 
-  const composerBottomPad = keyboardOpen
-    ? Math.max(insets.bottom, 8)
-    : tabBarSpace + 8
+  const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
 

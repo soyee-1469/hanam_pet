@@ -122,7 +122,7 @@ export default function TabLayout() {
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            backgroundColor: Colors.background,
+            backgroundColor: Colors.cardRecessed,
             borderTopWidth: StyleSheet.hairlineWidth,
             borderTopColor: Colors.border,
             elevation: 0,

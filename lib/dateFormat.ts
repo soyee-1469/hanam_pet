@@ -7,7 +7,7 @@
  * - formatMonthDayTimeWithWeekday → 07.08 (수) 14:20:28
  * - formatTime      → 14:20:28
  * - formatDateFromYmd → 2026.07.08
- * - formatDateFromYmdWithWeekday → 2026.07.08 (수)
+ * - formatDateFromYmdWithWeekday → 2026.07.08 화요일
  */const TZ = 'Asia/Seoul'
 
 type SeoulParts = {
@@ -121,6 +121,14 @@ function seoulWeekdayShort(d: Date): string {
   }).format(d)
 }
 
+/** 화요일 */
+function seoulWeekdayLong(d: Date): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: TZ,
+    weekday: 'long',
+  }).format(d)
+}
+
 /** 14:20:28 (날짜는 이미 묶여 있을 때) */
 export function formatTime(input: Date | string | number): string {
   const d = toSeoulDate(input)
@@ -139,7 +147,7 @@ export function formatDateFromYmd(y: number, m: number, d: number): string {
   return `${y}.${pad2(m)}.${pad2(d)}`
 }
 
-/** 연·월·일 숫자 → 2026.07.08 (수) */
+/** 연·월·일 숫자 → 2026.07.08 화요일 */
 export function formatDateFromYmdWithWeekday(
   y: number,
   m: number,
@@ -147,5 +155,5 @@ export function formatDateFromYmdWithWeekday(
 ): string {
   const date = new Date(`${y}-${pad2(m)}-${pad2(d)}T12:00:00+09:00`)
   if (Number.isNaN(date.getTime())) return formatDateFromYmd(y, m, d)
-  return `${formatDateFromYmd(y, m, d)} (${seoulWeekdayShort(date)})`
+  return `${formatDateFromYmd(y, m, d)} ${seoulWeekdayLong(date)}`
 }

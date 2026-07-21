@@ -72,6 +72,8 @@ export const Colors = {
   success: '#A9B69A',
   warning: '#FF8F7A',
   error: '#C4847E',
+  /** 삭제·위험 아이콘 연한 면 (Primary 계열) */
+  errorSoft: '#FFF0EE',
 
   // Emotion diary
   moodGood: '#FF8F7A',

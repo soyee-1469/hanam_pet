@@ -160,17 +160,7 @@ export default function DiaryListScreen() {
       >
         {list.length === 0 ? (
           <EmptyRecordsCard
-            icon={require('../assets/images/아이콘/메모장.png')}
-            title={
-              isDayMode
-                ? '이 날의 기록이 없어요'
-                : '아직 마음을 남겨 보기 전이에요!'
-            }
-            body={
-              isDayMode
-                ? '지금 바로 마음을 남겨 볼까요?'
-                : '달력에서 첫 기록을 남기면,\n여기에서 모아 볼 수 있어요.'
-            }
+            title="아직 마음을 기록하기 전이에요!"
             ctaLabel={isDayMode ? '마음을 기록할게요' : '달력으로 가기'}
             onPressCta={
               isDayMode ? openWrite : () => router.replace('/(tabs)/diary')

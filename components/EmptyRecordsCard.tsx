@@ -57,10 +57,10 @@ export function EmptyRecordsCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceSecondary,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     paddingVertical: 40,
     paddingHorizontal: Layout.screenPaddingH,
     alignItems: 'center',

@@ -23,22 +23,48 @@ import { DIARY_MOOD_LABEL_COLOR } from '../constants/diaryDemo'
 import { TypeStyle } from '../constants/Typography'
 import { findDiaryEntry } from '../lib/diaryRecords'
 import { MoodEmoji } from '../components/MoodEmoji'
+import { EojeolText } from '../components/EojeolText'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../lib/toast'
 import {
   keyboardAvoidingBehavior,
-  keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../lib/useKeyboardAvoidInset'
 import { TextKeyboardProps } from '../lib/inputKeyboard'
-import { formatDateFromYmd } from '../lib/dateFormat'
+import { formatDateFromYmdWithWeekday } from '../lib/dateFormat'
+import {
+  MockSoftKeyboard,
+} from '../components/MockSoftKeyboard'
+
+/** 웹 미리보기용 — OS 키패드 대신 올라오는 소프트 키패드 */
+const USE_MOCK_SOFT_KEYBOARD = Platform.OS === 'web'
 
 const MOTION_MS = 200
 const easeOut = Easing.out(Easing.cubic)
-const NOTE_MIN_H = 132
-const NOTE_MAX_H = 260
+const NOTE_MIN_H = 160
 
-const TAGS = ['업무', '건강', '수면', '운동', '취미', '관계', '가족', '기타'] as const
+const TAGS = [
+  '업무',
+  '건강',
+  '수면',
+  '운동',
+  '취미',
+  '음식',
+  '돈',
+  '여행',
+  '데이트',
+  '반려동물',
+  '나 자신',
+  '배우자',
+  '가족',
+  '친구',
+  '동료',
+  '직장',
+  '집',
+  '학교',
+  '야외',
+  '날씨',
+] as const
 const TAGS_COLLAPSED = 5
 const NOTE_MAX_LEN = 500
 
@@ -107,40 +133,63 @@ export default function DiaryWriteScreen() {
   )
   const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
   const [note, setNote] = useState(existing?.body ?? '')
-  const [noteHeight, setNoteHeight] = useState(
-    existing?.body ? Math.min(NOTE_MAX_H, NOTE_MIN_H + 40) : NOTE_MIN_H,
-  )
   const [saved, setSaved] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
   const [tagsExpanded, setTagsExpanded] = useState(false)
+  const [noteFocused, setNoteFocused] = useState(false)
   const allowLeave = useRef(false)
   const scrollRef = useRef<ScrollView>(null)
+  const noteInputRef = useRef<TextInput>(null)
+  const noteBlurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const noteSectionY = useRef(0)
   const visibleTags = tagsExpanded ? TAGS : TAGS.slice(0, TAGS_COLLAPSED)
+  const showMockKeyboard = USE_MOCK_SOFT_KEYBOARD && noteFocused
 
   const scrollNoteIntoView = useCallback(() => {
-    const y = Math.max(0, noteSectionY.current - 4)
-    // 키보드·KeyboardAvoidingView 레이아웃이 잡힌 뒤 스크롤
-    setTimeout(() => {
+    const run = () => {
+      const y = Math.max(0, noteSectionY.current - 8)
       scrollRef.current?.scrollTo({ y, animated: true })
-    }, 120)
+    }
+    // 키보드 레이아웃이 잡히기 전·후로 여러 번 올려 키패드 위에 맞춤
+    run()
+    setTimeout(run, 80)
+    setTimeout(run, 220)
+    setTimeout(run, 400)
   }, [])
 
   const { webKeyboardInset, keyboardOpen } = useKeyboardAvoidInset({
     onOpen: scrollNoteIntoView,
   })
 
-  // 키보드 패딩이 잡힌 뒤 한 번 더 — 제목이 잘리지 않게
+  const liftForKeyboard = keyboardOpen || noteFocused
+
   useEffect(() => {
-    if (!keyboardOpen) return
-    const t = setTimeout(() => {
-      scrollRef.current?.scrollTo({
-        y: Math.max(0, noteSectionY.current - 4),
-        animated: true,
-      })
-    }, 200)
-    return () => clearTimeout(t)
-  }, [keyboardOpen])
+    if (!liftForKeyboard) return
+    scrollNoteIntoView()
+  }, [liftForKeyboard, scrollNoteIntoView])
+
+  useEffect(() => {
+    return () => {
+      if (noteBlurTimer.current) clearTimeout(noteBlurTimer.current)
+    }
+  }, [])
+
+  const insertNote = useCallback((ch: string) => {
+    setNote((prev) => {
+      if (prev.length >= NOTE_MAX_LEN) return prev
+      return (prev + ch).slice(0, NOTE_MAX_LEN)
+    })
+  }, [])
+
+  const backspaceNote = useCallback(() => {
+    setNote((prev) => prev.slice(0, -1))
+  }, [])
+
+  const hideMockKeyboard = useCallback(() => {
+    if (noteBlurTimer.current) clearTimeout(noteBlurTimer.current)
+    setNoteFocused(false)
+    noteInputRef.current?.blur()
+  }, [])
 
   const petOpacity = useRef(new Animated.Value(1)).current
   const petScale = useRef(new Animated.Value(1)).current
@@ -174,7 +223,7 @@ export default function DiaryWriteScreen() {
     : isEdit
       ? PET_EDIT
       : PET_IDLE
-  const dateLabel = formatDateFromYmd(year, month, day)
+  const dateLabel = formatDateFromYmdWithWeekday(year, month, day)
 
   const isDirty = useMemo(() => {
     if (saved) return false
@@ -365,10 +414,13 @@ export default function DiaryWriteScreen() {
         style={[
           styles.flex,
           Platform.OS === 'web' &&
-            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+            webKeyboardInset > 0 &&
+            !showMockKeyboard && { paddingBottom: webKeyboardInset },
         ]}
         behavior={keyboardAvoidingBehavior()}
-        keyboardVerticalOffset={keyboardVerticalOffset}
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? Math.max(insets.top, 12) + 52 : 0
+        }
       >
         <View style={styles.header}>
           <Pressable
@@ -393,23 +445,34 @@ export default function DiaryWriteScreen() {
           style={styles.flex}
           contentContainerStyle={[
             styles.content,
-            // 키보드 때 제목이 맨 위로 올라갈 스크롤 여유
-            keyboardOpen && { paddingBottom: 280 },
+            liftForKeyboard && styles.contentKeyboard,
           ]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.dateText}>{dateLabel}</Text>
 
-          <View style={styles.petAsk}>
-            <View style={styles.petStage}>
+          <View
+            style={[styles.petAsk, liftForKeyboard && styles.petAskKeyboard]}
+          >
+            <View
+              style={[styles.petStage, liftForKeyboard && styles.petStageKeyboard]}
+            >
               <Animated.View
                 style={{
                   opacity: petOpacity,
                   transform: [{ scale: petScale }, { rotate: wagRotate }],
                 }}
               >
-                <Image source={pet.image} style={styles.petImage} resizeMode="contain" />
+                <Image
+                  source={pet.image}
+                  style={[
+                    styles.petImage,
+                    liftForKeyboard && styles.petImageKeyboard,
+                  ]}
+                  resizeMode="contain"
+                />
               </Animated.View>
               <Animated.View
                 pointerEvents="none"
@@ -422,18 +485,22 @@ export default function DiaryWriteScreen() {
               </Animated.View>
             </View>
             <View style={styles.speech}>
-              <Text style={styles.speechMain}>
+              <EojeolText style={styles.speechMain}>
                 {saved
                   ? isEdit
                     ? '잘 고쳐줬어. 고마워.'
                     : '오늘도 이야기해줘서 고마워.'
                   : pet.main}
-              </Text>
-              {!saved ? <Text style={styles.speechSub}>{pet.sub}</Text> : null}
+              </EojeolText>
+              {!saved && !liftForKeyboard ? (
+                <EojeolText style={styles.speechSub}>{pet.sub}</EojeolText>
+              ) : null}
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>오늘 마음은 어땠나요?</Text>
+          <EojeolText style={styles.sectionTitle}>
+            오늘 마음은 어땠나요?
+          </EojeolText>
           <View style={styles.moodRow}>
             {DIARY_MOODS.map((m) => {
               const selected = moodId === m.id
@@ -450,10 +517,7 @@ export default function DiaryWriteScreen() {
                 >
                   <Animated.View
                     style={[
-                      styles.moodCircle,
-                      selected && {
-                        borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
-                      },
+                      styles.moodPick,
                       {
                         transform: [
                           { translateY: moodLifts[m.id] },
@@ -462,9 +526,33 @@ export default function DiaryWriteScreen() {
                       },
                     ]}
                   >
-                    <MoodEmoji index={m.emojiIndex} size={40} />
+                    {selected ? (
+                      <View
+                        style={[
+                          styles.moodCircle,
+                          {
+                            backgroundColor: `${DIARY_MOOD_LABEL_COLOR[m.id]}40`,
+                            borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
+                          },
+                        ]}
+                      >
+                        <MoodEmoji index={m.emojiIndex} size={36} />
+                      </View>
+                    ) : (
+                      <View style={styles.moodIdle}>
+                        <MoodEmoji index={m.emojiIndex} size={40} />
+                        <View
+                          style={[
+                            styles.moodDot,
+                            {
+                              backgroundColor: DIARY_MOOD_LABEL_COLOR[m.id],
+                            },
+                          ]}
+                        />
+                      </View>
+                    )}
                   </Animated.View>
-                  <Text
+                  <EojeolText
                     style={[
                       styles.moodLabel,
                       selected && styles.moodLabelOn,
@@ -472,16 +560,23 @@ export default function DiaryWriteScreen() {
                     ]}
                   >
                     {m.label}
-                  </Text>
+                  </EojeolText>
                 </Pressable>
               )
             })}
           </View>
 
-          <Text style={styles.sectionTitle}>무엇 때문에 그런 마음이 들었나요?</Text>
+          <EojeolText style={styles.sectionTitle}>
+            무엇 때문에 그런 마음이 들었나요?
+          </EojeolText>
           <View style={styles.tagSection}>
             <View style={styles.tagRow}>
-              <View style={styles.tagWrap}>
+              <View
+                style={[
+                  styles.tagWrap,
+                  !tagsExpanded && styles.tagWrapCollapsed,
+                ]}
+              >
                 {visibleTags.map((t) => {
                   const selected = tags.includes(t)
                   return (
@@ -491,66 +586,81 @@ export default function DiaryWriteScreen() {
                       accessibilityState={{ selected }}
                       android_ripple={{ color: 'transparent' }}
                       onPress={() => toggleTag(t)}
-                      style={({ pressed }) => [pressed && styles.pressedSoft]}
+                      style={({ pressed }) => [
+                        !tagsExpanded && styles.tagPressCollapsed,
+                        pressed && styles.pressedSoft,
+                      ]}
                     >
                       <View
-                        style={[styles.tag, selected && styles.tagOn]}
+                        style={[
+                          styles.tag,
+                          !tagsExpanded && styles.tagCollapsed,
+                          selected && styles.tagOn,
+                        ]}
                         collapsable={false}
                       >
-                        <Text
+                        <EojeolText
                           style={[styles.tagText, selected && styles.tagTextOn]}
                           numberOfLines={1}
                         >
                           {t}
-                        </Text>
+                        </EojeolText>
                       </View>
                     </Pressable>
                   )
                 })}
               </View>
-              {TAGS.length > TAGS_COLLAPSED ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    tagsExpanded ? '태그 접기' : '태그 더보기'
-                  }
-                  onPress={() => setTagsExpanded((v) => !v)}
-                  style={({ pressed }) => [
-                    styles.tagExpand,
-                    pressed && styles.pressedSoft,
-                  ]}
-                >
-                  {tagsExpanded ? (
-                    <CaretUp
-                      size={18}
-                      color={Colors.textSecondary}
-                      weight="bold"
-                    />
-                  ) : (
-                    <CaretDown
-                      size={18}
-                      color={Colors.textSecondary}
-                      weight="bold"
-                    />
-                  )}
-                </Pressable>
-              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  tagsExpanded ? '태그 접기' : '태그 더보기'
+                }
+                onPress={() => setTagsExpanded((v) => !v)}
+                style={({ pressed }) => [
+                  styles.tagExpand,
+                  pressed && styles.pressedSoft,
+                ]}
+              >
+                {tagsExpanded ? (
+                  <CaretUp
+                    size={18}
+                    color={Colors.textSecondary}
+                    weight="bold"
+                  />
+                ) : (
+                  <CaretDown
+                    size={18}
+                    color={Colors.textSecondary}
+                    weight="bold"
+                  />
+                )}
+              </Pressable>
             </View>
           </View>
+        </ScrollView>
 
-          <View
-            onLayout={(e) => {
-              noteSectionY.current = e.nativeEvent.layout.y
-            }}
-          >
-            <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
-            <View style={styles.noteWrap}>
+        {/* 입력창 → 버튼 → 키패드 순으로 바로 붙임 */}
+        <View
+          style={[
+            styles.composeDock,
+            liftForKeyboard && styles.composeDockKeyboard,
+          ]}
+          collapsable={false}
+        >
+          <View style={styles.noteSection}>
+            <EojeolText style={styles.sectionTitle}>
+              오늘의 마음을 적어 보세요.
+            </EojeolText>
+            <View
+              style={[
+                styles.noteWrap,
+                liftForKeyboard && styles.noteWrapKeyboard,
+              ]}
+            >
               <TextInput
+                ref={noteInputRef}
                 {...TextKeyboardProps}
-                style={[
-                  styles.note,
-                  { height: Math.max(NOTE_MIN_H, noteHeight) },
-                ]}
+                style={[styles.note, liftForKeyboard && styles.noteKeyboard]}
                 value={note}
                 onChangeText={(t) => setNote(t.slice(0, NOTE_MAX_LEN))}
                 multiline
@@ -558,12 +668,20 @@ export default function DiaryWriteScreen() {
                 textAlignVertical="top"
                 placeholder="이 감정이나 순간을 기억하도록 무슨 일이 있었는지 편하게 기록해 보세요."
                 placeholderTextColor={Colors.textDisabled}
-                onFocus={scrollNoteIntoView}
-                onContentSizeChange={(e) => {
-                  const h = e.nativeEvent.contentSize.height
-                  setNoteHeight(
-                    Math.min(Math.max(NOTE_MIN_H, h + 28), NOTE_MAX_H)
-                  )
+                showSoftInputOnFocus={!USE_MOCK_SOFT_KEYBOARD}
+                onFocus={() => {
+                  if (noteBlurTimer.current) clearTimeout(noteBlurTimer.current)
+                  setNoteFocused(true)
+                  scrollNoteIntoView()
+                }}
+                onBlur={() => {
+                  if (!USE_MOCK_SOFT_KEYBOARD) {
+                    setNoteFocused(false)
+                    return
+                  }
+                  noteBlurTimer.current = setTimeout(() => {
+                    setNoteFocused(false)
+                  }, 180)
                 }}
               />
               <Text style={styles.noteCount}>
@@ -571,34 +689,65 @@ export default function DiaryWriteScreen() {
               </Text>
             </View>
           </View>
-        </ScrollView>
 
-        <View
-          style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) + 12 }]}
-          collapsable={false}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={isEdit ? '이대로 수정할게요' : '이대로 기록할게요'}
-            disabled={!moodId || saved}
-            onPress={save}
-            style={({ pressed }) => [
-              pressed && moodId && !saved && styles.saveBtnPressed,
-              (!moodId || saved) && styles.saveBtnDisabled,
+          <View
+            style={[
+              styles.footer,
+              {
+                paddingBottom:
+                  showMockKeyboard || keyboardOpen
+                    ? 0
+                    : Math.max(insets.bottom, 12) + 12,
+              },
+              (showMockKeyboard || keyboardOpen) && styles.footerFlush,
             ]}
+            collapsable={false}
           >
-            <View style={styles.saveBtn} collapsable={false}>
-              <Text style={styles.saveText}>
-                {saved
-                  ? isEdit
-                    ? '수정되었어요'
-                    : '저장되었어요'
-                  : isEdit
-                    ? '이대로 수정할게요'
-                    : '이대로 기록할게요'}
-              </Text>
-            </View>
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
+                isEdit ? '이대로 수정할게요' : '이대로 기록할게요'
+              }
+              disabled={!moodId || saved}
+              onPress={save}
+              style={({ pressed }) => [
+                pressed && moodId && !saved && styles.saveBtnPressed,
+                (!moodId || saved) && styles.saveBtnDisabled,
+              ]}
+            >
+              <View style={styles.saveBtn} collapsable={false}>
+                <Text style={styles.saveText}>
+                  {saved
+                    ? isEdit
+                      ? '수정되었어요'
+                      : '저장되었어요'
+                    : isEdit
+                      ? '이대로 수정할게요'
+                      : '이대로 기록할게요'}
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+
+          {USE_MOCK_SOFT_KEYBOARD ? (
+            <MockSoftKeyboard
+              visible={showMockKeyboard}
+              bottomInset={insets.bottom}
+              onInsert={(ch) => {
+                if (noteBlurTimer.current) clearTimeout(noteBlurTimer.current)
+                setNoteFocused(true)
+                insertNote(ch)
+                noteInputRef.current?.focus()
+              }}
+              onBackspace={() => {
+                if (noteBlurTimer.current) clearTimeout(noteBlurTimer.current)
+                setNoteFocused(true)
+                backspaceNote()
+                noteInputRef.current?.focus()
+              }}
+              onHide={hideMockKeyboard}
+            />
+          ) : null}
         </View>
       </KeyboardAvoidingView>
 
@@ -649,8 +798,12 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: Layout.contentPaddingBottom,
+    paddingBottom: 12,
+  },
+  contentKeyboard: {
+    paddingBottom: 8,
   },
   dateText: {
     fontSize: 13,
@@ -665,15 +818,26 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 22,
   },
+  petAskKeyboard: {
+    marginBottom: 12,
+  },
   petStage: {
     width: 72,
     height: 72,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  petStageKeyboard: {
+    width: 52,
+    height: 52,
+  },
   petImage: {
     width: 72,
     height: 72,
+  },
+  petImageKeyboard: {
+    width: 52,
+    height: 52,
   },
   heartWrap: {
     position: 'absolute',
@@ -714,19 +878,33 @@ const styles = StyleSheet.create({
     width: 62,
     overflow: 'visible',
   },
+  moodPick: {
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  moodIdle: {
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
   moodCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.background,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    overflow: 'hidden',
+    borderWidth: 1.5,
+    padding: 6,
+  },
+  moodDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   moodLabel: {
-    marginTop: 8,
+    marginTop: 10,
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textSecondary,
@@ -759,6 +937,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
+  tagWrapCollapsed: {
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+  },
+  tagPressCollapsed: {
+    flex: 1,
+    minWidth: 0,
+  },
   tag: {
     height: 36,
     marginRight: 8,
@@ -770,6 +956,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  tagCollapsed: {
+    width: '100%',
+    marginRight: 6,
+    marginBottom: 0,
+    paddingHorizontal: 8,
   },
   tagOn: {
     backgroundColor: Colors.selected,
@@ -794,18 +986,34 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    flexShrink: 0,
+  },
+  noteSection: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 4,
+    flexShrink: 0,
   },
   noteWrap: {
     position: 'relative',
-    marginBottom: 8,
+    marginBottom: 0,
+    minHeight: NOTE_MIN_H,
+    maxHeight: 240,
     borderRadius: 16,
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.beige,
   },
+  noteWrapKeyboard: {
+    minHeight: 112,
+    maxHeight: 140,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderBottomWidth: 0,
+  },
   note: {
     width: '100%',
     minHeight: NOTE_MIN_H,
+    maxHeight: 240,
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 14,
     paddingBottom: 28,
@@ -813,6 +1021,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: Colors.textPrimary,
     includeFontPadding: false,
+  },
+  noteKeyboard: {
+    minHeight: 112,
+    maxHeight: 140,
+    paddingBottom: 24,
   },
   noteCount: {
     position: 'absolute',
@@ -822,11 +1035,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textDisabled,
   },
+  composeDock: {
+    flexShrink: 0,
+    backgroundColor: Colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  composeDockKeyboard: {
+    borderTopWidth: 0,
+  },
   footer: {
     flexShrink: 0,
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 10,
     backgroundColor: Colors.background,
+  },
+  footerFlush: {
+    paddingTop: 8,
   },
   saveBtn: {
     height: 54,

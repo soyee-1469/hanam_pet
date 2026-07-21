@@ -39,6 +39,7 @@ import {
 import { openExternalUrl } from '../../components/ExternalLinkModal'
 import { YouTubeVideoModal } from '../../components/YouTubeVideoModal'
 import { TabSceneGate } from '../../components/TabSceneGate'
+import { EojeolText } from '../../components/EojeolText'
 import { BottomSheet } from '../../components/ui/AppOverlay'
 import {
   extractYoutubeVideoId,
@@ -209,9 +210,9 @@ function MindScreenBody() {
                   pressed && styles.tabPressed,
                 ]}
               >
-                <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>
+                <EojeolText style={[styles.tabLabel, on && styles.tabLabelOn]}>
                   {t.label}
-                </Text>
+                </EojeolText>
                 {on ? <View style={styles.tabUnderline} /> : null}
               </Pressable>
             )
@@ -560,12 +561,12 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    paddingHorizontal: Layout.screenPaddingH,
-    gap: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
   tabBtn: {
+    flex: 1,
+    alignItems: 'center',
     paddingTop: Layout.tabMenuPaddingTop,
     paddingBottom: Layout.tabMenuPaddingBottom,
     position: 'relative',
@@ -587,7 +588,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 2.5,
+    height: 4,
     borderRadius: 2,
     backgroundColor: Colors.primary,
   },

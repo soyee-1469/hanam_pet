@@ -105,11 +105,11 @@ export const TypeStyle = {
   },
   bubble: {
     fontSize: Type.titleSm,
-    fontFamily: Fonts.uiSemiBold,
+    fontWeight: '600' as const,
   },
   bubbleSub: {
     fontSize: Type.caption,
-    fontFamily: Fonts.uiMedium,
+    fontWeight: '500' as const,
   },
   hero: {
     fontSize: Type.display,

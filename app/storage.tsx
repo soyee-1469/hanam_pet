@@ -218,7 +218,7 @@ function StockIcon({
       source={
         kind === 'food'
           ? require('../assets/images/아이콘/사료.png')
-          : require('../assets/images/아이콘/장난감.png')
+          : require('../assets/images/아이콘/공.png')
       }
       style={[
         { width: size, height: size },
@@ -659,8 +659,10 @@ const styles = StyleSheet.create({
   todayChip: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 8,
     paddingVertical: 10,
     gap: 4,
@@ -687,8 +689,6 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
   },
   tabItem: {
     flex: 1,
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
   },
   tabUnderline: {
     alignSelf: 'stretch',
-    height: 2.5,
+    height: 5,
     borderRadius: 2,
     backgroundColor: 'transparent',
   },

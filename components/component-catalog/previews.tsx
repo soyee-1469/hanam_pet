@@ -465,7 +465,7 @@ function MockMoodPicker() {
 }
 
 function MockMoodDistBar() {
-  // 분포 바: 파스텔 8px / 범례: 이모지 + 기준색 테두리
+  // 분포 바: 파스텔 8px / 범례: 감정색 원형 배경 + 이모지
   const segs = [
     { flex: 4, color: '#F7D7B8', label: '좋음', count: 4 },
     { flex: 3, color: '#E4EBB8', label: '보통', count: 3 },
@@ -473,9 +473,9 @@ function MockMoodDistBar() {
   ]
   const legend = DIARY_MOODS.map((m) => ({
     id: m.id,
-    label: m.shortLabel,
+    label: m.label,
     emojiIndex: m.emojiIndex,
-    borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
+    color: DIARY_MOOD_LABEL_COLOR[m.id],
     count: m.id === 'great' ? 4 : m.id === 'ok' ? 3 : m.id === 'hard' ? 2 : 0,
   }))
   return (
@@ -491,14 +491,13 @@ function MockMoodDistBar() {
       <View style={pv.legendRow}>
         {legend.map((item) => (
           <View key={item.id} style={pv.legendItem}>
-            <View
-              style={[pv.legendEmojiRing, { borderColor: item.borderColor }]}
-            >
+            <View style={pv.legendMark}>
               <MoodEmoji index={item.emojiIndex} size={18} />
+              <View
+                style={[pv.moodDot, { backgroundColor: item.color }]}
+              />
             </View>
-            <Text style={pv.legendLabel}>
-              {item.label} <Text style={pv.legendCount}>{item.count}</Text>
-            </Text>
+            <Text style={pv.legendCount}>{item.count}</Text>
           </View>
         ))}
       </View>
@@ -989,15 +988,7 @@ const pv = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadows.elevation,
-  },
-  tabBarItem: {
+    backgroundColor: Colors.cardRecessed,
     flex: 1,
     alignItems: 'center',
     gap: 2,
@@ -1837,25 +1828,21 @@ const pv = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
-  legendEmojiRing: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1.5,
+  legendMark: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    gap: 2,
   },
-  legendLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+  moodDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   legendCount: {
+    fontSize: 12,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
   feedback: {
     marginTop: 12,

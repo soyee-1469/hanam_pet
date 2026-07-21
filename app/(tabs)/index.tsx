@@ -21,9 +21,9 @@ import {
   X,
   Heart,
   CaretDown,
+  PencilSimple,
 } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { HelpContactsSheet } from '../../components/HelpContactsSheet'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
@@ -118,7 +118,7 @@ const HEADER_MENU = [
   {
     id: 'toy',
     label: '장난감 받기',
-    image: require('../../assets/images/아이콘/장난감.png'),
+    image: require('../../assets/images/아이콘/공.png'),
     bgColor: Colors.background,
   },
   {
@@ -228,7 +228,7 @@ function homeStatusLine(now = new Date()): string {
 /** 기본 말풍선 — 헤더와 짝 */
 function homeGreetingBubble(now = new Date()): string {
   const h = now.getHours()
-  if (h < 11) return '오늘도 같이 시작해 볼까요'
+  if (h < 11) return '오늘 하루도 같이 시작해요.'
   if (h < 17) return '잠깐 기지개도 켜봐요'
   if (h < 21) return '이제 나랑 편하게 쉬어요'
   return '오늘도 화이팅해요'
@@ -581,7 +581,6 @@ function PetHomeScreenBody() {
   /** 헤더↔하단 케어바 사이 중간 영역 높이 (펫 사이즈 산출용) */
   const [petZoneH, setPetZoneH] = useState(0)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [helpContactsOpen, setHelpContactsOpen] = useState(false)
   const [coachWelcomeOpen, setCoachWelcomeOpen] = useState(false)
   /** false until this tab actually focuses — avoids deep-link to other tabs showing home Modals */
   const [homeFocused, setHomeFocused] = useState(false)
@@ -1369,31 +1368,27 @@ function PetHomeScreenBody() {
         {/* 헤더 (상태 문구 + 메뉴) */}
         <View style={[styles.headerLayer, { paddingTop: headerTopPad }]}>
           <View style={styles.nicknameRow}>
-            <View style={styles.headerCopy}>
-              {tabWelcome ? (
-                <Text style={styles.nicknameText} numberOfLines={1}>
-                  {TAB_WELCOME.title}
-                </Text>
-              ) : (
-                <Text style={styles.nicknameText} numberOfLines={2}>
-                  {statusLine}
-                </Text>
-              )}
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
+              accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
+              hitSlop={8}
+              onPress={openNameEdit}
+              style={({ pressed }) => [
+                styles.petTitleBtn,
+                pressed && styles.headerIconPressed,
+              ]}
+            >
+              <Text style={styles.nicknameText} numberOfLines={1}>
+                {`나의 펫 ${petName}`}
+              </Text>
+              <PencilSimple
+                size={18}
+                color={Colors.textPrimary}
+                weight="regular"
+              />
+            </Pressable>
             <View style={styles.headerActions}>
-              <Pressable
-                style={styles.bellBtn}
-                onPress={() => setHelpContactsOpen(true)}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="상담·도움 연락처"
-              >
-                <Image
-                  source={require('../../assets/images/아이콘/도움.png')}
-                  style={styles.helpShortcutIcon}
-                  accessibilityElementsHidden
-                />
-              </Pressable>
               <Pressable
                 style={styles.bellBtn}
                 onPress={() => router.push('/notifications')}
@@ -1542,21 +1537,6 @@ function PetHomeScreenBody() {
                 />
               </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${petName}, 이름 수정`}
-              accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
-              hitSlop={8}
-              onPress={openNameEdit}
-              style={({ pressed }) => [
-                styles.petNameRow,
-                pressed && styles.headerIconPressed,
-              ]}
-            >
-              <Text style={styles.petName} numberOfLines={1}>
-                {petName}
-              </Text>
-            </Pressable>
           </View>
         </View>
 
@@ -1614,7 +1594,7 @@ function PetHomeScreenBody() {
               <View style={{ width: actionGap }} />
               <CareStockCard
                 count={toyCount}
-                icon={require('../../assets/images/아이콘/장난감.png')}
+                icon={require('../../assets/images/아이콘/공.png')}
                 useLabel="놀아 주기"
                 acquireLabel="장난감 받기"
                 grayIconWhenEmpty
@@ -1658,11 +1638,6 @@ function PetHomeScreenBody() {
         onMeet={dismissPetTourComplete}
       />
 
-      <HelpContactsSheet
-        visible={helpContactsOpen}
-        onClose={() => setHelpContactsOpen(false)}
-      />
-
       <BottomSheet
         visible={helpOpen}
         onRequestClose={() => setHelpOpen(false)}
@@ -1691,7 +1666,7 @@ function PetHomeScreenBody() {
           </View>
           <View style={styles.helpIconChip}>
             <Image
-              source={require('../../assets/images/아이콘/장난감.png')}
+              source={require('../../assets/images/아이콘/공.png')}
               style={styles.helpIconImg}
               resizeMode="contain"
             />
@@ -1830,7 +1805,7 @@ function PetHomeScreenBody() {
       />
       <Animated.Image
         pointerEvents="none"
-        source={require('../../assets/images/아이콘/장난감.png')}
+        source={require('../../assets/images/아이콘/공.png')}
         style={[
           styles.toyFly,
           {
@@ -1871,13 +1846,17 @@ const styles = StyleSheet.create({
   nicknameRow: {
     marginBottom: 10,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerCopy: {
+  petTitleBtn: {
     flex: 1,
     minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingRight: 8,
+    paddingVertical: 4,
   },
   tipCloseBtn: {
     position: 'absolute',
@@ -1906,19 +1885,15 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   nicknameText: {
+    flexShrink: 1,
     fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-  },
-  helpShortcutIcon: {
-    width: 24,
-    height: 24,
   },
   bellBtn: {
     width: 40,
@@ -2124,23 +2099,6 @@ const styles = StyleSheet.create({
   },
   petPressablePressed: {
     opacity: 0.96,
-  },
-  petNameRow: {
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  petName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
-    maxWidth: 176,
-    flexShrink: 1,
   },
   headerIconPressed: {
     opacity: 0.88,

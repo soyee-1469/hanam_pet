@@ -37,7 +37,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const isDanger = tone === 'danger'
   const Glyph = Icon ?? (isDanger ? Trash : Warning)
-  const iconColor = isDanger ? Colors.error : Colors.accent
+  const iconColor = isDanger ? Colors.primary : Colors.accent
 
   return (
     <CenterDialog
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconWrapDanger: {
-    backgroundColor: '#FFF0EE',
+    backgroundColor: Colors.errorSoft,
   },
   iconWrapWarning: {
     backgroundColor: Colors.accentSoft,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.error,
+    backgroundColor: Colors.primary,
   },
   primary: {
     flex: 1,

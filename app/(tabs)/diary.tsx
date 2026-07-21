@@ -23,6 +23,7 @@ import {
   subscribeDiaryRecords,
 } from '../../lib/diaryRecords'
 import { MoodEmoji } from '../../components/MoodEmoji'
+import { EmptyRecordsCard } from '../../components/EmptyRecordsCard'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
@@ -164,9 +165,9 @@ function DiaryScreenBody() {
     }))
     const legend = DIARY_MOODS.map((m) => ({
       id: m.id,
-      label: m.shortLabel,
+      label: m.label,
       emojiIndex: m.emojiIndex,
-      borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
+      color: DIARY_MOOD_LABEL_COLOR[m.id],
       count: counts[m.id],
     }))
     return {
@@ -205,6 +206,14 @@ function DiaryScreenBody() {
         day: String(day),
       },
     })
+  }
+
+  /** 기록 없는 날은 선택만 — 목록 이동은 하단 CTA */
+  const onPressDay = (day: number) => {
+    if (isFutureDay(day)) return
+    setSelectedDay(day)
+    const count = countDiaryEntriesByDate(year, month + 1, day)
+    if (count > 0) openDayList(day)
   }
 
   const selectedDayCount = useMemo(() => {
@@ -329,10 +338,10 @@ function DiaryScreenBody() {
                               ? mood.count > 1
                                 ? `${day}일 ${moodMeta(mood.moodId).label} 마음일기 ${mood.count}건`
                                 : `${day}일 ${moodMeta(mood.moodId).label} 마음일기`
-                              : `${day}일 마음일기 쓰기`
+                              : `${day}일 선택`
                           }
                           disabled={future}
-                          onPress={() => openDayList(day)}
+                          onPress={() => onPressDay(day)}
                           style={({ pressed }) => [
                             styles.dayPressable,
                             !future && ({ cursor: 'pointer' } as object),
@@ -353,7 +362,10 @@ function DiaryScreenBody() {
                                 future && styles.dayNumFuture,
                                 selected && styles.dayNumSelected,
                                 isToday && styles.dayNumToday,
-                                !future && !selected && dayIdx === 0 && styles.weekdaySun,
+                                !future &&
+                                  !selected &&
+                                  dayIdx === 0 &&
+                                  styles.weekdaySun,
                               ]}
                             >
                               {day}
@@ -362,20 +374,22 @@ function DiaryScreenBody() {
                               {!future && mood && emojiIndex ? (
                                 <>
                                   <MoodEmoji index={emojiIndex} size={18} />
-                                  <View
-                                    style={[
-                                      styles.moodDot,
-                                      {
-                                        backgroundColor:
-                                          DIARY_MOOD_LABEL_COLOR[mood.moodId],
-                                      },
-                                    ]}
-                                  />
-                                  {mood.count > 1 ? (
-                                    <Text style={styles.moodCountBadge}>
-                                      +{mood.count}
-                                    </Text>
-                                  ) : null}
+                                  <View style={styles.moodMeta}>
+                                    <View
+                                      style={[
+                                        styles.moodDot,
+                                        {
+                                          backgroundColor:
+                                            DIARY_MOOD_LABEL_COLOR[mood.moodId],
+                                        },
+                                      ]}
+                                    />
+                                    {mood.count > 1 ? (
+                                      <Text style={styles.moodCountText}>
+                                        +{mood.count}
+                                      </Text>
+                                    ) : null}
+                                  </View>
                                 </>
                               ) : null}
                             </View>
@@ -390,60 +404,69 @@ function DiaryScreenBody() {
           </View>
         </View>
 
-        <View style={styles.distCard}>
-          <View style={styles.distHeader}>
-            <Text style={styles.distTitle} numberOfLines={1}>
-              이번 달 하치와 나눈 마음
-            </Text>
-            <Text style={styles.distCount}>{dist.count}일 기록</Text>
+        {selectedDayCount === 0 ? (
+          <View style={styles.belowCalendar}>
+            <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
           </View>
-          <View style={styles.distBar}>
-            {dist.count === 0 ? (
-              <View style={[styles.distSeg, styles.distEmpty, { flex: 1 }]} />
-            ) : (
-              dist.chips.map((chip) => (
-                <View
-                  key={chip.id}
-                  style={[
-                    styles.distSeg,
-                    { flex: chip.count, backgroundColor: chip.barColor },
-                  ]}
-                />
-              ))
-            )}
-          </View>
+        ) : (
+          <View style={[styles.distCard, styles.belowCalendar]}>
+            <View style={styles.distHeader}>
+              <Text style={styles.distTitle} numberOfLines={1}>
+                이번 달 하치와 나눈 마음
+              </Text>
+              <Text style={styles.distCount}>{dist.count}일 기록</Text>
+            </View>
+            <View style={styles.distBar}>
+              {dist.count === 0 ? (
+                <View style={[styles.distSeg, styles.distEmpty, { flex: 1 }]} />
+              ) : (
+                dist.chips.map((chip) => (
+                  <View
+                    key={chip.id}
+                    style={[
+                      styles.distSeg,
+                      { flex: chip.count, backgroundColor: chip.barColor },
+                    ]}
+                  />
+                ))
+              )}
+            </View>
 
-          <View style={styles.legendRow}>
-            {dist.legend.map((item) => (
-              <View key={item.id} style={styles.legendItem}>
+            <View style={styles.legendRow}>
+              {dist.legend.map((item) => (
                 <View
-                  style={[
-                    styles.legendEmojiRing,
-                    { borderColor: item.borderColor },
-                  ]}
+                  key={item.id}
+                  style={styles.legendItem}
+                  accessibilityLabel={`${item.label} ${item.count}`}
                 >
-                  <MoodEmoji index={item.emojiIndex} size={16} />
+                  <View style={styles.legendMark}>
+                    <MoodEmoji index={item.emojiIndex} size={18} />
+                    <View
+                      style={[
+                        styles.moodDot,
+                        { backgroundColor: item.color },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.legendCount}>{item.count}</Text>
                 </View>
-                <Text style={styles.legendLabel} numberOfLines={1}>
-                  {item.label} {item.count}
-                </Text>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="기록한 마음일기 보러가기"
-            onPress={openMonthList}
-            style={({ pressed }) => [
-              styles.listLinkRow,
-              pressed && styles.iconBtnPressed,
-            ]}
-          >
-            <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
-            <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
-          </Pressable>
-        </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="기록한 마음일기 보러가기"
+              onPress={openMonthList}
+              style={({ pressed }) => [
+                styles.listLinkRow,
+                pressed && styles.iconBtnPressed,
+              ]}
+            >
+              <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
+              <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
 
       <View
@@ -457,7 +480,7 @@ function DiaryScreenBody() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            selectedDayCount > 0 ? '기록 보러갈께요' : '마음을 기록할게요'
+            selectedDayCount > 0 ? '그날 마음 보러 가기' : '마음을 기록할게요'
           }
           onPress={openSelectedOrWrite}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
@@ -474,7 +497,7 @@ function DiaryScreenBody() {
               )}
               <Text style={styles.ctaText}>
                 {selectedDayCount > 0
-                  ? '기록 보러갈께요'
+                  ? '그날 마음 보러 가기'
                   : '마음을 기록할게요'}
               </Text>
             </View>
@@ -586,8 +609,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 14,
     paddingBottom: 10,
-    borderWidth: 0.5,
-    borderColor: Colors.border,
+  },
+  belowCalendar: {
+    marginTop: 20,
   },
   weekdayRow: {
     flexDirection: 'row',
@@ -618,7 +642,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 0,
-    height: 72,
+    height: 84,
     minWidth: 0,
   },
   dayPressable: {
@@ -635,17 +659,17 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   dayInner: {
-    width: 42,
-    height: 66,
+    width: 44,
+    height: 78,
     borderRadius: 12,
     alignItems: 'center',
     alignSelf: 'center',
     justifyContent: 'flex-start',
     paddingTop: 4,
-    borderWidth: 1.5,
+    paddingBottom: 3,
+    borderWidth: 2.5,
     borderColor: 'transparent',
     backgroundColor: 'transparent',
-    overflow: 'visible',
   },
   /** Selected (non-today) — primary border, no fill */
   daySelected: {
@@ -657,9 +681,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF6D6',
   },
   dayNum: {
-    height: 18,
+    height: 17,
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 17,
     fontWeight: '600',
     color: Colors.textPrimary,
     textAlign: 'center',
@@ -676,36 +700,35 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   dayMoodSlot: {
-    minHeight: 30,
-    width: 28,
-    marginTop: 2,
+    marginTop: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    gap: 2,
+    gap: 1,
     zIndex: 1,
   },
-  /** Inside Out 감정색 점 — 이모지와 함께 날짜별 다양성 표시 */
+  /** 감정색 점 아래 수량 */
+  moodMeta: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 3,
+  },
   moodDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
   },
-  /** 같은 날 2건 이상 — 색 점 아래 +N */
-  moodCountBadge: {
+  moodCountText: {
+    marginTop: 1,
     fontSize: 9,
     lineHeight: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textSecondary,
-    letterSpacing: -0.2,
   },
   distCard: {
-    marginTop: 14,
     backgroundColor: Colors.surface,
     borderRadius: 20,
     paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
-    borderWidth: 0.5,
-    borderColor: Colors.border,
   },
   distHeader: {
     flexDirection: 'row',
@@ -750,26 +773,19 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,
     gap: 4,
+    flexShrink: 1,
     minWidth: 0,
   },
-  /** 기분 이모지 + 기준색(Inside Out) 테두리 */
-  legendEmojiRing: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
+  legendMark: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    gap: 2,
     flexShrink: 0,
   },
-  legendLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+  legendCount: {
+    fontSize: 12,
+    fontWeight: '700',
     color: Colors.textSecondary,
-    flexShrink: 1,
   },
   listLinkRow: {
     marginTop: 14,

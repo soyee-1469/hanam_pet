@@ -21,6 +21,27 @@ const PRETENDARD = new Set<string>([
   Fonts.uiBold,
 ])
 
+/**
+ * 피그마가 `Pretendard Medium` / `PretendardSemiBold`처럼
+ * 로드 키와 다른 이름을 붙여도 앱 페이스로 맞춤.
+ * 알 수 없는 Pretendard 변형은 undefined → fontWeight로 재매핑.
+ */
+function normalizeUiFamily(
+  family: string | undefined,
+): string | undefined {
+  if (!family) return undefined
+  if (PRETENDARD.has(family)) return family
+
+  const key = family.replace(/[\s_-]+/g, '').toLowerCase()
+  if (!key.startsWith('pretendard')) return family
+
+  if (key === 'pretendard' || key === 'pretendardregular') return Fonts.ui
+  if (key === 'pretendardmedium') return Fonts.uiMedium
+  if (key === 'pretendardsemibold') return Fonts.uiSemiBold
+  if (key === 'pretendardbold') return Fonts.uiBold
+  return undefined
+}
+
 function familyForWeight(weight: TextStyle['fontWeight']): string {
   const w = String(weight ?? '400')
   if (w === '500') return Fonts.uiMedium
@@ -34,23 +55,27 @@ function familyForWeight(weight: TextStyle['fontWeight']): string {
 /**
  * Pretendard is loaded as separate faces. RN will not fake-bold
  * `Pretendard-Regular` via fontWeight — map weight → face and drop weight.
+ * Figma-style names (`Pretendard Medium` 등)은 로드된 페이스로 정규화.
  */
 export function resolveUiTextStyle(
   style: StyleProp<TextStyle> | undefined | null,
 ): TextStyle {
   const flat = (StyleSheet.flatten(style) ?? {}) as TextStyle
   const { fontWeight, fontFamily, ...rest } = flat
+  const normalized = normalizeUiFamily(fontFamily)
 
-  if (fontFamily && !PRETENDARD.has(fontFamily)) {
+  // SpaceMono 등 Pretendard가 아닌 커스텀 페이스는 그대로
+  if (normalized && !PRETENDARD.has(normalized)) {
     return flat
   }
 
   if (
-    fontFamily === Fonts.uiMedium ||
-    fontFamily === Fonts.uiSemiBold ||
-    fontFamily === Fonts.uiBold
+    normalized === Fonts.uiMedium ||
+    normalized === Fonts.uiSemiBold ||
+    normalized === Fonts.uiBold
   ) {
-    return fontWeight != null ? { ...rest, fontFamily } : flat
+    // 이미 굵기 페이스가 지정된 경우 — weight만 제거해 이중 지정 방지
+    return { ...rest, fontFamily: normalized }
   }
 
   return {

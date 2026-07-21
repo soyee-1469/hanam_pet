@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import * as Clipboard from 'expo-clipboard'
 import { Copy } from 'phosphor-react-native'
+import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import { DogExpr } from '../../constants/DogExpr'
 import {
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 0,
   },
   headline: {
@@ -230,8 +231,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.divider,
     paddingTop: 44,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingBottom: Layout.sectionGapLg,
+    paddingHorizontal: Layout.cardPaddingH,
     alignItems: 'center',
     zIndex: 1,
     ...Shadows.elevation,

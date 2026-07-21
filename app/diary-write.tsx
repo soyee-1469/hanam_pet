@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
   },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 24,
+    paddingBottom: Layout.contentPaddingBottom,
   },
   dateText: {
     fontSize: 13,
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
   note: {
     width: '100%',
     minHeight: NOTE_MIN_H,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 14,
     paddingBottom: 28,
     fontSize: 15,
@@ -822,7 +822,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexShrink: 0,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 10,
     backgroundColor: Colors.background,
   },

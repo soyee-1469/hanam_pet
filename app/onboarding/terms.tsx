@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 import {
   CheckRow,
@@ -179,8 +180,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: Layout.sectionGapLg,
   },
   headline: {
     fontSize: 22,

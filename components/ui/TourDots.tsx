@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native'
+import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 
 type TourDotsProps = {
@@ -27,8 +28,8 @@ export function TourDots({ total, index }: TourDotsProps) {
 
 /** CTA 푸터 공통 패딩 — 투어·설정 단계 버튼 높이 맞춤 */
 export const onboardingFooterStyle = {
-  paddingHorizontal: 20,
-  paddingBottom: 18,
+  paddingHorizontal: Layout.screenPaddingH,
+  paddingBottom: Layout.sectionGapLg,
   paddingTop: 10,
 } as const
 

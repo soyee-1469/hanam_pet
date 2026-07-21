@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.creamyBeige,
     borderRadius: 20,
     paddingVertical: 20,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
   },
   heroCopy: {
     flex: 1,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: Colors.accentSoft,
     borderRadius: 999,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 7,
   },
   energyPillText: {
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   calCard: {
     backgroundColor: Colors.surface,
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 18,
     paddingBottom: 18,
     ...Shadows.elevation,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 18,
     marginTop: 10,
-    paddingTop: 12,
+    paddingTop: Layout.sectionGap,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
   },

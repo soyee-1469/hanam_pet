@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Layout } from '../constants/Layout'
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { subscribeToast } from '../lib/toast'
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
   },
   toast: {
     backgroundColor: 'rgba(70, 55, 45, 0.78)',
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 12,
     borderRadius: 999,
     maxWidth: '86%',

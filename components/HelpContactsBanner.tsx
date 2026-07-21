@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 import { CaretUp } from 'phosphor-react-native'
+import { Layout } from '../constants/Layout'
 import { Colors } from '../constants/Colors'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
   },
   icon: {

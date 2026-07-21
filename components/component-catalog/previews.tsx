@@ -23,6 +23,7 @@ import {
   WarningCircle,
   X,
 } from 'phosphor-react-native'
+import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import {
   PrimaryButton,
@@ -1066,7 +1067,7 @@ const pv = StyleSheet.create({
   },
   emptyWrap: {
     paddingVertical: 28,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     alignItems: 'center',
   },
   emptyTitle: {
@@ -1174,7 +1175,7 @@ const pv = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
@@ -1305,7 +1306,7 @@ const pv = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 16,
     ...Shadows.elevation,
   },
@@ -1343,7 +1344,7 @@ const pv = StyleSheet.create({
     gap: 8,
   },
   bandPill: {
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 6,
     borderRadius: 999,
   },
@@ -1356,7 +1357,7 @@ const pv = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 48,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     borderRadius: 14,
     backgroundColor: Colors.surface,
     borderWidth: 1,
@@ -1451,7 +1452,7 @@ const pv = StyleSheet.create({
   bubble: {
     backgroundColor: Colors.surface,
     borderRadius: 18,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -1590,7 +1591,7 @@ const pv = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: 6,
     backgroundColor: Colors.creamyBeige,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 8,
     borderRadius: 999,
   },
@@ -1659,7 +1660,7 @@ const pv = StyleSheet.create({
   petAnswer: {
     backgroundColor: Colors.cardRecessed,
     borderRadius: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -1683,7 +1684,7 @@ const pv = StyleSheet.create({
     marginTop: -7,
   },
   restTip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     borderRadius: 16,
     backgroundColor: Colors.creamyBeige,
@@ -1710,7 +1711,7 @@ const pv = StyleSheet.create({
     alignSelf: 'center',
     gap: 6,
     backgroundColor: Colors.surfaceSecondary,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 6,
     borderRadius: 999,
   },

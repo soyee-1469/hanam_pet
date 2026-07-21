@@ -439,7 +439,7 @@ export const styles = StyleSheet.create({
   footerBtn: {
     alignSelf: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: Layout.spaceXl,
     marginTop: 8,
   },
   footerBtnText: {

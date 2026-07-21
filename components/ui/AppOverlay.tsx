@@ -11,6 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import {
   acquireTabBarOverlay,
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 22,
     paddingTop: 28,
-    paddingBottom: 20,
+    paddingBottom: Layout.sectionGapLg,
     ...Shadows.elevation,
   },
   sheetRoot: {
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
-    paddingHorizontal: 20,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
     ...Shadows.elevation,
   },

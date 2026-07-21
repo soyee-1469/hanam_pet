@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import { DogExpr } from '../../constants/DogExpr'
 import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
@@ -238,8 +239,8 @@ const styles = StyleSheet.create({
   },
   body: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: Layout.sectionGapLg,
   },
   headline: {
     fontSize: 22,
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 4,
     paddingBottom: 6,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     overflow: 'visible',
   },
   cheerPet: {

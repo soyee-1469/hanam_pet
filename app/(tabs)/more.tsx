@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 56,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     gap: 10,
   },
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   withdrawBtn: {
     alignSelf: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     marginTop: 4,
   },
   withdrawText: {

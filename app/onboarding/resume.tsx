@@ -522,11 +522,11 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
   },
   lostBody: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 20,
+    paddingBottom: Layout.sectionGapLg,
   },
   center: {
     flex: 1,
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: Colors.creamyBeige,
     borderRadius: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
   },
   tipHeader: {
@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 12,
     borderRadius: 14,
     backgroundColor: Colors.surface,
@@ -777,8 +777,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 16,
-    paddingTop: 12,
+    paddingBottom: Layout.blockGap,
+    paddingTop: Layout.sectionGap,
     backgroundColor: Colors.background,
   },
   restartLink: {
@@ -805,8 +805,8 @@ const styles = StyleSheet.create({
   giveUpCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingTop: Layout.blockGap,
     paddingBottom: 18,
     borderWidth: 1,
     borderColor: Colors.divider,

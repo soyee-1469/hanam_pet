@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH + 4,
-    paddingBottom: 12,
+    paddingBottom: Layout.sectionGap,
   },
   coverGlow: {
     width: 200,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 20,
+    paddingBottom: Layout.sectionGapLg,
     paddingTop: 8,
   },
   gap: {

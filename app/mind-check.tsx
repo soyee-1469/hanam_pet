@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingTop: Layout.contentPaddingBottom,
+    paddingBottom: Layout.sectionGapLg,
   },
   instruction: {
     fontSize: 14,
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     minHeight: 58,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 15,
     borderRadius: 16,
     backgroundColor: Colors.surface,
@@ -379,8 +379,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: Layout.sectionGap,
+    paddingBottom: Layout.blockGap,
   },
   prevBtn: {
     width: 100,

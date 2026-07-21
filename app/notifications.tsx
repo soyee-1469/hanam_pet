@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     minHeight: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 9,
     borderRadius: 999,
     borderWidth: 1,

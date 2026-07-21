@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
@@ -330,9 +330,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 18,
-    paddingBottom: 16,
+    paddingBottom: Layout.blockGap,
     alignItems: 'center',
     marginBottom: 16,
     ...Shadows.elevation,
@@ -396,8 +396,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingTop: Layout.blockGap,
     paddingBottom: 22,
     ...Shadows.elevation,
   },
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   },
   bandBadge: {
     borderRadius: 999,
-    paddingHorizontal: 12,
+    paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 6,
   },
   bandBadgeText: {
@@ -465,6 +465,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
-    paddingTop: 24,
+    paddingTop: Layout.contentPaddingBottom,
   },
 })

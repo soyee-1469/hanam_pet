@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: Colors.creamyBeige,
     borderRadius: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
   },
   warnIcon: {
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: 18,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
     ...Shadows.elevation,
   },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
   fallback: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 24,
+    paddingTop: Layout.contentPaddingBottom,
   },
   fallbackText: {
     fontSize: 15,

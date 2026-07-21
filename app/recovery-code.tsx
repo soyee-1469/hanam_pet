@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
-    paddingBottom: 24,
+    paddingBottom: Layout.contentPaddingBottom,
   },
   sectionLabel: {
     fontSize: 15,

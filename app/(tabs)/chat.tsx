@@ -7,10 +7,12 @@ import {
   TextInput,
   StyleSheet,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ScrollView,
   Animated,
   Easing,
+  type TextInput as RNTextInput,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
@@ -80,6 +82,7 @@ export default function ChatScreen() {
 function ChatScreenBody() {
   const insets = useSafeAreaInsets()
   const scrollRef = useRef<ScrollView>(null)
+  const inputRef = useRef<RNTextInput>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const replyIndex = useRef(0)
   const [message, setMessage] = useState('')
@@ -168,14 +171,19 @@ function ChatScreenBody() {
   }, [noticeDone, chatting, depleted, greetOpacity, greetLift])
 
   const stamp = useMemo(() => {
-    const first = messages.find((m) => m.role === 'user')
-    return first ? formatDateTime(first.at) : ''
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'user') return formatDateTime(messages[i].at)
+    }
+    return ''
   }, [messages])
 
-  const userMessages = useMemo(
-    () => messages.filter((m) => m.role === 'user'),
-    [messages],
-  )
+  /** 강아지 우측 — 방금 보낸 유저 말풍선 1개만 */
+  const latestUserMessage = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'user') return messages[i]
+    }
+    return null
+  }, [messages])
 
   const latestPetReply = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -263,6 +271,9 @@ function ChatScreenBody() {
     }
     setMessages((prev) => [...prev, next])
     setMessage('')
+    setInputFocused(false)
+    inputRef.current?.blur()
+    Keyboard.dismiss()
     scrollToEnd()
 
     // 이번 질문으로 소진 → 답변 없이 에너지 안내
@@ -442,14 +453,6 @@ function ChatScreenBody() {
           >
             <Text style={styles.stamp}>{stamp}</Text>
 
-            {userMessages.map((m) => (
-              <View key={m.id} style={styles.userRow}>
-                <View style={styles.userBubble}>
-                  <Text style={styles.userText}>{m.text}</Text>
-                </View>
-              </View>
-            ))}
-
             <View style={styles.petBlock}>
               {typing ? (
                 <View style={styles.petBubbleContainer}>
@@ -499,12 +502,25 @@ function ChatScreenBody() {
                 </View>
               ) : null}
 
-              <Image
-                source={petImage}
-                style={petChatStyle}
-                resizeMode="contain"
-                accessibilityLabel={petName}
-              />
+              <View style={styles.petStageRow}>
+                <Image
+                  source={petImage}
+                  style={petChatStyle}
+                  resizeMode="contain"
+                  accessibilityLabel={petName}
+                />
+                {latestUserMessage ? (
+                  <View style={styles.userBeside}>
+                    <View style={styles.userBubble}>
+                      <Text style={styles.userText}>
+                        {latestUserMessage.text}
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.userBesideSpacer} />
+                )}
+              </View>
 
               {depleted ? (
                 <View style={[styles.statusPill, styles.statusPillDepleted]}>
@@ -538,28 +554,36 @@ function ChatScreenBody() {
             </View>
           ) : (
             <>
-              {chatting && !keyboardOpen ? <HelpContactsBanner /> : null}
+              {chatting && !keyboardOpen && !typing ? (
+                <HelpContactsBanner />
+              ) : null}
 
               <View
                 style={[
                   styles.composer,
                   inputFocused && styles.composerFocused,
                   tourHighlightComposer && styles.composerTour,
+                  typing && styles.composerLocked,
                 ]}
+                pointerEvents={typing ? 'none' : 'auto'}
               >
                 <TextInput
                   {...TextKeyboardProps}
+                  ref={inputRef}
                   style={styles.input}
                   value={message}
                   onChangeText={setMessage}
                   onFocus={() => {
+                    if (typing) return
                     setInputFocused(true)
                     scrollToEnd()
                   }}
                   onBlur={() => setInputFocused(false)}
-                  placeholder="마음을 들려주세요."
+                  placeholder={
+                    typing ? '대답을 듣고 있어요…' : '마음을 들려주세요.'
+                  }
                   placeholderTextColor={Colors.textDisabled}
-                  editable={!typing}
+                  editable={!typing && !depleted}
                   returnKeyType="send"
                   onSubmitEditing={() => {
                     void sendMessage()
@@ -711,11 +735,29 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 14,
   },
+  petStageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 4,
+  },
+  userBeside: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: 168,
+    alignItems: 'flex-start',
+  },
+  userBesideSpacer: {
+    flex: 1,
+    maxWidth: 168,
+  },
   userBubble: {
-    maxWidth: '82%',
+    maxWidth: '100%',
     backgroundColor: Colors.accentSoft,
     borderRadius: 18,
-    borderBottomRightRadius: 6,
+    borderBottomLeftRadius: 6,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
@@ -727,7 +769,7 @@ const styles = StyleSheet.create({
   },
   petBlock: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
     paddingBottom: 8,
   },
   petBubbleContainer: {

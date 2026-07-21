@@ -165,7 +165,8 @@ function DiaryScreenBody() {
     const legend = DIARY_MOODS.map((m) => ({
       id: m.id,
       label: m.shortLabel,
-      swatchColor: DIARY_MOOD_LABEL_COLOR[m.id],
+      emojiIndex: m.emojiIndex,
+      borderColor: DIARY_MOOD_LABEL_COLOR[m.id],
       count: counts[m.id],
     }))
     return {
@@ -417,10 +418,12 @@ function DiaryScreenBody() {
               <View key={item.id} style={styles.legendItem}>
                 <View
                   style={[
-                    styles.legendSwatch,
-                    { backgroundColor: item.swatchColor },
+                    styles.legendEmojiRing,
+                    { borderColor: item.borderColor },
                   ]}
-                />
+                >
+                  <MoodEmoji index={item.emojiIndex} size={18} />
+                </View>
                 <Text style={styles.legendLabel}>
                   {item.label} {item.count}
                 </Text>
@@ -746,12 +749,17 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
-  legendSwatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
+  /** 기분 이모지 + 기준색(Inside Out) 테두리 */
+  legendEmojiRing: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
   },
   legendLabel: {
     fontSize: 12,

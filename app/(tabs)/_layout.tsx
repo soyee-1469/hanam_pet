@@ -16,6 +16,7 @@ import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import {
   isTabBarOverlayLocked,
   subscribeTabBarOverlay,
+  useHideTabBarWhileKeyboard,
 } from '../../lib/tabBarOverlay'
 
 /** Soft tab button — navigation tab bar button props */

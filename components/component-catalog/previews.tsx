@@ -989,12 +989,12 @@ const pv = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 6,
     borderWidth: 1,
-    borderColor: Colors.divider,
+    borderColor: Colors.border,
     ...Shadows.elevation,
   },
   tabBarItem: {

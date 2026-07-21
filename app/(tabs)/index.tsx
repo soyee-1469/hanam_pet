@@ -113,31 +113,31 @@ const HEADER_MENU = [
     id: 'feed',
     label: '사료 받기',
     image: require('../../assets/images/아이콘/사료.png'),
-    bgColor: Colors.surface,
+    bgColor: Colors.background,
   },
   {
     id: 'toy',
     label: '장난감 받기',
     image: require('../../assets/images/아이콘/장난감.png'),
-    bgColor: Colors.surface,
+    bgColor: Colors.background,
   },
   {
     id: 'stamp',
     label: '출석 도장',
     image: require('../../assets/images/아이콘/출석도장.png'),
-    bgColor: Colors.surface,
+    bgColor: Colors.background,
   },
   {
     id: 'storage',
     label: '내 보관함',
     image: require('../../assets/images/아이콘/보관함.png'),
-    bgColor: Colors.surface,
+    bgColor: Colors.background,
   },
   {
     id: 'guide',
     label: '안내',
     image: require('../../assets/images/아이콘/안내.png'),
-    bgColor: Colors.surface,
+    bgColor: Colors.background,
   },
 ] as const
 
@@ -2037,8 +2037,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(94, 64, 51, 0.12)',
-    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
     zIndex: 2,
   },
   menuRingSvg: {
@@ -2080,7 +2080,7 @@ const styles = StyleSheet.create({
   menuCircleReady: {
     borderWidth: 2,
     borderColor: Colors.primary,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
     shadowColor: Colors.primary,
     shadowOpacity: 0.45,
     shadowRadius: 8,
@@ -2090,12 +2090,12 @@ const styles = StyleSheet.create({
   menuCircleCooldown: {
     borderWidth: 0,
     borderColor: 'transparent',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
   },
   menuCircleNudge: {
     borderWidth: 2,
     borderColor: Colors.selected,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.background,
   },
   menuLabel: {
     width: '100%',

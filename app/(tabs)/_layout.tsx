@@ -98,6 +98,8 @@ export default function TabLayout() {
   const tabHeight = tabBarReserveHeight(bottom)
   const [overlayLocked, setOverlayLocked] = useState(isTabBarOverlayLocked)
 
+  useHideTabBarWhileKeyboard()
+
   useEffect(() => {
     return subscribeTabBarOverlay(() => {
       setOverlayLocked(isTabBarOverlayLocked())

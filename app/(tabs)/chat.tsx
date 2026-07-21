@@ -49,6 +49,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../../lib/useKeyboardAvoidInset'
+import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { formatDateTime } from '../../lib/dateFormat'
 
 const TYPING_MS = 1800
@@ -547,6 +548,7 @@ function ChatScreenBody() {
                 ]}
               >
                 <TextInput
+                  {...TextKeyboardProps}
                   style={styles.input}
                   value={message}
                   onChangeText={setMessage}

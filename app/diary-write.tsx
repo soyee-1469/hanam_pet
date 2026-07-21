@@ -30,6 +30,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../lib/useKeyboardAvoidInset'
+import { TextKeyboardProps } from '../lib/inputKeyboard'
 import { formatDateFromYmd } from '../lib/dateFormat'
 
 const MOTION_MS = 200
@@ -545,6 +546,7 @@ export default function DiaryWriteScreen() {
             <Text style={styles.sectionTitle}>오늘의 마음을 적어 보세요.</Text>
             <View style={styles.noteWrap}>
               <TextInput
+                {...TextKeyboardProps}
                 style={[
                   styles.note,
                   { height: Math.max(NOTE_MIN_H, noteHeight) },

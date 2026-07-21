@@ -36,6 +36,7 @@ import {
   keyboardVerticalOffset,
   useKeyboardAvoidInset,
 } from '../../lib/useKeyboardAvoidInset'
+import { NumberKeyboardProps } from '../../lib/inputKeyboard'
 
 const copy = getOnboardingCopy().resume
 const DEMO_RESTORE_CODE = getOnboardingCopy().restoreCode.dummyCode
@@ -94,11 +95,11 @@ function OtpGroup({
               ref={(el) => {
                 inputs.current[i] = el
               }}
+              {...NumberKeyboardProps}
               value={digit}
               onChangeText={(t) => onChange(i, t)}
               onKeyPress={({ nativeEvent }) => onKeyPress(i, nativeEvent.key)}
               onFocus={() => onFocus(i)}
-              keyboardType="number-pad"
               maxLength={i === 0 ? CODE_LEN : 1}
               selectTextOnFocus
               textContentType="oneTimeCode"

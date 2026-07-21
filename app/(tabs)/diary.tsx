@@ -422,9 +422,9 @@ function DiaryScreenBody() {
                     { borderColor: item.borderColor },
                   ]}
                 >
-                  <MoodEmoji index={item.emojiIndex} size={18} />
+                  <MoodEmoji index={item.emojiIndex} size={16} />
                 </View>
-                <Text style={styles.legendLabel}>
+                <Text style={styles.legendLabel} numberOfLines={1}>
                   {item.label} {item.count}
                 </Text>
               </View>
@@ -742,29 +742,34 @@ const styles = StyleSheet.create({
   legendRow: {
     marginTop: 14,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    rowGap: 8,
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    flexShrink: 1,
+    gap: 4,
+    minWidth: 0,
   },
   /** 기분 이모지 + 기준색(Inside Out) 테두리 */
   legendEmojiRing: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
+    flexShrink: 0,
   },
   legendLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.textSecondary,
+    flexShrink: 1,
   },
   listLinkRow: {
     marginTop: 14,

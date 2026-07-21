@@ -87,7 +87,7 @@ export default function DiaryListScreen() {
   }, [entries, year, month, day, isDayMode])
 
   const summaryLabel = isDayMode
-    ? formatDateFromYmd(year, month, day!)
+    ? formatDateFromYmdWithWeekday(year, month, day!)
     : formatYearMonth(year, month)
 
   const closeMenu = () => setMenuEntry(null)

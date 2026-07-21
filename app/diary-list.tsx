@@ -30,7 +30,7 @@ import {
   subscribeDiaryRecords,
 } from '../lib/diaryRecords'
 import {
-  formatDateFromYmd,
+  formatDateFromYmdWithWeekday,
   formatDateTime,
   formatMonthDayTimeWithWeekday,
   formatTime,

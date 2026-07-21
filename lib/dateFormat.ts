@@ -6,9 +6,9 @@
  * - formatDateTimeWithWeekday → 2026.07.08 (수) 14:20:28
  * - formatMonthDayTimeWithWeekday → 07.08 (수) 14:20:28
  * - formatTime      → 14:20:28
- * - formatYearMonth → 2026년 7월
- */
-const TZ = 'Asia/Seoul'
+ * - formatDateFromYmd → 2026.07.08
+ * - formatDateFromYmdWithWeekday → 2026.07.08 (수)
+ */const TZ = 'Asia/Seoul'
 
 type SeoulParts = {
   year: string
@@ -137,4 +137,15 @@ export function formatYearMonth(y: number, m: number): string {
 /** 연·월·일 숫자 → 2026.07.08 */
 export function formatDateFromYmd(y: number, m: number, d: number): string {
   return `${y}.${pad2(m)}.${pad2(d)}`
+}
+
+/** 연·월·일 숫자 → 2026.07.08 (수) */
+export function formatDateFromYmdWithWeekday(
+  y: number,
+  m: number,
+  d: number,
+): string {
+  const date = new Date(`${y}-${pad2(m)}-${pad2(d)}T12:00:00+09:00`)
+  if (Number.isNaN(date.getTime())) return formatDateFromYmd(y, m, d)
+  return `${formatDateFromYmd(y, m, d)} (${seoulWeekdayShort(date)})`
 }

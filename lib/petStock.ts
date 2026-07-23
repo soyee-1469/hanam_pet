@@ -26,7 +26,7 @@ export const ENERGY_FEED_GAIN = 4
 /** 놀이 완료 시 — 정책 5.1: 회당 +4 */
 export const ENERGY_PLAY_GAIN = 4
 export const ENERGY_DIARY_GAIN = 2
-export const ENERGY_ATTEND_GAIN = 12
+export const ENERGY_ATTEND_GAIN = 2
 
 export type PetStock = {
   energy: number

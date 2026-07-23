@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Copy, Images } from 'phosphor-react-native'
+import { Images } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
@@ -83,35 +83,41 @@ export default function RecoveryCodeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionLabel}>내 기록 가져오기 번호</Text>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionLabel}>내 기록 가져오기 번호</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="복사하기"
+            hitSlop={8}
+            onPress={() => {
+              void copyCode()
+            }}
+            style={({ pressed }) => pressed && styles.btnPressed}
+          >
+            <Text style={styles.copyLink}>복사하기</Text>
+          </Pressable>
+        </View>
 
         <Text style={styles.description}>
           휴대폰을 변경하거나 앱을 재설치할 때, 이 번호로 기존의 소중한 마음
           기록을 안전하게 불러올 수 있어요.
         </Text>
 
-        {/* 세로형 멤버십 카드 — 저장 캡처 영역 */}
+        {/* 시안: 세로 멤버십 카드 — 번호 위 / 브랜드 / 펫 우하단 */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
-            <View style={styles.cardStripe} />
+            <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
+            <Text style={styles.brandName}>하남이네 힐링펫</Text>
+            <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
 
-            <View style={styles.cardTop}>
-              <Text style={styles.brandName}>하남이네 힐링펫</Text>
-              <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
-            </View>
-
-            <View style={styles.petWell}>
+            <View style={styles.petRow}>
+              <View style={styles.petSpacer} />
               <Image
                 source={DogExpr.soft}
                 style={styles.dog}
                 resizeMode="contain"
                 accessibilityLabel="힐링펫 강아지"
               />
-            </View>
-
-            <View style={styles.codePanel}>
-              <Text style={styles.codeHint}>가져오기 번호</Text>
-              <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             </View>
           </View>
         </View>
@@ -120,23 +126,6 @@ export default function RecoveryCodeScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="복사하기"
-          onPress={() => {
-            void copyCode()
-          }}
-          style={({ pressed }) => [
-            styles.copyBtn,
-            pressed && styles.btnPressed,
-          ]}
-        >
-          <View style={styles.btnInner}>
-            <Copy size={18} color={Colors.cocoa} weight="bold" />
-            <Text style={styles.copyBtnText}>복사하기</Text>
-          </View>
-        </Pressable>
-
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="사진첩에 저장하기"
@@ -188,17 +177,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
     paddingBottom: Layout.contentPaddingBottom,
+  },
+  sectionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 10,
   },
   sectionLabel: {
-    alignSelf: 'stretch',
+    flex: 1,
     fontSize: 15,
     fontWeight: '700',
     color: Colors.cocoa,
-    marginBottom: 10,
+  },
+  copyLink: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.cocoa,
+    textDecorationLine: 'underline',
   },
   description: {
-    alignSelf: 'stretch',
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -206,83 +205,58 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   cardShell: {
+    alignSelf: 'center',
     width: '100%',
     maxWidth: 300,
-    aspectRatio: 0.68,
+    aspectRatio: 0.72,
     borderRadius: 28,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.accent,
     ...Shadows.elevation,
   },
   cardCapture: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    backgroundColor: Colors.accent,
+    paddingTop: 36,
+    paddingHorizontal: 24,
+    paddingBottom: 12,
   },
-  /** 멤버십 상단 띠 */
-  cardStripe: {
-    height: 10,
-    marginHorizontal: -20,
-    marginBottom: 22,
-    backgroundColor: Colors.selected,
-  },
-  cardTop: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  brandName: {
-    fontSize: 17,
+  codeValue: {
+    fontSize: 40,
     fontWeight: '800',
     color: Colors.cocoa,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-    marginBottom: 6,
+    letterSpacing: 2,
+    marginBottom: 18,
+  },
+  brandName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    marginBottom: 4,
   },
   cardSub: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
+    color: Colors.cocoa,
+    opacity: 0.9,
   },
-  petWell: {
+  petRow: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 140,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  petSpacer: {
+    flex: 1,
   },
   dog: {
-    width: 150,
-    height: 150,
-  },
-  codePanel: {
-    alignSelf: 'stretch',
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    gap: 6,
-  },
-  codeHint: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textDisabled,
-    letterSpacing: -0.1,
-  },
-  codeValue: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: Colors.cocoa,
-    letterSpacing: 3.5,
-    textAlign: 'center',
+    width: 148,
+    height: 148,
+    marginRight: -8,
+    marginBottom: -4,
   },
   tip: {
-    alignSelf: 'stretch',
     marginTop: 16,
     fontSize: 13,
     fontWeight: '500',
@@ -291,9 +265,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
   },
   btnPressed: {
     opacity: 0.88,
@@ -304,29 +275,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  copyBtn: {
-    flex: 1,
-    height: 54,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    backgroundColor: Colors.creamyBeige,
-    borderWidth: 1.5,
-    borderColor: Colors.selected,
-  },
-  copyBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.cocoa,
-  },
   saveBtn: {
-    flex: 1,
     height: 54,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
     backgroundColor: Colors.primary,
     ...Shadows.elevation,
   },

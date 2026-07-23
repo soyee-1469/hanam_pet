@@ -344,8 +344,10 @@ type MenuQuickItemProps = {
   label: string
   image: number
   bgColor: string
-  /** 받기 가능(제작 완료) */
+  /** 받기 가능(제작 완료) — 사료/장난감 */
   ready?: boolean
+  /** 오늘 출석 등 — 완료 띠 */
+  done?: boolean
   /** 쿨다운 남은 시간 HH:MM:SS */
   cooldownLabel?: string
   /**
@@ -420,6 +422,7 @@ function MenuQuickItem({
   image,
   bgColor,
   ready = false,
+  done = false,
   cooldownLabel,
   cooldownProgress,
   highlighted,
@@ -430,7 +433,8 @@ function MenuQuickItem({
 }: MenuQuickItemProps) {
   const cooling = Boolean(cooldownLabel)
   const [hovered, setHovered] = useState(false)
-  const lift = (ready && hovered) || highlighted
+  const showDoneBadge = ready || done
+  const lift = (showDoneBadge && hovered) || highlighted
   const showRing = cooling && cooldownProgress != null
   const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
 
@@ -438,11 +442,13 @@ function MenuQuickItem({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
-        ready
-          ? `${label}, 제작 완료`
-          : cooling
-            ? `${label}, 남은 시간 ${cooldownLabel}`
-            : label
+        done
+          ? `${label}, 완료`
+          : ready
+            ? `${label}, 제작 완료`
+            : cooling
+              ? `${label}, 남은 시간 ${cooldownLabel}`
+              : label
       }
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
@@ -477,8 +483,9 @@ function MenuQuickItem({
                 backgroundColor: bgColor,
               },
               ready && styles.menuCircleReady,
+              done && !ready && styles.menuCircleDone,
               showRing && styles.menuCircleCooldown,
-              highlighted && !ready && !cooling && styles.menuCircleNudge,
+              highlighted && !showDoneBadge && !cooling && styles.menuCircleNudge,
             ]}
           >
             <Image
@@ -504,7 +511,7 @@ function MenuQuickItem({
               </View>
             ) : null}
           </View>
-          {ready ? (
+          {showDoneBadge ? (
             <View style={styles.menuReadyBadge} pointerEvents="none">
               <Text style={styles.menuReadyBadgeText} allowFontScaling={false}>
                 완료
@@ -1458,10 +1465,9 @@ function PetHomeScreenBody() {
                     ? feedClaimStatus.kind === 'ready'
                     : item.id === 'toy'
                       ? toyClaimStatus.kind === 'ready'
-                      : item.id === 'stamp'
-                        ? stampedToday
-                        : false
+                      : false
                 }
+                done={item.id === 'stamp' ? stampedToday : false}
                 cooldownLabel={
                   item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
                     ? feedClaimStatus.label
@@ -2089,17 +2095,19 @@ const styles = StyleSheet.create({
   },
   menuReadyBadge: {
     position: 'absolute',
-    top: -3,
-    right: -6,
-    zIndex: 3,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 8,
+    top: -4,
+    right: -8,
+    zIndex: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 999,
     backgroundColor: Colors.primary,
+    borderWidth: 1.5,
+    borderColor: Colors.surface,
   },
   menuReadyBadgeText: {
-    fontSize: 8,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     color: Colors.surface,
     letterSpacing: -0.2,
   },
@@ -2112,6 +2120,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 0 },
     elevation: 4,
+  },
+  /** 출석 완료 — 띠만 강조, 받기용 글로우와 구분 */
+  menuCircleDone: {
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+    backgroundColor: Colors.background,
   },
   menuCircleCooldown: {
     borderWidth: 0,

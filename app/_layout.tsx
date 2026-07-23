@@ -48,6 +48,7 @@ export default function RootLayout() {
           <Stack.Screen name="diary-list" />
           <Stack.Screen name="diary-detail" />
           <Stack.Screen name="account" />
+          <Stack.Screen name="pet-manage" />
           <Stack.Screen name="guide" />
           <Stack.Screen name="guide-doc" />
           <Stack.Screen name="counseling" />

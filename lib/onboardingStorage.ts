@@ -47,6 +47,11 @@ export async function getOnboardingProfile(): Promise<{
   return { nickname: clampNickname(raw), petId }
 }
 
+/** 설정에서 함께 하는 펫 종류 변경 */
+export async function setPetChoice(petId: PetChoice): Promise<void> {
+  await AsyncStorage.setItem(KEYS.petId, petId)
+}
+
 /** 온보딩/복구 직후 홈 환영 말풍선 — 한 번만 */
 export async function consumeWelcomePending(): Promise<WelcomePendingKind | null> {
   const v = await AsyncStorage.getItem(KEYS.welcomePending)

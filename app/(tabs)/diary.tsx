@@ -41,6 +41,7 @@ import {
 } from '../../lib/coachmarkTourState'
 import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
 import { getPetName } from '../../lib/petProfile'
+import { formatDateFromYmd } from '../../lib/dateFormat'
 
 type DayMood = {
   day: number
@@ -203,13 +204,7 @@ function DiaryScreenBody() {
     return { y, m, d }
   }
 
-  const openDayPanel = (day: number) => {
-    if (isFutureDay(day)) return
-    setSelectedDay(day)
-    setDayPanelOpen(true)
-  }
-
-  /** 기록 없는 날은 선택만 — 있으면 하단 CTA를 밀고 리스트 */
+  /** 기록 없는 날은 선택만 — 있으면 「이번 달 … 마음」 위에 리스트 */
   const onPressDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
@@ -231,8 +226,7 @@ function DiaryScreenBody() {
 
   const selectedDayTitle = useMemo(() => {
     const { y, m, d } = resolveSelectedYmd()
-    const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()]
-    return `${d}일 ${weekday}요일(${selectedDayCount}개 기록)`
+    return `${formatDateFromYmd(y, m, d)} · ${selectedDayCount}개 기록`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, selectedDayCount])
 
@@ -405,15 +399,74 @@ function DiaryScreenBody() {
           </View>
         </View>
 
-        {!showDayPanel && selectedDayCount === 0 ? (
-          <View style={styles.belowCalendar}>
+        {showDayPanel ? (
+          <View style={[styles.dayPanel, styles.belowCalendar]}>
+            <View style={styles.dayPanelHeader}>
+              <Text style={styles.dayPanelTitle} numberOfLines={1}>
+                {selectedDayTitle}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="닫기"
+                hitSlop={8}
+                onPress={() => setDayPanelOpen(false)}
+                style={({ pressed }) => [
+                  styles.dayPanelClose,
+                  pressed && styles.iconBtnPressed,
+                ]}
+              >
+                <X size={18} color={Colors.textSecondary} weight="bold" />
+              </Pressable>
+            </View>
+            <ScrollView
+              style={
+                selectedDayEntries.length >= DIARY_DAY_LIST_VISIBLE
+                  ? {
+                      maxHeight:
+                        DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
+                    }
+                  : undefined
+              }
+              nestedScrollEnabled
+              scrollEnabled={selectedDayEntries.length >= 2}
+              showsVerticalScrollIndicator={selectedDayEntries.length > 2}
+              contentContainerStyle={styles.dayListContent}
+            >
+              {selectedDayEntries.map((entry) => (
+                <DiaryDayEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/diary-detail',
+                      params: { id: entry.id },
+                    })
+                  }
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        {selectedDayCount === 0 && dist.count === 0 ? (
+          <View
+            style={[
+              styles.belowCalendar,
+              showDayPanel ? styles.belowDayPanel : null,
+            ]}
+          >
             <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
           </View>
-        ) : !showDayPanel ? (
-          <View style={[styles.distCard, styles.belowCalendar]}>
+        ) : (
+          <View
+            style={[
+              styles.distCard,
+              showDayPanel ? styles.belowDayPanel : styles.belowCalendar,
+            ]}
+          >
             <View style={styles.distHeader}>
               <Text style={styles.distTitle} numberOfLines={1}>
-                이번 달 하치와 나눈 마음
+                이번 달 {petName}와 나눈 마음
               </Text>
               <Text style={styles.distCount}>{dist.count}일 기록</Text>
             </View>
@@ -466,51 +519,8 @@ function DiaryScreenBody() {
               <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
             </Pressable>
           </View>
-        ) : null}
+        )}
       </ScrollView>
-
-      {showDayPanel ? (
-        <View style={styles.dayDock}>
-          <View style={styles.dayPanelHeader}>
-            <Text style={styles.dayPanelTitle} numberOfLines={1}>
-              {selectedDayTitle}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="닫기"
-              hitSlop={8}
-              onPress={() => setDayPanelOpen(false)}
-              style={({ pressed }) => [
-                styles.dayPanelClose,
-                pressed && styles.iconBtnPressed,
-              ]}
-            >
-              <X size={18} color={Colors.textSecondary} weight="bold" />
-            </Pressable>
-          </View>
-          <ScrollView
-            style={{
-              maxHeight: DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
-            }}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={selectedDayEntries.length > 2}
-            contentContainerStyle={styles.dayListContent}
-          >
-            {selectedDayEntries.map((entry) => (
-              <DiaryDayEntryCard
-                key={entry.id}
-                entry={entry}
-                onPress={() =>
-                  router.push({
-                    pathname: '/diary-detail',
-                    params: { id: entry.id },
-                  })
-                }
-              />
-            ))}
-          </ScrollView>
-        </View>
-      ) : null}
 
       <View
         style={[
@@ -656,14 +666,11 @@ const styles = StyleSheet.create({
   belowCalendar: {
     marginTop: 20,
   },
-  dayDock: {
-    paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 12,
-    paddingBottom: 8,
+  belowDayPanel: {
+    marginTop: 16,
+  },
+  dayPanel: {
     gap: 10,
-    backgroundColor: Colors.background,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.divider,
   },
   dayPanelHeader: {
     flexDirection: 'row',

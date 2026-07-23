@@ -294,7 +294,7 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
   },
   {
     name: '일기 목록 카드 / DiaryEntryCard',
-    note: 'MoodEmoji + 날짜 + 미리보기 + 태그',
+    note: 'MoodEmoji + 날짜 아래 감정·태그 + 미리보기',
     paths: ['app/diary-list.tsx'],
   },
   {

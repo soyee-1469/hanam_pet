@@ -26,9 +26,13 @@ function formatTimeShort(input: Date | string | number) {
   return full
 }
 
-/** 마음일기 탭·일 목록 — 시간·감정·미리보기·태그 행 */
+/**
+ * 마음일기 탭·일 목록 카드
+ * 날짜 → 감정(머리 위 색점) → 태그 → 미리보기
+ */
 export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
   const mood = moodMeta(entry.moodId)
+  const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
   const timeLabel = formatTimeShort(entry.createdAt)
 
   return (
@@ -38,32 +42,21 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      <View style={styles.emojiWell}>
-        <MoodEmoji
-          index={mood.emojiIndex}
-          size={32}
-          colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
-          dotSize={6}
-        />
-      </View>
-      <View style={styles.copy}>
-        <View style={styles.head}>
-          <Text style={styles.time}>{timeLabel}</Text>
-          <Text
-            style={[
-              styles.moodLabel,
-              { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
-            ]}
-          >
+      <View style={styles.body}>
+        <Text style={styles.time}>{timeLabel}</Text>
+
+        <View style={styles.moodRow}>
+          <MoodEmoji
+            index={mood.emojiIndex}
+            size={28}
+            colorDot={moodColor}
+            dotSize={5}
+          />
+          <Text style={[styles.moodLabel, { color: moodColor }]}>
             {mood.label}
           </Text>
         </View>
-        <View style={styles.previewRow}>
-          <Text style={styles.preview} numberOfLines={1}>
-            {entry.preview}
-          </Text>
-          <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
-        </View>
+
         {entry.tags.length > 0 ? (
           <View style={styles.tagRow}>
             {entry.tags.map((tag) => (
@@ -73,6 +66,13 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
             ))}
           </View>
         ) : null}
+
+        <View style={styles.previewRow}>
+          <Text style={styles.preview} numberOfLines={2}>
+            {entry.preview}
+          </Text>
+          <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
+        </View>
       </View>
     </Pressable>
   )
@@ -80,66 +80,37 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
 
 /** 리스트 2칸 노출용 대략 높이 (카드+갭) */
 export const DIARY_DAY_LIST_VISIBLE = 2
-export const DIARY_DAY_CARD_SLOT = 108
+export const DIARY_DAY_CARD_SLOT = 128
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
     backgroundColor: Colors.surface,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
-    minHeight: 96,
   },
   pressed: {
     opacity: 0.9,
   },
-  emojiWell: {
-    width: 48,
-    minHeight: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 4,
-    paddingBottom: 4,
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 6,
-  },
-  head: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+  body: {
     gap: 8,
+    minWidth: 0,
   },
   time: {
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
+  moodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   moodLabel: {
     fontSize: 13,
     fontWeight: '800',
-  },
-  previewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  preview: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 20,
   },
   tagRow: {
     flexDirection: 'row',
@@ -156,5 +127,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textPrimary,
+  },
+  previewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  preview: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
 })

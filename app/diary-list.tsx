@@ -188,53 +188,55 @@ export default function DiaryListScreen() {
                   pressed && styles.pressed,
                 ]}
               >
-                <View style={styles.emojiWrap}>
-                  <MoodEmoji
-                    index={mood.emojiIndex}
-                    size={36}
-                    colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
-                    dotSize={6}
-                  />
-                  <Text
-                    style={[
-                      styles.cardMood,
-                      { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
-                    ]}
-                  >
-                    {mood.label}
-                  </Text>
-                </View>
                 <View style={styles.cardCopy}>
                   <View style={styles.cardHead}>
                     <Text style={styles.cardDate}>{timeLabel}</Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="더보기"
+                      hitSlop={8}
+                      onPress={(e) => {
+                        e?.stopPropagation?.()
+                        setMenuEntry(entry)
+                      }}
+                      style={styles.moreBtn}
+                    >
+                      <DotsThreeVertical
+                        size={18}
+                        color={Colors.textDisabled}
+                        weight="bold"
+                      />
+                    </Pressable>
                   </View>
+                  <View style={styles.moodRow}>
+                    <MoodEmoji
+                      index={mood.emojiIndex}
+                      size={28}
+                      colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
+                      dotSize={5}
+                    />
+                    <Text
+                      style={[
+                        styles.cardMood,
+                        { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
+                      ]}
+                    >
+                      {mood.label}
+                    </Text>
+                  </View>
+                  {entry.tags.length > 0 ? (
+                    <View style={styles.tagRow}>
+                      {entry.tags.map((tag) => (
+                        <View key={tag} style={styles.tag}>
+                          <Text style={styles.tagText}>{tag}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                   <Text style={styles.cardPreview} numberOfLines={2}>
                     {entry.preview}
                   </Text>
-                  <View style={styles.tagRow}>
-                    {entry.tags.map((tag) => (
-                      <View key={tag} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
                 </View>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="더보기"
-                  hitSlop={8}
-                  onPress={(e) => {
-                    e?.stopPropagation?.()
-                    setMenuEntry(entry)
-                  }}
-                  style={styles.moreBtn}
-                >
-                  <DotsThreeVertical
-                    size={18}
-                    color={Colors.textDisabled}
-                    weight="bold"
-                  />
-                </Pressable>
               </Pressable>
             )
           })
@@ -394,49 +396,45 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 14,
-    gap: 12,
-  },
-  emojiWrap: {
-    width: 56,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 4,
   },
   cardCopy: {
     flex: 1,
     minWidth: 0,
+    gap: 8,
   },
   cardHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 6,
+    justifyContent: 'space-between',
+    gap: 8,
   },
   cardDate: {
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
+    flex: 1,
+    minWidth: 0,
+  },
+  moodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   cardMood: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '800',
-    textAlign: 'center',
   },
   cardPreview: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 8,
   },
   tagRow: {
     flexDirection: 'row',
@@ -459,7 +457,6 @@ const styles = StyleSheet.create({
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
   },
   writeBar: {
     position: 'absolute',

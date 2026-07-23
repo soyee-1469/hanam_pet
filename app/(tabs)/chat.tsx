@@ -180,14 +180,6 @@ function ChatScreenBody() {
     return ''
   }, [messages])
 
-  /** 강아지 우측 — 방금 보낸 유저 말풍선 1개만 */
-  const latestUserMessage = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      if (messages[i].role === 'user') return messages[i]
-    }
-    return null
-  }, [messages])
-
   const latestPetReply = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       if (messages[i].role === 'pet') return messages[i]
@@ -520,25 +512,12 @@ function ChatScreenBody() {
                 </View>
               ) : null}
 
-              <View style={styles.petStageRow}>
-                <Image
-                  source={petImage}
-                  style={petChatStyle}
-                  resizeMode="contain"
-                  accessibilityLabel={petName}
-                />
-                {latestUserMessage ? (
-                  <View style={styles.userBeside}>
-                    <View style={styles.userBubble}>
-                      <Text style={styles.userText}>
-                        {latestUserMessage.text}
-                      </Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.userBesideSpacer} />
-                )}
-              </View>
+              <Image
+                source={petImage}
+                style={petChatStyle}
+                resizeMode="contain"
+                accessibilityLabel={petName}
+              />
 
               {depleted ? (
                 <View style={[styles.statusPill, styles.statusPillDepleted]}>
@@ -769,6 +748,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: Layout.blockGap,
     flexGrow: 1,
+    justifyContent: 'center',
   },
   stamp: {
     alignSelf: 'center',
@@ -777,50 +757,17 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
     marginBottom: 16,
   },
-  userRow: {
-    alignItems: 'flex-end',
-    marginBottom: 14,
-  },
-  petStageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 4,
-  },
-  userBeside: {
-    flex: 1,
-    minWidth: 0,
-    maxWidth: 168,
-    alignItems: 'flex-start',
-  },
-  userBesideSpacer: {
-    flex: 1,
-    maxWidth: 168,
-  },
-  userBubble: {
-    maxWidth: '100%',
-    backgroundColor: Colors.accentSoft,
-    borderRadius: 18,
-    borderBottomLeftRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  userText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '500',
-    color: Colors.textPrimary,
-  },
   petBlock: {
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    width: '100%',
     paddingBottom: 8,
   },
   petBubbleContainer: {
     alignItems: 'center',
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 320,
     marginBottom: 6,
     paddingHorizontal: 4,
   },
@@ -828,7 +775,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
-    paddingHorizontal: Layout.screenPaddingH,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
     borderWidth: 1,
     borderColor: Colors.border,

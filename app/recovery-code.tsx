@@ -269,10 +269,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   codeHint: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: Colors.textDisabled,
-    letterSpacing: 1.4,
+    letterSpacing: -0.1,
   },
   codeValue: {
     fontSize: 32,

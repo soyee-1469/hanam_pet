@@ -10,6 +10,7 @@ import { Colors } from '../../constants/Colors'
 import {
   CATALOG_PAGES,
   CARDS_CANDIDATES,
+  CARDS_EXISTING,
   CHAT_CANDIDATES,
   CHAT_EXISTING,
   CHROME_CANDIDATES,
@@ -25,6 +26,7 @@ import {
   PRIORITY,
   SETTINGS_CANDIDATES,
   SETTINGS_EXISTING,
+  SETTINGS_FIGMA_BUILD_ORDER,
   isCatalogPageId,
   type CatalogPageId,
   type CandidateItem,
@@ -132,8 +134,9 @@ function PageBody({ pageId }: { pageId: CatalogPageId }) {
     case 'cards':
       return (
         <ThemePage
-          intro="흰 서피스 카드와 설정·알림·일기 등 리스트 행 패턴이에요."
+          intro="흰 서피스 카드와 설정·알림·일기 등 리스트 행 패턴이에요. SurfaceCard·SettingsRow는 공용 컴포넌트예요."
           previews={<CardsPreviews />}
+          existing={CARDS_EXISTING}
           candidates={CARDS_CANDIDATES}
         />
       )
@@ -184,12 +187,30 @@ function PageBody({ pageId }: { pageId: CatalogPageId }) {
       )
     case 'settings':
       return (
-        <ThemePage
-          intro="설정 그룹·위험 삭제·닉네임 입력·복구코드 카드 목업이에요."
-          previews={<SettingsPreviews />}
-          existing={SETTINGS_EXISTING}
-          candidates={SETTINGS_CANDIDATES}
-        />
+        <>
+          <ThemePage
+            intro="설정은 컴포넌트 먼저 → 화면 조립 순서로 갑니다. 아래는 실제 공용 UI 미리보기예요."
+            previews={<SettingsPreviews />}
+            existing={SETTINGS_EXISTING}
+            candidates={SETTINGS_CANDIDATES}
+          />
+          <Text style={[styles.blockTitle, { marginTop: 8 }]}>
+            피그마 빌드 순서 (설정)
+          </Text>
+          <View style={styles.priorityCard}>
+            {SETTINGS_FIGMA_BUILD_ORDER.map((item) => (
+              <View key={item.step} style={styles.priorityRow}>
+                <Text style={styles.priorityNum}>{item.step}</Text>
+                <View style={styles.priorityBody}>
+                  <Text style={styles.priorityText}>
+                    [{item.status}] {item.name}
+                  </Text>
+                  <Text style={styles.priorityWhy}>{item.note}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
       )
   }
 }

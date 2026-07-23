@@ -98,7 +98,7 @@ export const PRIORITY: { name: string; why: string }[] = [
   },
   {
     name: '서피스 카드 / SurfaceCard',
-    why: '설정·가이드·출석·알림·일기 등 기본 면',
+    why: '✅ 공용화됨 — 설정·가이드부터 적용, 타 화면 확장',
   },
   {
     name: '섹션 라벨 + 빈 상태 / SectionLabel · EmptyState',
@@ -118,7 +118,7 @@ export const PRIORITY: { name: string; why: string }[] = [
   },
   {
     name: '설정·내비 행 / SettingsRow',
-    why: '더보기·가이드·지원 — 아이콘+제목+Caret',
+    why: '✅ 공용화됨 — more·guide 적용 (link/version/icon)',
   },
   {
     name: '펫 말풍선 / SpeechBubble',
@@ -140,7 +140,12 @@ export const CHROME_EXISTING: ExistingItem[] = [
   {
     name: '스크린 헤더 / ScreenHeader',
     path: 'components/ui/ScreenHeader.tsx',
-    note: '뒤로 + 제목 + 건너뛰기/우측 슬롯 · 온보딩·탈퇴·카탈로그',
+    note: '뒤로 + 제목 + 건너뛰기/우측 슬롯 · 온보딩·탈퇴·계정·가이드',
+  },
+  {
+    name: '탭 화면 타이틀 / TabScreenTitle',
+    path: 'components/ui/TabScreenTitle.tsx',
+    note: '탭 루트 「설정」 등 — HeaderTitleStyle.tab',
   },
   {
     name: '앱 뷰포트 / AppViewport',
@@ -229,25 +234,28 @@ export const CHROME_CANDIDATES: CandidateItem[] = [
 
 // ─── 4. 카드 · 리스트 로우 ───────────────────────────────────────
 
-export const CARDS_CANDIDATES: CandidateItem[] = [
+export const CARDS_EXISTING: ExistingItem[] = [
   {
     name: '서피스 카드 / SurfaceCard',
-    note: 'white · radius≈20 · divider · elevation. variants: 단독 / 행 스택 컨테이너',
-    paths: [
-      'app/(tabs)/more.tsx',
-      'app/guide.tsx',
-      'app/support.tsx',
-      'app/data-manage.tsx',
-      'app/mind-records.tsx',
-      'app/mind-report.tsx',
-      'app/diary-list.tsx',
-      'app/notifications.tsx',
-      'app/attendance.tsx',
-    ],
+    path: 'components/ui/SurfaceCard.tsx',
+    note: 'white · radius 20 · divider · elevation — 설정·가이드 적용',
   },
   {
+    name: '설정·내비 행 / SettingsRow',
+    path: 'components/ui/SettingsRow.tsx',
+    note: 'link / version / icon+subtitle · more·guide',
+  },
+  {
+    name: '설정 그룹 / SettingsGroup',
+    path: 'components/ui/SettingsGroup.tsx',
+    note: 'SectionTitle + SurfaceCard(SettingsRow 스택)',
+  },
+]
+
+export const CARDS_CANDIDATES: CandidateItem[] = [
+  {
     name: '섹션 라벨 / SectionLabel',
-    note: '카드·폼 위 작은 cocoa 라벨',
+    note: '카드·폼 위 작은 cocoa 라벨 — SettingsGroup title과 스케일 통일 후보',
     paths: [
       'app/mind-check-intro.tsx',
       'app/mind-check-guide.tsx',
@@ -270,16 +278,6 @@ export const CARDS_CANDIDATES: CandidateItem[] = [
       'app/mind-content.tsx',
       'app/guide-doc.tsx',
       'app/(tabs)/mind.tsx',
-    ],
-  },
-  {
-    name: '설정·내비 행 / SettingsRow',
-    note: '아이콘+제목(+서브)+CaretRight. variants: default / danger. more.tsx에 로컬 정의',
-    paths: [
-      'app/(tabs)/more.tsx',
-      'app/guide.tsx',
-      'app/support.tsx',
-      'app/onboarding/resume.tsx',
     ],
   },
   {
@@ -337,6 +335,11 @@ export const FORMS_EXISTING: ExistingItem[] = [
     name: 'Primary / Secondary / Ghost 버튼',
     path: 'components/ui/Button.tsx',
     note: 'CTA 패밀리 · disabled · onDisabledPress',
+  },
+  {
+    name: '입력 셸 / TextInputShell',
+    path: 'components/ui/TextInputShell.tsx',
+    note: 'idle / focused / dirty / error 보더 — 계정 닉네임',
   },
   {
     name: '약관 체크 행 / CheckRow',
@@ -670,7 +673,103 @@ export const DIARY_CANDIDATES: CandidateItem[] = [
 
 // ─── 10. 설정 · 계정 ─────────────────────────────────────────────
 
+/**
+ * 피그마 설정 도메인 빌드 순서 (컴포넌트 → 화면).
+ * 1~5는 RN 공용화 완료. 화면 프레임은 컴포넌트 인스턴스만으로 조립.
+ */
+export const SETTINGS_FIGMA_BUILD_ORDER: {
+  step: number
+  name: string
+  kind: 'token' | 'component' | 'screen'
+  status: 'done' | 'next' | 'later'
+  note: string
+}[] = [
+  {
+    step: 1,
+    name: 'Colors · Layout (rowMinHeight 56)',
+    kind: 'token',
+    status: 'done',
+    note: 'cocoa / surface / divider / error',
+  },
+  {
+    step: 2,
+    name: 'SurfaceCard',
+    kind: 'component',
+    status: 'done',
+    note: '흰 면 · radius 20',
+  },
+  {
+    step: 3,
+    name: 'SettingsRow',
+    kind: 'component',
+    status: 'done',
+    note: 'variants: link · version · icon · subtitle · danger',
+  },
+  {
+    step: 4,
+    name: 'SettingsGroup · TabScreenTitle · DangerTextLink',
+    kind: 'component',
+    status: 'done',
+    note: '그룹 카드 · 탭 타이틀 · 회원탈퇴 링크',
+  },
+  {
+    step: 5,
+    name: 'ScreenHeader · TextInputShell · LegalDocSection',
+    kind: 'component',
+    status: 'done',
+    note: '계정·문서 서브화면 공통',
+  },
+  {
+    step: 6,
+    name: '설정 탭 화면 / more',
+    kind: 'screen',
+    status: 'done',
+    note: 'TabScreenTitle + SettingsGroup×N + DangerTextLink',
+  },
+  {
+    step: 7,
+    name: '이용 안내 · 계정 · 가이드 문서',
+    kind: 'screen',
+    status: 'done',
+    note: 'ScreenHeader + 공용 행/입력/문서 섹션',
+  },
+  {
+    step: 8,
+    name: 'RestoreCodeCard · DangerActionCard',
+    kind: 'component',
+    status: 'next',
+    note: '복구번호·탈퇴/삭제 카드 — 다음 스프린트',
+  },
+  {
+    step: 9,
+    name: '고객 지원 · 탈퇴 · 기록 초기화 화면',
+    kind: 'screen',
+    status: 'later',
+    note: '8번 컴포넌트 후 조립',
+  },
+]
+
 export const SETTINGS_EXISTING: ExistingItem[] = [
+  {
+    name: '설정 그룹 / SettingsGroup',
+    path: 'components/ui/SettingsGroup.tsx',
+    note: '피그마 SettingsGroupCard — 설정 탭 섹션',
+  },
+  {
+    name: '설정·내비 행 / SettingsRow',
+    path: 'components/ui/SettingsRow.tsx',
+    note: 'more · guide',
+  },
+  {
+    name: '위험 텍스트 링크 / DangerTextLink',
+    path: 'components/ui/DangerTextLink.tsx',
+    note: '회원탈퇴 등 ghost 링크',
+  },
+  {
+    name: '가이드 문서 섹션 / LegalDocSection',
+    path: 'components/ui/LegalDocSection.tsx',
+    note: 'title + body + divider',
+  },
   {
     name: '사진 권한 시트 / PhotoPermissionSheet',
     path: 'components/PhotoPermissionSheet.tsx',
@@ -685,44 +784,24 @@ export const SETTINGS_EXISTING: ExistingItem[] = [
 
 export const SETTINGS_CANDIDATES: CandidateItem[] = [
   {
-    name: '설정 그룹 카드 / SettingsGroupCard',
-    note: 'SurfaceCard + SettingsRow 스택',
-    paths: ['app/(tabs)/more.tsx'],
-  },
-  {
-    name: '설정·내비 행 / SettingsRow',
-    note: '아이콘+제목(+서브)+Caret — more 로컬 → 피그마·공용 승격 후보',
-    paths: [
-      'app/(tabs)/more.tsx',
-      'app/guide.tsx',
-      'app/support.tsx',
-      'app/onboarding/resume.tsx',
-    ],
-  },
-  {
     name: '위험·삭제 액션 카드 / DangerActionCard',
     note: '경고 카피 + 파괴 CTA · 삭제 체크리스트',
-    paths: ['app/mind-records.tsx', 'app/withdraw.tsx'],
+    paths: ['app/mind-records.tsx', 'app/withdraw.tsx', 'app/record-reset.tsx'],
   },
   {
     name: '복구 코드 카드 / RestoreCodeCard',
-    note: 'peek pet + code + copy',
-    paths: ['app/onboarding/restore-code.tsx'],
+    note: 'code + brand + pet peek · copy/save CTA는 화면 푸터',
+    paths: ['app/recovery-code.tsx', 'app/onboarding/restore-code.tsx'],
   },
   {
     name: '계정 닉네임 폼 / AccountNicknameForm',
-    note: 'TextInputShell 재사용 · focus/error',
+    note: 'TextInputShell + label + hint + counter — 셸은 공용화됨',
     paths: ['app/account.tsx'],
   },
   {
     name: '기록 가져오기 시트 / ResumeImportSheet',
     note: 'BottomSheet + Primary',
     paths: ['app/onboarding/resume.tsx'],
-  },
-  {
-    name: '가이드 문서 섹션 / LegalDocSection',
-    note: 'title + body + divider',
-    paths: ['app/guide-doc.tsx'],
   },
 ]
 

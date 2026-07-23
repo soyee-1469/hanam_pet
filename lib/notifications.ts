@@ -36,7 +36,7 @@ const TYPE_HREF: Record<NotifType, string | null> = {
   claim: '/(tabs)',
   diary: '/(tabs)/diary',
   chat: '/(tabs)/chat',
-  attendance: '/attendance',
+  attendance: '/(tabs)',
   mind: '/(tabs)/mind',
 }
 
@@ -169,7 +169,7 @@ export const DEMO_NOTIFICATIONS: AppNotification[] = [
     date: '2026-07-18',
     unread: true,
     icon: 'calendar',
-    href: '/attendance',
+    href: '/(tabs)',
   },
   {
     id: 'n10',

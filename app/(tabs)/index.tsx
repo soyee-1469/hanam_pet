@@ -26,6 +26,7 @@ import {
 import { Colors, Shadows } from '../../constants/Colors'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
+import { AttendanceDoneDialog } from '../../components/AttendanceDoneDialog'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
 import { TextKeyboardProps } from '../../lib/inputKeyboard'
@@ -68,6 +69,12 @@ import {
   defaultPetName,
 } from '../../lib/petProfile'
 import { showToast } from '../../lib/toast'
+import {
+  ATTENDANCE_ENERGY_REWARD,
+  dateKey,
+  loadAttendanceKeys,
+  stampToday,
+} from '../../lib/attendance'
 import { BottomSheet } from '../../components/ui'
 import { CoachmarkWelcomeSheet } from '../../components/CoachmarkWelcomeSheet'
 import { CoachmarkCompleteSheet } from '../../components/CoachmarkCompleteSheet'
@@ -581,6 +588,11 @@ function PetHomeScreenBody() {
   /** 헤더↔하단 케어바 사이 중간 영역 높이 (펫 사이즈 산출용) */
   const [petZoneH, setPetZoneH] = useState(0)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [attendOpen, setAttendOpen] = useState(false)
+  const [attendCredited, setAttendCredited] = useState(0)
+  const [attendAlready, setAttendAlready] = useState(false)
+  const [attendBusy, setAttendBusy] = useState(false)
+  const [stampedToday, setStampedToday] = useState(false)
   const [coachWelcomeOpen, setCoachWelcomeOpen] = useState(false)
   /** false until this tab actually focuses — avoids deep-link to other tabs showing home Modals */
   const [homeFocused, setHomeFocused] = useState(false)
@@ -909,6 +921,10 @@ function PetHomeScreenBody() {
         setEnergy(stock.energy)
         setFoodCount(stock.food)
         setToyCount(stock.toy)
+
+        const attendKeys = await loadAttendanceKeys()
+        if (cancelled) return
+        setStampedToday(attendKeys.includes(dateKey(new Date())))
 
         const fromEnergy = await consumeEnergyCareNudge()
         if (cancelled) return
@@ -1317,6 +1333,32 @@ function PetHomeScreenBody() {
     showSpeech('위에서 「장난감 받기」를 눌러 받아와 줄래요?')
   }
 
+  /** 출석 메뉴 — 캘린더 대신 완료 팝업 */
+  const openAttendance = () => {
+    if (attendBusy) return
+    setAttendBusy(true)
+    void (async () => {
+      try {
+        const next = await stampToday()
+        if (!next) {
+          setAttendCredited(0)
+          setAttendAlready(true)
+          setStampedToday(true)
+          setAttendOpen(true)
+          return
+        }
+        setStampedToday(true)
+        const result = await addEnergy(ATTENDANCE_ENERGY_REWARD)
+        setEnergy(result.stock.energy)
+        setAttendCredited(result.credited)
+        setAttendAlready(false)
+        setAttendOpen(true)
+      } finally {
+        setAttendBusy(false)
+      }
+    })()
+  }
+
   const handleFeedPress = () => {
     void runCareAction('feed')
   }
@@ -1416,7 +1458,9 @@ function PetHomeScreenBody() {
                     ? feedClaimStatus.kind === 'ready'
                     : item.id === 'toy'
                       ? toyClaimStatus.kind === 'ready'
-                      : false
+                      : item.id === 'stamp'
+                        ? stampedToday
+                        : false
                 }
                 cooldownLabel={
                   item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
@@ -1439,7 +1483,7 @@ function PetHomeScreenBody() {
                 onPress={() => {
                   if (item.id === 'storage') openStorage()
                   else if (item.id === 'guide') setHelpOpen(true)
-                  else if (item.id === 'stamp') router.push('/attendance')
+                  else if (item.id === 'stamp') openAttendance()
                   else if (item.id === 'feed') claimFeed()
                   else if (item.id === 'toy') claimToy()
                 }}
@@ -1636,6 +1680,13 @@ function PetHomeScreenBody() {
         visible={coachCompleteOpen && homeFocused}
         petName={petName}
         onMeet={dismissPetTourComplete}
+      />
+
+      <AttendanceDoneDialog
+        visible={attendOpen && homeFocused}
+        credited={attendCredited}
+        alreadyStamped={attendAlready}
+        onClose={() => setAttendOpen(false)}
       />
 
       <BottomSheet

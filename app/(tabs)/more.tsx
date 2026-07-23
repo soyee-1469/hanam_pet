@@ -41,6 +41,7 @@ const SECTIONS: SettingsSection[] = [
     rows: [
       { id: 'recovery', title: '내 기록 가져오기 번호' },
       { id: 'nickname', title: '내 닉네임' },
+      { id: 'pet', title: '함께 하는 펫 친구' },
     ],
   },
   {
@@ -146,6 +147,9 @@ function MoreScreenBody() {
         return
       case 'nickname':
         router.push('/account')
+        return
+      case 'pet':
+        router.push('/pet-manage')
         return
       case 'new-diary':
         router.push({ pathname: '/record-reset', params: { kind: 'diary' } })

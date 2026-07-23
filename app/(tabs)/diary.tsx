@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft, CaretRight, Plus } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, Plus, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -20,9 +20,15 @@ import {
   diaryMoodsForMonth,
   countDiaryEntriesByDate,
   hydrateDiaryRecords,
+  listDiaryEntriesByDate,
   subscribeDiaryRecords,
 } from '../../lib/diaryRecords'
 import { MoodEmoji } from '../../components/MoodEmoji'
+import {
+  DiaryDayEntryCard,
+  DIARY_DAY_CARD_SLOT,
+  DIARY_DAY_LIST_VISIBLE,
+} from '../../components/DiaryDayEntryCard'
 import { EmptyRecordsCard } from '../../components/EmptyRecordsCard'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
@@ -79,6 +85,7 @@ function DiaryScreenBody() {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   )
   const [selectedDay, setSelectedDay] = useState(today.getDate())
+  const [dayPanelOpen, setDayPanelOpen] = useState(false)
   const [petName, setPetName] = useState('하치')
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
@@ -180,6 +187,7 @@ function DiaryScreenBody() {
   const shiftMonth = (delta: number) => {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
     setSelectedDay(1)
+    setDayPanelOpen(false)
   }
 
   const isFutureDay = (day: number) => {
@@ -198,22 +206,15 @@ function DiaryScreenBody() {
   const openDayList = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
-    router.push({
-      pathname: '/diary-list',
-      params: {
-        year: String(year),
-        month: String(month + 1),
-        day: String(day),
-      },
-    })
+    setDayPanelOpen(true)
   }
 
-  /** 기록 없는 날은 선택만 — 목록 이동은 하단 CTA */
+  /** 기록 없는 날은 선택만 — 있으면 하단 리스트 */
   const onPressDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
     const count = countDiaryEntriesByDate(year, month + 1, day)
-    if (count > 0) openDayList(day)
+    setDayPanelOpen(count > 0)
   }
 
   const selectedDayCount = useMemo(() => {
@@ -222,19 +223,23 @@ function DiaryScreenBody() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, diaryEpoch])
 
-  const openSelectedOrWrite = () => {
+  const selectedDayEntries = useMemo(() => {
     const { y, m, d } = resolveSelectedYmd()
-    if (selectedDayCount > 0) {
-      router.push({
-        pathname: '/diary-list',
-        params: {
-          year: String(y),
-          month: String(m),
-          day: String(d),
-        },
-      })
-      return
-    }
+    return listDiaryEntriesByDate(y, m, d)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDay, year, month, today, diaryEpoch])
+
+  const selectedDayTitle = useMemo(() => {
+    const { y, m, d } = resolveSelectedYmd()
+    const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()]
+    return `${d}일 ${weekday}요일(${selectedDayCount}개 기록)`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDay, year, month, today, selectedDayCount])
+
+  const showDayPanel = dayPanelOpen && selectedDayCount > 0
+
+  const openWriteForSelected = () => {
+    const { y, m, d } = resolveSelectedYmd()
     router.push({
       pathname: '/diary-write',
       params: {
@@ -404,7 +409,48 @@ function DiaryScreenBody() {
           </View>
         </View>
 
-        {selectedDayCount === 0 ? (
+        {showDayPanel ? (
+          <View style={styles.dayPanel}>
+            <View style={styles.dayPanelHeader}>
+              <Text style={styles.dayPanelTitle} numberOfLines={1}>
+                {selectedDayTitle}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="닫기"
+                hitSlop={8}
+                onPress={() => setDayPanelOpen(false)}
+                style={({ pressed }) => [
+                  styles.dayPanelClose,
+                  pressed && styles.iconBtnPressed,
+                ]}
+              >
+                <X size={18} color={Colors.textSecondary} weight="bold" />
+              </Pressable>
+            </View>
+            <ScrollView
+              style={{
+                maxHeight: DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
+              }}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={selectedDayEntries.length > 2}
+              contentContainerStyle={styles.dayListContent}
+            >
+              {selectedDayEntries.map((entry) => (
+                <DiaryDayEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/diary-detail',
+                      params: { id: entry.id },
+                    })
+                  }
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ) : selectedDayCount === 0 ? (
           <View style={styles.belowCalendar}>
             <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
           </View>
@@ -465,6 +511,18 @@ function DiaryScreenBody() {
               <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
               <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
             </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="선택한 날 기록 보기"
+              onPress={() => setDayPanelOpen(true)}
+              style={({ pressed }) => [
+                styles.listLinkRow,
+                pressed && styles.iconBtnPressed,
+              ]}
+            >
+              <Text style={styles.listLinkText}>이 날 기록 보기</Text>
+              <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
+            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -480,9 +538,11 @@ function DiaryScreenBody() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            selectedDayCount > 0 ? '그날 마음 보러 가기' : '마음을 기록할게요'
+            selectedDayCount > 0
+              ? '마음을 더 기록할게요'
+              : '마음을 기록할게요'
           }
-          onPress={openSelectedOrWrite}
+          onPress={openWriteForSelected}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
           <View
@@ -492,12 +552,10 @@ function DiaryScreenBody() {
             collapsable={false}
           >
             <View style={styles.cta} collapsable={false}>
-              {selectedDayCount > 0 ? null : (
-                <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-              )}
+              <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
               <Text style={styles.ctaText}>
                 {selectedDayCount > 0
-                  ? '그날 마음 보러 가기'
+                  ? '마음을 더 기록할게요'
                   : '마음을 기록할게요'}
               </Text>
             </View>
@@ -612,6 +670,33 @@ const styles = StyleSheet.create({
   },
   belowCalendar: {
     marginTop: 20,
+  },
+  dayPanel: {
+    marginTop: 20,
+    gap: 10,
+  },
+  dayPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  dayPanelTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  dayPanelClose: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayListContent: {
+    gap: 10,
+    paddingBottom: 4,
   },
   weekdayRow: {
     flexDirection: 'row',

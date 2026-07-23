@@ -189,7 +189,12 @@ export default function DiaryListScreen() {
                 ]}
               >
                 <View style={styles.emojiWrap}>
-                  <MoodEmoji index={mood.emojiIndex} size={36} />
+                  <MoodEmoji
+                    index={mood.emojiIndex}
+                    size={36}
+                    colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
+                    dotSize={6}
+                  />
                   <Text
                     style={[
                       styles.cardMood,
@@ -261,7 +266,12 @@ export default function DiaryListScreen() {
         {menuEntry && menuMood ? (
           <View style={styles.sheetSummary}>
             <View style={styles.sheetMoodLeft}>
-              <MoodEmoji index={menuMood.emojiIndex} size={28} />
+              <MoodEmoji
+                index={menuMood.emojiIndex}
+                size={28}
+                colorDot={DIARY_MOOD_LABEL_COLOR[menuEntry.moodId]}
+                dotSize={5}
+              />
               <Text
                 style={[
                   styles.sheetMoodLabel,

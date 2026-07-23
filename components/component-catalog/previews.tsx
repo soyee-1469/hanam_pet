@@ -240,7 +240,12 @@ function MockNotificationRow({ unread }: { unread?: boolean }) {
 function MockDiaryEntryCard() {
   return (
     <View style={pv.diaryCard}>
-      <MoodEmoji index={1} size={28} />
+      <MoodEmoji
+        index={1}
+        size={28}
+        colorDot={DIARY_MOOD_LABEL_COLOR.great}
+        dotSize={5}
+      />
       <View style={pv.diaryCopy}>
         <Text style={pv.diaryDate}>7월 19일 · 기뻐요</Text>
         <Text style={pv.diaryPreview} numberOfLines={1}>
@@ -445,17 +450,22 @@ function MockMoodPicker() {
   const labels = ['기뻐요', '슬퍼요', '화가나요', '걱정돼요', '불편해요']
   return (
     <View style={pv.moodPicker}>
-      {([1, 2, 3, 4, 5] as const).map((i) => {
-        const on = sel === i
+      {DIARY_MOODS.map((m) => {
+        const on = sel === m.emojiIndex
         return (
           <Pressable
-            key={i}
-            onPress={() => setSel(i)}
+            key={m.id}
+            onPress={() => setSel(m.emojiIndex)}
             style={pv.moodItem}
           >
-            <MoodEmoji index={i} size={32} />
+            <MoodEmoji
+              index={m.emojiIndex}
+              size={32}
+              colorDot={on ? undefined : DIARY_MOOD_LABEL_COLOR[m.id]}
+              dotSize={6}
+            />
             <Text style={[pv.moodLabel, on && pv.moodLabelOn]}>
-              {labels[i - 1]}
+              {m.label}
             </Text>
           </Pressable>
         )
@@ -492,9 +502,11 @@ function MockMoodDistBar() {
         {legend.map((item) => (
           <View key={item.id} style={pv.legendItem}>
             <View style={pv.legendMark}>
-              <MoodEmoji index={item.emojiIndex} size={18} />
-              <View
-                style={[pv.moodDot, { backgroundColor: item.color }]}
+              <MoodEmoji
+                index={item.emojiIndex}
+                size={18}
+                colorDot={item.color}
+                dotSize={5}
               />
             </View>
             <Text style={pv.legendCount}>{item.count}</Text>
@@ -1833,11 +1845,6 @@ const pv = StyleSheet.create({
   legendMark: {
     alignItems: 'center',
     gap: 2,
-  },
-  moodDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
   },
   legendCount: {
     fontSize: 12,

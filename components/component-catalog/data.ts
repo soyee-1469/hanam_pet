@@ -621,7 +621,7 @@ export const DIARY_EXISTING: ExistingItem[] = [
   {
     name: '감정 이모지 / MoodEmoji',
     path: 'components/MoodEmoji.tsx',
-    note: '감정 SVG 1~5 · size 가변 — 행/선택기는 미공용',
+    note: '감정 SVG 1~5 · size 가변 · 머리 위 colorDot 옵션',
   },
 ]
 

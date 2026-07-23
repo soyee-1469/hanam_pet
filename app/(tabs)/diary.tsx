@@ -378,23 +378,19 @@ function DiaryScreenBody() {
                             <View style={styles.dayMoodSlot}>
                               {!future && mood && emojiIndex ? (
                                 <>
-                                  <MoodEmoji index={emojiIndex} size={18} />
-                                  <View style={styles.moodMeta}>
-                                    <View
-                                      style={[
-                                        styles.moodDot,
-                                        {
-                                          backgroundColor:
-                                            DIARY_MOOD_LABEL_COLOR[mood.moodId],
-                                        },
-                                      ]}
-                                    />
-                                    {mood.count > 1 ? (
-                                      <Text style={styles.moodCountText}>
-                                        +{mood.count}
-                                      </Text>
-                                    ) : null}
-                                  </View>
+                                  <MoodEmoji
+                                    index={emojiIndex}
+                                    size={18}
+                                    colorDot={
+                                      DIARY_MOOD_LABEL_COLOR[mood.moodId]
+                                    }
+                                    dotSize={5}
+                                  />
+                                  {mood.count > 1 ? (
+                                    <Text style={styles.moodCountText}>
+                                      +{mood.count}
+                                    </Text>
+                                  ) : null}
                                 </>
                               ) : null}
                             </View>
@@ -445,12 +441,11 @@ function DiaryScreenBody() {
                   accessibilityLabel={`${item.label} ${item.count}`}
                 >
                   <View style={styles.legendMark}>
-                    <MoodEmoji index={item.emojiIndex} size={18} />
-                    <View
-                      style={[
-                        styles.moodDot,
-                        { backgroundColor: item.color },
-                      ]}
+                    <MoodEmoji
+                      index={item.emojiIndex}
+                      size={18}
+                      colorDot={item.color}
+                      dotSize={5}
                     />
                   </View>
                   <Text style={styles.legendCount}>{item.count}</Text>
@@ -786,17 +781,7 @@ const styles = StyleSheet.create({
     gap: 1,
     zIndex: 1,
   },
-  /** 감정색 점 아래 수량 */
-  moodMeta: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 3,
-  },
-  moodDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-  },
+  /** 감정색 점(머리 위) 아래 수량 */
   moodCountText: {
     marginTop: 1,
     fontSize: 9,

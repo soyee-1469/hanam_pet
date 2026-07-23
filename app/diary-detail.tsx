@@ -145,7 +145,12 @@ export default function DiaryDetailScreen() {
         </Text>
 
         <View style={styles.moodBlock}>
-          <MoodEmoji index={mood.emojiIndex} size={64} />
+          <MoodEmoji
+            index={mood.emojiIndex}
+            size={64}
+            colorDot={moodColor}
+            dotSize={8}
+          />
           <Text style={[styles.moodLabel, { color: moodColor }]}>
             {mood.label}
           </Text>
@@ -194,7 +199,12 @@ export default function DiaryDetailScreen() {
         <View style={styles.sheetDivider} />
         <View style={styles.sheetSummary}>
           <View style={styles.sheetMoodLeft}>
-            <MoodEmoji index={mood.emojiIndex} size={28} />
+            <MoodEmoji
+              index={mood.emojiIndex}
+              size={28}
+              colorDot={moodColor}
+              dotSize={5}
+            />
             <Text style={[styles.sheetMoodLabel, { color: moodColor }]}>
               {mood.label}
             </Text>

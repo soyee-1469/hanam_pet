@@ -39,7 +39,12 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.emojiWell}>
-        <MoodEmoji index={mood.emojiIndex} size={32} />
+        <MoodEmoji
+          index={mood.emojiIndex}
+          size={32}
+          colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
+          dotSize={6}
+        />
       </View>
       <View style={styles.copy}>
         <View style={styles.head}>
@@ -95,11 +100,13 @@ const styles = StyleSheet.create({
   },
   emojiWell: {
     width: 48,
-    height: 48,
+    minHeight: 48,
     borderRadius: 24,
     backgroundColor: Colors.creamyBeige,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: 4,
+    paddingBottom: 4,
   },
   copy: {
     flex: 1,

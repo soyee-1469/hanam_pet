@@ -540,14 +540,11 @@ export default function DiaryWriteScreen() {
                       </View>
                     ) : (
                       <View style={styles.moodIdle}>
-                        <MoodEmoji index={m.emojiIndex} size={40} />
-                        <View
-                          style={[
-                            styles.moodDot,
-                            {
-                              backgroundColor: DIARY_MOOD_LABEL_COLOR[m.id],
-                            },
-                          ]}
+                        <MoodEmoji
+                          index={m.emojiIndex}
+                          size={40}
+                          colorDot={DIARY_MOOD_LABEL_COLOR[m.id]}
+                          dotSize={6}
                         />
                       </View>
                     )}
@@ -887,7 +884,6 @@ const styles = StyleSheet.create({
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
   moodCircle: {
     width: 56,
@@ -897,11 +893,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1.5,
     padding: 6,
-  },
-  moodDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
   },
   moodLabel: {
     marginTop: 10,

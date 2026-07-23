@@ -541,8 +541,14 @@ export function OverviewPreviews() {
           <ProgressDots total={4} index={1} placement="footer" />
         </View>
         <View style={catalogStyles.moodRow}>
-          {([1, 2, 3, 4, 5] as const).map((i) => (
-            <MoodEmoji key={i} index={i} size={36} />
+          {DIARY_MOODS.map((m) => (
+            <MoodEmoji
+              key={m.id}
+              index={m.emojiIndex}
+              size={36}
+              colorDot={DIARY_MOOD_LABEL_COLOR[m.id]}
+              dotSize={6}
+            />
           ))}
         </View>
       </PreviewSection>

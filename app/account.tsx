@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretRight } from 'phosphor-react-native'
+import { CaretRight, XCircle } from 'phosphor-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
@@ -37,7 +37,7 @@ type Mode = 'view' | 'edit'
 
 /**
  * 설정 → 내 닉네임
- * 시안: 안내 + 닉네임 행(>) → 탭 시 편집
+ * 시안: 안내 + 닉네임 행(>) → 탭 시 밑줄 입력 + 인라인 에러
  */
 export default function AccountScreen() {
   const [mode, setMode] = useState<Mode>('view')
@@ -70,13 +70,15 @@ export default function AccountScreen() {
   const trimmed = nickname.trim()
   const dirty = trimmed !== savedNickname
   const tooShort = trimmed.length > 0 && trimmed.length < 2
+  const atMax = trimmed.length >= NICKNAME_MAX
   const canSave = trimmed.length >= 2 && trimmed.length <= NICKNAME_MAX && dirty
+  const showError = tooShort
 
-  const borderColor = tooShort
+  const underlineColor = showError
     ? Colors.error
-    : focused || dirty
-      ? Colors.primary
-      : Colors.border
+    : focused
+      ? Colors.selected
+      : Colors.beige
 
   const openEdit = () => {
     setNickname(savedNickname)
@@ -88,6 +90,11 @@ export default function AccountScreen() {
     setNickname(savedNickname)
     setFocused(false)
     setMode('view')
+  }
+
+  const clearNickname = () => {
+    setNickname('')
+    inputRef.current?.focus()
   }
 
   const save = async () => {
@@ -136,64 +143,88 @@ export default function AccountScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.heading}>내 닉네임</Text>
-          <Text style={styles.lead}>닉네임은 언제든 변경할 수 있어요.</Text>
-
           {mode === 'view' ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`닉네임 ${savedNickname}, 변경하기`}
-              onPress={openEdit}
-              style={({ pressed }) => [
-                styles.nameRow,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.nameText} numberOfLines={1}>
-                {savedNickname || FALLBACK_NICKNAME}
+            <>
+              <Text style={styles.heading}>내 닉네임</Text>
+              <Text style={styles.lead}>
+                닉네임은 언제든 변경할 수 있어요.
               </Text>
-              <CaretRight
-                size={18}
-                color={Colors.textDisabled}
-                weight="bold"
-              />
-            </Pressable>
-          ) : (
-            <View style={styles.fieldBlock}>
-              <View style={[styles.inputShell, { borderColor }]}>
-                <TextInput
-                  {...TextKeyboardProps}
-                  ref={inputRef}
-                  value={nickname}
-                  onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
-                  onFocus={() => {
-                    setFocused(true)
-                    scrollFieldIntoView()
-                  }}
-                  onBlur={() => setFocused(false)}
-                  placeholder="닉네임을 입력해 주세요"
-                  placeholderTextColor={Colors.textDisabled}
-                  maxLength={NICKNAME_MAX}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  style={styles.input}
-                  returnKeyType="done"
-                  onSubmitEditing={() => {
-                    if (canSave) void save()
-                  }}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`닉네임 ${savedNickname}, 변경하기`}
+                onPress={openEdit}
+                style={({ pressed }) => [
+                  styles.nameRow,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.nameText} numberOfLines={1}>
+                  {savedNickname || FALLBACK_NICKNAME}
+                </Text>
+                <CaretRight
+                  size={18}
+                  color={Colors.textDisabled}
+                  weight="bold"
                 />
-                <Text style={styles.counter}>
-                  {nickname.length} / {NICKNAME_MAX}
-                </Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.heading}>닉네임을 입력해 주세요</Text>
+              <View style={styles.fieldBlock}>
+                <View
+                  style={[styles.underlineRow, { borderBottomColor: underlineColor }]}
+                >
+                  <TextInput
+                    {...TextKeyboardProps}
+                    ref={inputRef}
+                    value={nickname}
+                    onChangeText={(t) => setNickname(t.slice(0, NICKNAME_MAX))}
+                    onFocus={() => {
+                      setFocused(true)
+                      scrollFieldIntoView()
+                    }}
+                    onBlur={() => setFocused(false)}
+                    placeholder="닉네임을 입력해 주세요"
+                    placeholderTextColor={Colors.textDisabled}
+                    maxLength={NICKNAME_MAX}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={styles.underlineInput}
+                    returnKeyType="done"
+                    onSubmitEditing={() => {
+                      if (canSave) void save()
+                    }}
+                    selectionColor={Colors.selected}
+                  />
+                  {nickname.length > 0 ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="입력 지우기"
+                      hitSlop={8}
+                      onPress={clearNickname}
+                      style={({ pressed }) => [
+                        styles.clearBtn,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <XCircle
+                        size={22}
+                        color={Colors.textDisabled}
+                        weight="fill"
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+                {showError ? (
+                  <Text style={styles.errorHint}>
+                    닉네임은 2글자 이상이어야 해요.
+                  </Text>
+                ) : atMax ? (
+                  <Text style={styles.hint}>최대 {NICKNAME_MAX}자</Text>
+                ) : null}
               </View>
-              {tooShort ? (
-                <Text style={styles.errorHint}>
-                  닉네임은 2글자 이상이어야 해요.
-                </Text>
-              ) : (
-                <Text style={styles.hint}>최대 {NICKNAME_MAX}자</Text>
-              )}
-            </View>
+            </>
           )}
         </ScrollView>
 
@@ -267,32 +298,28 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   fieldBlock: {
-    marginTop: 4,
+    marginTop: 20,
   },
-  inputShell: {
+  underlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    paddingLeft: 14,
-    paddingRight: 12,
-    minHeight: 52,
+    minHeight: 48,
+    paddingBottom: 10,
+    borderBottomWidth: 1.5,
+    gap: 8,
   },
-  input: {
+  underlineInput: {
     flex: 1,
     minWidth: 0,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.textPrimary,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+    paddingHorizontal: 0,
   },
-  counter: {
-    marginLeft: 8,
+  clearBtn: {
     flexShrink: 0,
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textDisabled,
+    padding: 2,
   },
   hint: {
     marginTop: 10,
@@ -302,10 +329,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   errorHint: {
-    marginTop: 6,
+    marginTop: 10,
     fontSize: 13,
     fontWeight: '600',
     color: Colors.error,
+    lineHeight: 20,
   },
   footer: {
     ...onboardingFooterStyle,

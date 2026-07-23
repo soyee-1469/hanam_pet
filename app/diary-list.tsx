@@ -173,41 +173,22 @@ export default function DiaryListScreen() {
               ? formatTime(entry.createdAt)
               : formatMonthDayTimeWithWeekday(entry.createdAt)
             return (
-              <Pressable
-                key={entry.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${timeLabel} ${mood.label}`}
-                onPress={() =>
-                  router.push({
-                    pathname: '/diary-detail',
-                    params: { id: entry.id },
-                  })
-                }
-                style={({ pressed }) => [
-                  styles.card,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View style={styles.cardCopy}>
-                  <View style={styles.cardHead}>
-                    <Text style={styles.cardDate}>{timeLabel}</Text>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="더보기"
-                      hitSlop={8}
-                      onPress={(e) => {
-                        e?.stopPropagation?.()
-                        setMenuEntry(entry)
-                      }}
-                      style={styles.moreBtn}
-                    >
-                      <DotsThreeVertical
-                        size={18}
-                        color={Colors.textDisabled}
-                        weight="bold"
-                      />
-                    </Pressable>
-                  </View>
+              <View key={entry.id} style={styles.card}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${timeLabel} ${mood.label}`}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/diary-detail',
+                      params: { id: entry.id },
+                    })
+                  }
+                  style={({ pressed }) => [
+                    styles.cardMain,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.cardDate}>{timeLabel}</Text>
                   <View style={styles.moodRow}>
                     <MoodEmoji
                       index={mood.emojiIndex}
@@ -236,8 +217,21 @@ export default function DiaryListScreen() {
                   <Text style={styles.cardPreview} numberOfLines={2}>
                     {entry.preview}
                   </Text>
-                </View>
-              </Pressable>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="더보기"
+                  hitSlop={8}
+                  onPress={() => setMenuEntry(entry)}
+                  style={styles.moreBtn}
+                >
+                  <DotsThreeVertical
+                    size={18}
+                    color={Colors.textDisabled}
+                    weight="bold"
+                  />
+                </Pressable>
+              </View>
             )
           })
         )}
@@ -396,30 +390,25 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Layout.headerPaddingH,
     paddingVertical: 14,
+    gap: 4,
   },
-  cardCopy: {
+  cardMain: {
     flex: 1,
     minWidth: 0,
-    gap: 8,
-  },
-  cardHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 8,
   },
   cardDate: {
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
-    flex: 1,
-    minWidth: 0,
   },
   moodRow: {
     flexDirection: 'row',
@@ -457,6 +446,7 @@ const styles = StyleSheet.create({
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -2,
   },
   writeBar: {
     position: 'absolute',

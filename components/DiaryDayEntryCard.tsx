@@ -53,12 +53,6 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
             {mood.label}
           </Text>
         </View>
-        <View style={styles.previewRow}>
-          <Text style={styles.preview} numberOfLines={1}>
-            {entry.preview}
-          </Text>
-          <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
-        </View>
         {entry.tags.length > 0 ? (
           <View style={styles.tagRow}>
             {entry.tags.map((tag) => (
@@ -68,6 +62,12 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
             ))}
           </View>
         ) : null}
+        <View style={styles.previewRow}>
+          <Text style={styles.preview} numberOfLines={1}>
+            {entry.preview}
+          </Text>
+          <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
+        </View>
       </View>
     </Pressable>
   )

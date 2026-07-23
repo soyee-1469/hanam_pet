@@ -203,16 +203,18 @@ export default function DiaryListScreen() {
                   <View style={styles.cardHead}>
                     <Text style={styles.cardDate}>{timeLabel}</Text>
                   </View>
+                  {entry.tags.length > 0 ? (
+                    <View style={styles.tagRow}>
+                      {entry.tags.map((tag) => (
+                        <View key={tag} style={styles.tag}>
+                          <Text style={styles.tagText}>{tag}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                   <Text style={styles.cardPreview} numberOfLines={2}>
                     {entry.preview}
                   </Text>
-                  <View style={styles.tagRow}>
-                    {entry.tags.map((tag) => (
-                      <View key={tag} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
                 </View>
                 <Pressable
                   accessibilityRole="button"
@@ -426,12 +428,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 8,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+    marginBottom: 8,
   },
   tag: {
     backgroundColor: '#FCE8DC',

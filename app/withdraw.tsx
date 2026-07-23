@@ -21,10 +21,10 @@ import { resetOnboardingCompleted } from '../lib/onboardingStorage'
 import { resetOnboardingDraft } from '../lib/onboardingDraft'
 
 const DELETE_ITEMS = [
-  '대화 기록이 모두 삭제돼요',
-  '마음일기가 모두 삭제돼요',
-  '자가검진 결과가 모두 삭제돼요',
-  '익명 식별자가 초기화돼요',
+  '대화 기록이 모두 사라져요',
+  '소중히 적어둔 마음일기가 모두 사라져요',
+  '내 감정을 돌아본 마음 살핌 기록이 모두 사라져요',
+  '기록을 이어주는 번호가 즉시 사라져요',
 ] as const
 
 export default function WithdrawScreen() {
@@ -50,7 +50,7 @@ export default function WithdrawScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader title="계정 탈퇴" onBack={() => router.back()} />
+      <ScreenHeader title="회원탈퇴" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.flex}
@@ -60,14 +60,15 @@ export default function WithdrawScreen() {
         <View style={styles.hero}>
           <Text style={styles.headline}>정말 하남이와 헤어지시겠어요?</Text>
           <Text style={styles.sub}>
-            지금까지 쌓인 추억이 모두 사라지고,{'\n'}다시 되돌릴 수 없어요.
+            탈퇴하시면 하남이와 함께한 모든 추억이 지워져요. 탈퇴 후에는 이전
+            기록들을 다시 불러올 수 없어요.
           </Text>
         </View>
 
         <View style={styles.card}>
           {DELETE_ITEMS.map((item) => (
             <View key={item} style={styles.itemRow}>
-              <Check size={16} color={Colors.cocoa} weight="bold" />
+              <Check size={18} color={Colors.primary} weight="bold" />
               <Text style={styles.itemText}>{item}</Text>
             </View>
           ))}
@@ -118,6 +119,7 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center',
     marginBottom: 28,
+    paddingHorizontal: 4,
   },
   headline: {
     fontSize: 22,
@@ -139,14 +141,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    paddingHorizontal: Layout.screenPaddingH,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 20,
-    gap: 14,
+    gap: 16,
     ...Shadows.elevation,
   },
   itemRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
   },
   itemText: {
@@ -154,11 +156,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textPrimary,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   footer: {
     ...onboardingFooterStyle,
-    gap: 6,
+    gap: 4,
     paddingBottom: 8,
   },
   leaveLink: {
@@ -175,6 +177,6 @@ const styles = StyleSheet.create({
   leaveLinkText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textDisabled,
+    color: Colors.textSecondary,
   },
 })

@@ -24,6 +24,8 @@ import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpContactsBanner } from '../../components/HelpContactsBanner'
+import { HelpContactsSheet } from '../../components/HelpContactsSheet'
+import { HelpSosFab } from '../../components/HelpSosFab'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
@@ -93,6 +95,7 @@ function ChatScreenBody() {
   )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [tipVisible, setTipVisible] = useState(true)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
@@ -244,6 +247,10 @@ function ChatScreenBody() {
   })
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
+  const showHelpBanner = chatting && !keyboardOpen && !typing && !depleted
+  /** 입력창·도움 배너 위, 탭바와 겹치지 않게 */
+  const sosFabBottom =
+    composerBottomPad + (showHelpBanner ? 118 : 64)
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
 
@@ -552,9 +559,7 @@ function ChatScreenBody() {
             </View>
           ) : (
             <>
-              {chatting && !keyboardOpen && !typing ? (
-                <HelpContactsBanner />
-              ) : null}
+              {showHelpBanner ? <HelpContactsBanner /> : null}
 
               <View
                 style={[
@@ -625,6 +630,15 @@ function ChatScreenBody() {
           />
         </View>
       ) : null}
+
+      {!showChatTour ? (
+        <HelpSosFab bottom={sosFabBottom} onPress={() => setHelpOpen(true)} />
+      ) : null}
+
+      <HelpContactsSheet
+        visible={helpOpen}
+        onClose={() => setHelpOpen(false)}
+      />
     </SafeAreaView>
   )
 }

@@ -16,15 +16,18 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpContactsBanner } from '../../components/HelpContactsBanner'
+import { HelpContactsSheet } from '../../components/HelpContactsSheet'
+import { HelpSosFab } from '../../components/HelpSosFab'
 import { TabSceneGate } from '../../components/TabSceneGate'
+import { ScreenHeader } from '../../components/ui'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import {
@@ -93,6 +96,7 @@ function ChatScreenBody() {
   )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [tipVisible, setTipVisible] = useState(true)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [typing, setTyping] = useState(false)
   const [dotCount, setDotCount] = useState(3)
   const [energy, setEnergy] = useState(20)
@@ -177,14 +181,6 @@ function ChatScreenBody() {
     return ''
   }, [messages])
 
-  /** 강아지 우측 — 방금 보낸 유저 말풍선 1개만 */
-  const latestUserMessage = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      if (messages[i].role === 'user') return messages[i]
-    }
-    return null
-  }, [messages])
-
   const latestPetReply = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       if (messages[i].role === 'pet') return messages[i]
@@ -244,6 +240,10 @@ function ChatScreenBody() {
   })
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
+  const showHelpBanner = chatting && !keyboardOpen && !typing && !depleted
+  /** 입력창·도움 배너 위, 탭바와 겹치지 않게 */
+  const sosFabBottom =
+    composerBottomPad + (showHelpBanner ? 118 : 64)
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
 
@@ -361,19 +361,10 @@ function ChatScreenBody() {
         behavior={keyboardAvoidingBehavior()}
         keyboardVerticalOffset={keyboardVerticalOffset}
       >
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="뒤로"
-            hitSlop={8}
-            onPress={() => router.replace('/(tabs)')}
-            style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
-          >
-            <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-          </Pressable>
-          <Text style={styles.title}>대화</Text>
-          <View style={styles.sideBtn} />
-        </View>
+        <ScreenHeader
+          title="대화"
+          onBack={() => router.replace('/(tabs)')}
+        />
 
         {!chatting && !depleted ? (
           <Animated.View
@@ -500,25 +491,12 @@ function ChatScreenBody() {
                 </View>
               ) : null}
 
-              <View style={styles.petStageRow}>
-                <Image
-                  source={petImage}
-                  style={petChatStyle}
-                  resizeMode="contain"
-                  accessibilityLabel={petName}
-                />
-                {latestUserMessage ? (
-                  <View style={styles.userBeside}>
-                    <View style={styles.userBubble}>
-                      <Text style={styles.userText}>
-                        {latestUserMessage.text}
-                      </Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.userBesideSpacer} />
-                )}
-              </View>
+              <Image
+                source={petImage}
+                style={petChatStyle}
+                resizeMode="contain"
+                accessibilityLabel={petName}
+              />
 
               {depleted ? (
                 <View style={[styles.statusPill, styles.statusPillDepleted]}>
@@ -552,9 +530,7 @@ function ChatScreenBody() {
             </View>
           ) : (
             <>
-              {chatting && !keyboardOpen && !typing ? (
-                <HelpContactsBanner />
-              ) : null}
+              {showHelpBanner ? <HelpContactsBanner /> : null}
 
               <View
                 style={[
@@ -625,6 +601,15 @@ function ChatScreenBody() {
           />
         </View>
       ) : null}
+
+      {!showChatTour ? (
+        <HelpSosFab bottom={sosFabBottom} onPress={() => setHelpOpen(true)} />
+      ) : null}
+
+      <HelpContactsSheet
+        visible={helpOpen}
+        onClose={() => setHelpOpen(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -637,28 +622,8 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.headerPaddingH,
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    minHeight: 56,
-  },
-  sideBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   pressed: {
     opacity: 0.88,
-  },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-    color: Colors.textPrimary,
-    ...HeaderTitleStyle.screen,
   },
   stage: {
     flexGrow: 1,
@@ -721,6 +686,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: Layout.blockGap,
     flexGrow: 1,
+    justifyContent: 'center',
   },
   stamp: {
     alignSelf: 'center',
@@ -729,50 +695,17 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
     marginBottom: 16,
   },
-  userRow: {
-    alignItems: 'flex-end',
-    marginBottom: 14,
-  },
-  petStageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 4,
-  },
-  userBeside: {
-    flex: 1,
-    minWidth: 0,
-    maxWidth: 168,
-    alignItems: 'flex-start',
-  },
-  userBesideSpacer: {
-    flex: 1,
-    maxWidth: 168,
-  },
-  userBubble: {
-    maxWidth: '100%',
-    backgroundColor: Colors.accentSoft,
-    borderRadius: 18,
-    borderBottomLeftRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  userText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '500',
-    color: Colors.textPrimary,
-  },
   petBlock: {
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    width: '100%',
     paddingBottom: 8,
   },
   petBubbleContainer: {
     alignItems: 'center',
-    alignSelf: 'stretch',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 320,
     marginBottom: 6,
     paddingHorizontal: 4,
   },
@@ -780,7 +713,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
-    paddingHorizontal: Layout.screenPaddingH,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -918,7 +851,7 @@ const styles = StyleSheet.create({
     zIndex: 30,
   },
   coachOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 28,
   },
   coachScrim: {

@@ -23,7 +23,7 @@ import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
-import { HelpContactsBanner } from '../../components/HelpContactsBanner'
+import { HelpFloatingFab } from '../../components/HelpFloatingFab'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
@@ -244,8 +244,12 @@ function ChatScreenBody() {
   })
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
+  /** 플로팅 도움 버튼 — 입력창·탭바 위 */
+  const helpFabBottom =
+    (keyboardOpen ? webKeyboardInset + 8 : tabBarSpace + 8) + 64
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
+  const showHelpFab = chatting && !keyboardOpen && !typing && !depleted && !showChatTour
 
   const sendMessage = async () => {
     const trimmed = message.trim()
@@ -552,10 +556,6 @@ function ChatScreenBody() {
             </View>
           ) : (
             <>
-              {chatting && !keyboardOpen && !typing ? (
-                <HelpContactsBanner />
-              ) : null}
-
               <View
                 style={[
                   styles.composer,
@@ -612,6 +612,8 @@ function ChatScreenBody() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <HelpFloatingFab bottom={helpFabBottom} visible={showHelpFab} />
 
       {showChatTour && tourStep ? (
         <View style={styles.coachOverlay} pointerEvents="box-none">

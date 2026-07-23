@@ -567,6 +567,11 @@ export const PET_CANDIDATES: CandidateItem[] = [
 
 export const CHAT_EXISTING: ExistingItem[] = [
   {
+    name: '도움 플로팅 / HelpFloatingFab',
+    path: 'components/HelpFloatingFab.tsx',
+    note: '대화 화면 · 스프링 등장 · 탭 시 상담 시트',
+  },
+  {
     name: '도움 연락처 배너 / HelpContactsBanner',
     path: 'components/HelpContactsBanner.tsx',
     note: '크림 배너 → 시트/화면 오픈',

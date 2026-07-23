@@ -144,13 +144,6 @@ export default function DiaryDetailScreen() {
           {formatDateTime(entry.createdAt)}
         </Text>
 
-        <View style={styles.moodBlock}>
-          <MoodEmoji index={mood.emojiIndex} size={64} />
-          <Text style={[styles.moodLabel, { color: moodColor }]}>
-            {mood.label}
-          </Text>
-        </View>
-
         {entry.tags.length > 0 ? (
           <View style={styles.tagRow}>
             {entry.tags.map((tag) => (
@@ -160,6 +153,13 @@ export default function DiaryDetailScreen() {
             ))}
           </View>
         ) : null}
+
+        <View style={styles.moodBlock}>
+          <MoodEmoji index={mood.emojiIndex} size={64} />
+          <Text style={[styles.moodLabel, { color: moodColor }]}>
+            {mood.label}
+          </Text>
+        </View>
 
         <View style={styles.bodyCard}>
           <Text style={styles.bodyText}>{entry.body}</Text>

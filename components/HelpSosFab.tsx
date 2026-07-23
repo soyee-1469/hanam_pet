@@ -11,7 +11,7 @@ type HelpSosFabProps = {
 
 /**
  * 대화 등 — 긴급 상담(SOS) 플로팅 버튼.
- * 위기·도움용이라 Primary 코랄 금지 → creamyBeige + selected.
+ * 위기·도움용이라 Primary 코랄 금지 → surface + selected.
  */
 export function HelpSosFab({ onPress, bottom, style }: HelpSosFabProps) {
   return (
@@ -20,7 +20,7 @@ export function HelpSosFab({ onPress, bottom, style }: HelpSosFabProps) {
       accessibilityLabel="SOS 긴급 상담"
       accessibilityHint="전문 상담 기관 연락처를 엽니다"
       onPress={onPress}
-      hitSlop={6}
+      hitSlop={8}
       style={({ pressed }) => [
         styles.fab,
         { bottom },
@@ -38,7 +38,8 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 16,
-    zIndex: 24,
+    zIndex: 100,
+    elevation: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 999,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.selected,
     ...Shadows.elevation,

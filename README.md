@@ -17,7 +17,20 @@ npm start
 
 **배포 URL:** https://hanam-pet.vercel.app  
 
-GitHub `soyee-1469/hanam_pet` → Vercel `hanam-pet` 프로젝트에 연결되어, `main` 푸시 시 자동 배포됩니다.
+`main`에 푸시하면 **Vercel이 자동 배포**합니다.  
+(GitHub Actions + Secrets 방식이 아니라, Vercel ↔ GitHub 직연동)
+
+### 최초 1회만 (아직 연결 안 돼 있으면)
+
+1. https://vercel.com 로그인  
+2. **Add New Project** → GitHub `soyee-1469/hanam_pet` Import  
+3. Framework: **Other**  
+4. Build Command: `npx expo export -p web`  
+5. Output Directory: `dist`  
+6. Deploy  
+
+이후부터는 `main` 푸시만 하면 자동 반영됩니다.  
+연결 확인: Vercel 프로젝트 → **Settings → Git**
 
 ```bash
 # 로컬에서 빌드만 확인

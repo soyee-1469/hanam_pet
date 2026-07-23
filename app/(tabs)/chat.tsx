@@ -244,12 +244,11 @@ function ChatScreenBody() {
   })
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
-  /** 플로팅 도움 버튼 — 입력창·탭바 위 */
-  const helpFabBottom =
-    (keyboardOpen ? webKeyboardInset + 8 : tabBarSpace + 8) + 64
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
-  const showHelpFab = chatting && !keyboardOpen && !typing && !depleted && !showChatTour
+  /** 채팅 입력창 바로 위 — 대화 시작 전에도 노출 */
+  const showHelpFab =
+    !keyboardOpen && !typing && !depleted && !showChatTour && noticeDone
 
   const sendMessage = async () => {
     const trimmed = message.trim()
@@ -556,6 +555,8 @@ function ChatScreenBody() {
             </View>
           ) : (
             <>
+              <HelpFloatingFab visible={showHelpFab} />
+
               <View
                 style={[
                   styles.composer,
@@ -612,8 +613,6 @@ function ChatScreenBody() {
           )}
         </View>
       </KeyboardAvoidingView>
-
-      <HelpFloatingFab bottom={helpFabBottom} visible={showHelpFab} />
 
       {showChatTour && tourStep ? (
         <View style={styles.coachOverlay} pointerEvents="box-none">

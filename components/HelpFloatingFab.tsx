@@ -11,23 +11,19 @@ import {
 } from 'react-native'
 import { Phone } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
-import { Layout } from '../constants/Layout'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
 type HelpFloatingFabProps = {
-  /** absolute bottom inset (composer·탭바 위) */
-  bottom: number
   visible?: boolean
   style?: StyleProp<ViewStyle>
 }
 
 /**
- * 대화 — 도움 플로팅 버튼.
- * 등장 시 스프링으로 「뿅」, 탭하면 상담 기관 시트.
+ * 대화 — 채팅 입력창 바로 위 도움 플로팅.
+ * 등장 시 스프링 「뿅」, 탭하면 상담 기관 시트.
  * 위기·도움용이라 Primary 코랄 금지 → cocoa/selected.
  */
 export function HelpFloatingFab({
-  bottom,
   visible = true,
   style,
 }: HelpFloatingFabProps) {
@@ -82,10 +78,8 @@ export function HelpFloatingFab({
   return (
     <>
       <Animated.View
-        pointerEvents="box-none"
         style={[
           styles.wrap,
-          { bottom },
           { opacity, transform: [{ scale }] },
           style,
         ]}
@@ -123,11 +117,8 @@ export function HelpFloatingFab({
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'absolute',
-    left: Layout.screenPaddingH,
-    right: Layout.screenPaddingH,
-    zIndex: 40,
-    elevation: 16,
+    width: '100%',
+    zIndex: 2,
   },
   fab: {
     flexDirection: 'row',

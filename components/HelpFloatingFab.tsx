@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  View,
   Text,
   Pressable,
   StyleSheet,
@@ -19,7 +18,7 @@ type HelpFloatingFabProps = {
 }
 
 /**
- * 대화 — 채팅 입력창 바로 위 도움 플로팅.
+ * 대화 — 채팅 입력창 위 우측 도움 플로팅 버튼.
  * 등장 시 스프링 「뿅」, 탭하면 상담 기관 시트.
  * 위기·도움용이라 Primary 코랄 금지 → cocoa/selected.
  */
@@ -90,19 +89,11 @@ export function HelpFloatingFab({
             accessibilityLabel="도움 받을 곳 보기"
             accessibilityHint="전문 상담 기관 연락처가 열려요"
             onPress={openSheet}
+            hitSlop={8}
             style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
           >
-            <View style={styles.iconWell}>
-              <Phone size={18} color={Colors.surface} weight="fill" />
-            </View>
-            <View style={styles.copy}>
-              <Text style={styles.title} numberOfLines={1}>
-                혼자 견디지 않아도 괜찮아요
-              </Text>
-              <Text style={styles.sub} numberOfLines={1}>
-                도움 받을 곳을 알려 드릴게요
-              </Text>
-            </View>
+            <Phone size={18} color={Colors.selected} weight="fill" />
+            <Text style={styles.label}>도움</Text>
           </Pressable>
         </Animated.View>
       </Animated.View>
@@ -117,47 +108,29 @@ export function HelpFloatingFab({
 
 const styles = StyleSheet.create({
   wrap: {
-    width: '100%',
+    alignSelf: 'flex-end',
     zIndex: 2,
   },
   fab: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    minHeight: 56,
-    paddingVertical: 12,
+    gap: 6,
+    minHeight: 44,
     paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: Colors.selected,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.selected,
     ...Shadows.elevation,
   },
-  iconWell: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
-  title: {
-    fontSize: 14,
+  label: {
+    fontSize: 13,
     fontWeight: '800',
-    color: Colors.surface,
+    color: Colors.selected,
     letterSpacing: -0.2,
   },
-  sub: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.82)',
-  },
   pressed: {
-    opacity: 0.92,
+    opacity: 0.9,
   },
 })

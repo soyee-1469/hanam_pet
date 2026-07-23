@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     letterSpacing: -0.1,
-    marginBottom: 24,
+    marginBottom: 10,
   },
   moodBlock: {
     alignItems: 'center',

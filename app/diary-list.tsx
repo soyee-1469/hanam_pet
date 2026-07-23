@@ -428,12 +428,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 8,
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+    marginBottom: 8,
   },
   tag: {
     backgroundColor: '#FCE8DC',

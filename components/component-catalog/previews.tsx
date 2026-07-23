@@ -240,26 +240,29 @@ function MockNotificationRow({ unread }: { unread?: boolean }) {
 function MockDiaryEntryCard() {
   return (
     <View style={pv.diaryCard}>
-      <MoodEmoji
-        index={1}
-        size={28}
-        colorDot={DIARY_MOOD_LABEL_COLOR.great}
-        dotSize={5}
-      />
-      <View style={pv.diaryCopy}>
-        <Text style={pv.diaryDate}>7월 19일 · 기뻐요</Text>
-        <Text style={pv.diaryPreview} numberOfLines={1}>
-          오늘 산책하면서 마음이 한결 가벼워졌어요
+      <Text style={pv.diaryDate}>23:06</Text>
+      <View style={pv.diaryMoodRow}>
+        <MoodEmoji
+          index={1}
+          size={28}
+          colorDot={DIARY_MOOD_LABEL_COLOR.great}
+          dotSize={5}
+        />
+        <Text style={[pv.diaryMoodLabel, { color: DIARY_MOOD_LABEL_COLOR.great }]}>
+          기뻐요
         </Text>
-        <View style={pv.tagRow}>
-          <View style={pv.tagChip}>
-            <Text style={pv.tagText}>산책</Text>
-          </View>
-          <View style={pv.tagChip}>
-            <Text style={pv.tagText}>휴식</Text>
-          </View>
+      </View>
+      <View style={pv.tagRow}>
+        <View style={pv.tagChip}>
+          <Text style={pv.tagText}>산책</Text>
+        </View>
+        <View style={pv.tagChip}>
+          <Text style={pv.tagText}>휴식</Text>
         </View>
       </View>
+      <Text style={pv.diaryPreview} numberOfLines={2}>
+        오늘 산책하면서 마음이 한결 가벼워졌어요
+      </Text>
     </View>
   )
 }
@@ -1146,19 +1149,22 @@ const pv = StyleSheet.create({
     color: Colors.textDisabled,
   },
   diaryCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.divider,
     padding: 14,
+    gap: 8,
     ...Shadows.elevation,
   },
-  diaryCopy: {
-    flex: 1,
-    gap: 4,
+  diaryMoodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  diaryMoodLabel: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   diaryDate: {
     fontSize: 13,

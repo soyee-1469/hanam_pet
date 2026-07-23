@@ -243,16 +243,16 @@ export default function OnboardingResume() {
               const TipIcon = meta?.Icon ?? Images
               return (
                 <View key={tip.key}>
-                  <View style={styles.tipCard}>
-                    <View style={styles.tipVisual}>
+                  <View style={styles.lostTipCard}>
+                    <View style={styles.lostTipVisual}>
                       {meta ? (
                         <Image
                           source={meta.image}
-                          style={styles.tipPet}
+                          style={styles.lostTipPet}
                           resizeMode="contain"
                         />
                       ) : null}
-                      <View style={styles.tipIconBadge}>
+                      <View style={styles.lostTipIconBadge}>
                         <TipIcon
                           size={18}
                           color={Colors.textSecondary}
@@ -260,9 +260,9 @@ export default function OnboardingResume() {
                         />
                       </View>
                     </View>
-                    <View style={styles.tipCopy}>
-                      <Text style={styles.tipTitle}>{tip.title}</Text>
-                      <Text style={styles.tipBody}>{tip.body}</Text>
+                    <View style={styles.lostTipCopy}>
+                      <Text style={styles.lostTipTitle}>{tip.title}</Text>
+                      <Text style={styles.lostTipBody}>{tip.body}</Text>
                     </View>
                   </View>
                   {tip.key === 'device' ? (
@@ -448,30 +448,6 @@ export default function OnboardingResume() {
             <Text style={styles.codeError}>{copy.code.wrongCode}</Text>
           ) : null}
 
-          <View style={styles.tipCard}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: tipOpen }}
-              accessibilityLabel={copy.code.tipTitle}
-              disabled={busy}
-              onPress={() => setTipOpen((v) => !v)}
-              style={({ pressed }) => [
-                styles.tipHeader,
-                pressed && styles.tipHeaderPressed,
-              ]}
-            >
-              <Text style={styles.tipTitle}>{copy.code.tipTitle}</Text>
-              {tipOpen ? (
-                <CaretUp size={16} color={Colors.textPrimary} weight="bold" />
-              ) : (
-                <CaretDown size={16} color={Colors.textPrimary} weight="bold" />
-              )}
-            </Pressable>
-            {tipOpen ? (
-              <Text style={styles.tipBody}>{copy.code.tipBody}</Text>
-            ) : null}
-          </View>
-
           <Pressable
             accessibilityRole="button"
             disabled={busy}
@@ -484,6 +460,30 @@ export default function OnboardingResume() {
           >
             <Text style={styles.helpBtnText}>{copy.code.lostLink}</Text>
           </Pressable>
+
+          <View style={styles.codeTipCard}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: tipOpen }}
+              accessibilityLabel={copy.code.tipTitle}
+              disabled={busy}
+              onPress={() => setTipOpen((v) => !v)}
+              style={({ pressed }) => [
+                styles.codeTipHeader,
+                pressed && styles.codeTipHeaderPressed,
+              ]}
+            >
+              <Text style={styles.codeTipTitle}>{copy.code.tipTitle}</Text>
+              {tipOpen ? (
+                <CaretUp size={16} color={Colors.textPrimary} weight="bold" />
+              ) : (
+                <CaretDown size={16} color={Colors.textPrimary} weight="bold" />
+              )}
+            </Pressable>
+            {tipOpen ? (
+              <Text style={styles.codeTipBody}>{copy.code.tipBody}</Text>
+            ) : null}
+          </View>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -523,7 +523,8 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: Layout.sectionGap,
+    paddingBottom: Layout.sectionGapLg,
+    flexGrow: 1,
   },
   lostBody: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -600,34 +601,57 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  tipCard: {
+  helpBtn: {
     marginTop: 20,
+    alignSelf: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.creamyBeige,
+  },
+  helpBtnPressed: {
+    opacity: 0.85,
+  },
+  helpBtnDisabled: {
+    opacity: 0.5,
+  },
+  helpBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  /** 기록 가져오기 — 맨 아래 「확인해 주세요」 */
+  codeTipCard: {
+    marginTop: 'auto' as const,
     backgroundColor: Colors.creamyBeige,
     borderRadius: 14,
     paddingHorizontal: Layout.cardPaddingH,
-    paddingVertical: 14,
+    paddingTop: 24,
+    paddingBottom: 14,
   },
-  tipHeader: {
+  codeTipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  tipHeaderPressed: {
+  codeTipHeaderPressed: {
     opacity: 0.85,
   },
-  tipTitle: {
+  codeTipTitle: {
     flex: 1,
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
+    lineHeight: 22,
   },
-  tipBody: {
+  codeTipBody: {
     marginTop: 10,
     fontSize: 13,
     fontWeight: '500',
-    lineHeight: 20,
+    lineHeight: 22,
     color: Colors.textSecondary,
+    textAlign: 'left',
   },
   otpCellWrap: {
     flexGrow: 1,
@@ -659,30 +683,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.beige,
     backgroundColor: Colors.surface,
   },
-  helpBtn: {
-    marginTop: 20,
-    alignSelf: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
-  },
-  helpBtnPressed: {
-    opacity: 0.85,
-  },
-  helpBtnDisabled: {
-    opacity: 0.5,
-  },
-  helpBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
   tipList: {
     gap: 12,
     marginBottom: 8,
   },
-  tipCard: {
+  lostTipCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
@@ -693,17 +698,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.divider,
   },
-  tipVisual: {
+  lostTipVisual: {
     width: 64,
     height: 64,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tipPet: {
+  lostTipPet: {
     width: 56,
     height: 56,
   },
-  tipIconBadge: {
+  lostTipIconBadge: {
     position: 'absolute',
     right: -2,
     bottom: -2,
@@ -716,18 +721,18 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.surface,
   },
-  tipCopy: {
+  lostTipCopy: {
     flex: 1,
     minWidth: 0,
   },
-  tipTitle: {
+  lostTipTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginBottom: 4,
     lineHeight: 22,
   },
-  tipBody: {
+  lostTipBody: {
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,

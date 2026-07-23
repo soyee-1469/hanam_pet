@@ -90,20 +90,28 @@ export default function RecoveryCodeScreen() {
           기록을 안전하게 불러올 수 있어요.
         </Text>
 
+        {/* 세로형 멤버십 카드 — 저장 캡처 영역 */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
-            <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
-            <View style={styles.cardBottom}>
-              <View style={styles.cardCopy}>
-                <Text style={styles.brandName}>하남이네 힐링펫</Text>
-                <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
-              </View>
+            <View style={styles.cardStripe} />
+
+            <View style={styles.cardTop}>
+              <Text style={styles.brandName}>하남이네 힐링펫</Text>
+              <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
+            </View>
+
+            <View style={styles.petWell}>
               <Image
                 source={DogExpr.soft}
                 style={styles.dog}
                 resizeMode="contain"
                 accessibilityLabel="힐링펫 강아지"
               />
+            </View>
+
+            <View style={styles.codePanel}>
+              <Text style={styles.codeHint}>가져오기 번호</Text>
+              <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             </View>
           </View>
         </View>
@@ -180,14 +188,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
     paddingBottom: Layout.contentPaddingBottom,
+    alignItems: 'center',
   },
   sectionLabel: {
+    alignSelf: 'stretch',
     fontSize: 15,
     fontWeight: '700',
     color: Colors.cocoa,
     marginBottom: 10,
   },
   description: {
+    alignSelf: 'stretch',
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -195,56 +206,83 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   cardShell: {
-    backgroundColor: Colors.creamyBeige,
+    width: '100%',
+    maxWidth: 300,
+    aspectRatio: 0.68,
     borderRadius: 28,
-    paddingTop: 40,
-    paddingHorizontal: 22,
-    paddingBottom: 22,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
+    backgroundColor: Colors.creamyBeige,
     ...Shadows.elevation,
   },
   cardCapture: {
-    backgroundColor: Colors.creamyBeige,
-  },
-  codeValue: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: Colors.cocoa,
-    letterSpacing: 4,
-    marginBottom: 36,
-  },
-  cardBottom: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    minHeight: 128,
-  },
-  cardCopy: {
     flex: 1,
-    paddingBottom: 10,
-    paddingRight: 8,
+    backgroundColor: Colors.creamyBeige,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  /** 멤버십 상단 띠 */
+  cardStripe: {
+    height: 10,
+    marginHorizontal: -20,
+    marginBottom: 22,
+    backgroundColor: Colors.selected,
+  },
+  cardTop: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
   brandName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '800',
     color: Colors.cocoa,
-    marginBottom: 4,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    marginBottom: 6,
   },
   cardSub: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.cocoa,
-    opacity: 0.92,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  petWell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 140,
   },
   dog: {
-    width: 140,
-    height: 140,
-    marginRight: -10,
-    marginBottom: -8,
+    width: 150,
+    height: 150,
+  },
+  codePanel: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    gap: 6,
+  },
+  codeHint: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textDisabled,
+    letterSpacing: 1.4,
+  },
+  codeValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: 3.5,
+    textAlign: 'center',
   },
   tip: {
+    alignSelf: 'stretch',
     marginTop: 16,
     fontSize: 13,
     fontWeight: '500',

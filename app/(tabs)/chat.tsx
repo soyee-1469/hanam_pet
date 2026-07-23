@@ -16,9 +16,9 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
@@ -27,6 +27,7 @@ import { HelpContactsBanner } from '../../components/HelpContactsBanner'
 import { HelpContactsSheet } from '../../components/HelpContactsSheet'
 import { HelpSosFab } from '../../components/HelpSosFab'
 import { TabSceneGate } from '../../components/TabSceneGate'
+import { ScreenHeader } from '../../components/ui'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import {
@@ -360,19 +361,10 @@ function ChatScreenBody() {
         behavior={keyboardAvoidingBehavior()}
         keyboardVerticalOffset={keyboardVerticalOffset}
       >
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="뒤로"
-            hitSlop={8}
-            onPress={() => router.replace('/(tabs)')}
-            style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
-          >
-            <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-          </Pressable>
-          <Text style={styles.title}>대화</Text>
-          <View style={styles.sideBtn} />
-        </View>
+        <ScreenHeader
+          title="대화"
+          onBack={() => router.replace('/(tabs)')}
+        />
 
         {!chatting && !depleted ? (
           <Animated.View
@@ -611,9 +603,7 @@ function ChatScreenBody() {
       ) : null}
 
       {!showChatTour ? (
-        <View style={styles.sosLayer} pointerEvents="box-none">
-          <HelpSosFab bottom={sosFabBottom} onPress={() => setHelpOpen(true)} />
-        </View>
+        <HelpSosFab bottom={sosFabBottom} onPress={() => setHelpOpen(true)} />
       ) : null}
 
       <HelpContactsSheet
@@ -632,28 +622,8 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.headerPaddingH,
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    minHeight: 56,
-  },
-  sideBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   pressed: {
     opacity: 0.88,
-  },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-    color: Colors.textPrimary,
-    ...HeaderTitleStyle.screen,
   },
   stage: {
     flexGrow: 1,
@@ -883,11 +853,6 @@ const styles = StyleSheet.create({
   coachOverlay: {
     ...StyleSheet.absoluteFill,
     zIndex: 28,
-  },
-  sosLayer: {
-    ...StyleSheet.absoluteFill,
-    zIndex: 100,
-    elevation: 100,
   },
   coachScrim: {
     position: 'absolute',

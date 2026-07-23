@@ -34,6 +34,13 @@ import {
   CheckRow,
   ProgressDots,
   ScreenHeader,
+  SurfaceCard,
+  SettingsRow,
+  SettingsGroup,
+  DangerTextLink,
+  TextInputShell,
+  TabScreenTitle,
+  LegalDocSection,
 } from '../ui'
 import { MoodEmoji } from '../MoodEmoji'
 import { HelpContactsBanner } from '../HelpContactsBanner'
@@ -178,7 +185,7 @@ function MockStepProgress({ current, total }: { current: number; total: number }
 }
 
 function MockSurfaceCard({ children }: { children: ReactNode }) {
-  return <View style={pv.surfaceCard}>{children}</View>
+  return <SurfaceCard>{children}</SurfaceCard>
 }
 
 function MockSettingsRow({
@@ -195,22 +202,14 @@ function MockSettingsRow({
   Icon?: typeof Gear
 }) {
   return (
-    <View style={[pv.settingsRow, !last && pv.settingsRowDivider]}>
-      <View style={pv.settingsIcon}>
-        <Icon
-          size={20}
-          color={danger ? Colors.error : Colors.textPrimary}
-          weight="regular"
-        />
-      </View>
-      <View style={pv.settingsCopy}>
-        <Text style={[pv.settingsTitle, danger && pv.settingsTitleDanger]}>
-          {title}
-        </Text>
-        {sub ? <Text style={pv.settingsSub}>{sub}</Text> : null}
-      </View>
-      <CaretRight size={14} color={Colors.textDisabled} weight="bold" />
-    </View>
+    <SettingsRow
+      title={title}
+      subtitle={sub}
+      danger={danger}
+      isLast={last}
+      Icon={Icon}
+      onPress={() => {}}
+    />
   )
 }
 
@@ -582,10 +581,10 @@ export function ChromePreviews() {
           <ScreenHeader title="스크린 헤더" onBack={() => {}} onSkip={() => {}} />
         </View>
       </PreviewSection>
-      <PreviewSection label="BackHeader · TabTitleHeader">
+      <PreviewSection label="BackHeader · TabScreenTitle">
         <MockBackHeader title="알림" right="모두 읽음" />
         <View style={pv.gapTop}>
-          <MockTabTitle title="더보기" sub="계정과 이용 안내를 관리해요" />
+          <TabScreenTitle title="설정" />
         </View>
         <View style={[pv.homeStatus, pv.gapTop]}>
           <Text style={pv.homeStatusText}>좋은 아침이에요!</Text>
@@ -834,33 +833,47 @@ export function DiaryPreviews() {
 export function SettingsPreviews() {
   return (
     <LivePreviewsBlock>
-      <PreviewSection label="SettingsGroupCard · SettingsRow" first>
-        <MockTabTitle title="더보기" sub="계정과 이용 안내를 관리해요" />
-        <MockSurfaceCard>
-          <MockSettingsRow title="내 계정" sub="닉네임 변경" Icon={User} />
-          <MockSettingsRow title="이용 안내" Icon={Info} />
-          <MockSettingsRow
-            title="로그아웃"
-            danger
-            Icon={WarningCircle}
-            last
+      <PreviewSection label="SettingsGroup · SettingsRow (공용)" first>
+        <TabScreenTitle title="설정" />
+        <SettingsGroup title="내 정보">
+          <SettingsRow
+            title="내 기록 가져오기 번호"
+            onPress={() => {}}
           />
-        </MockSurfaceCard>
-      </PreviewSection>
-      <PreviewSection label="DangerActionCard · NicknameForm">
-        <View style={pv.dangerCard}>
-          <Text style={pv.dangerCardTitle}>검사 기록을 모두 지울까요?</Text>
-          <Text style={pv.dangerCardBody}>
-            삭제하면 되돌릴 수 없어요. 신중히 선택해 주세요.
-          </Text>
-          <Pressable style={pv.dangerCta}>
-            <Text style={pv.dangerCtaText}>모두 삭제하기</Text>
-          </Pressable>
+          <SettingsRow title="내 닉네임" isLast onPress={() => {}} />
+        </SettingsGroup>
+        <View style={pv.gapTop}>
+          <SettingsGroup title="이용 안내">
+            <SettingsRow title="이용약관" Icon={Info} onPress={() => {}} />
+            <SettingsRow
+              title="앱 버전 1.4.0"
+              variant="version"
+              trailing="최신 버전"
+              isLast
+            />
+          </SettingsGroup>
         </View>
-        <Text style={[pv.sectionLabel, pv.gapTop]}>닉네임</Text>
-        <MockTextInput focused />
+        <DangerTextLink label="회원탈퇴" onPress={() => {}} />
       </PreviewSection>
-      <PreviewSection label="RestoreCodeCard (목업)">
+      <PreviewSection label="TextInputShell · LegalDocSection">
+        <Text style={pv.sectionLabel}>닉네임</Text>
+        <TextInputShell state="focused">
+          <Text style={pv.inputDemo}>몽이지킴이</Text>
+          <Text style={pv.counterDemo}>5 / 8</Text>
+        </TextInputShell>
+        <View style={pv.gapTop}>
+          <LegalDocSection
+            title="제1조 (목적)"
+            body="이 약관은 하남이네 힐링펫 서비스 이용에 관한 기본 사항을 정합니다."
+            showDivider
+          />
+          <LegalDocSection
+            title="제2조 (정의)"
+            body="“회원”이란 본 약관에 동의하고 서비스를 이용하는 사람을 말합니다."
+          />
+        </View>
+      </PreviewSection>
+      <PreviewSection label="RestoreCodeCard (다음 스프린트 후보)">
         <View style={pv.restoreCard}>
           <View style={pv.restorePet}>
             <PawPrint size={28} color={Colors.selected} weight="fill" />
@@ -1068,6 +1081,19 @@ const pv = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 8,
+  },
+  inputDemo: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    paddingVertical: 12,
+  },
+  counterDemo: {
+    marginLeft: 8,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textDisabled,
   },
   emptyWrap: {
     paddingVertical: 28,

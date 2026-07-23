@@ -6,6 +6,7 @@ import { TypeStyle } from './Typography'
  * 스케일 (가로)
  * - headerPaddingH  12  헤더 좌우 (뒤로 버튼 hit area)
  * - cardPaddingH    16  카드·리스트 행·칩·배너 내부
+ * - rowMinHeight    56  SettingsRow 최소 높이
  * - screenPaddingH  20  화면 좌우
  *
  * 스케일 (세로)
@@ -36,6 +37,8 @@ export const Layout = {
 
   /** 카드·리스트 행·칩 그룹·배너 내부 좌우 */
   cardPaddingH: 16,
+  /** 설정·내비 SettingsRow 최소 높이 */
+  rowMinHeight: 56,
   /** 섹션·행 사이 기본 간격 */
   sectionGap: 12,
   /** 카드 내부 블록 간격 */

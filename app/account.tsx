@@ -6,17 +6,21 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft } from 'phosphor-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
+import {
+  PrimaryButton,
+  ScreenHeader,
+  TextInputShell,
+  onboardingFooterStyle,
+  type TextInputShellState,
+} from '../components/ui'
 import { getOnboardingProfile, NICKNAME_MAX } from '../lib/onboardingStorage'
 import { showToast } from '../lib/toast'
 import {
@@ -59,11 +63,11 @@ export default function AccountScreen() {
   const tooShort = trimmed.length > 0 && trimmed.length < 2
   const canSave = trimmed.length >= 2 && trimmed.length <= NICKNAME_MAX && dirty
 
-  const borderColor = tooShort
-    ? Colors.error
+  const shellState: TextInputShellState = tooShort
+    ? 'error'
     : focused || dirty
-      ? Colors.primary
-      : Colors.border
+      ? 'focused'
+      : 'idle'
 
   const save = async () => {
     if (!canSave || saving) return
@@ -82,19 +86,7 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="뒤로"
-          hitSlop={8}
-          onPress={() => router.back()}
-          android_ripple={{ color: 'transparent' }}
-          style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-        >
-          <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-        </Pressable>
-        <Text style={styles.headerTitle}>계정</Text>
-      </View>
+      <ScreenHeader title="계정" onBack={() => router.back()} />
 
       <KeyboardAvoidingView
         style={[
@@ -114,7 +106,7 @@ export default function AccountScreen() {
         >
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>닉네임</Text>
-            <View style={[styles.inputShell, { borderColor }]}>
+            <TextInputShell state={shellState}>
               <TextInput
                 {...TextKeyboardProps}
                 value={nickname}
@@ -135,7 +127,7 @@ export default function AccountScreen() {
               <Text style={styles.counter}>
                 {nickname.length} / {NICKNAME_MAX}
               </Text>
-            </View>
+            </TextInputShell>
             <Text style={styles.hint}>
               최대 {NICKNAME_MAX}자 · 앱 안에서만 표시되며, 개인을 식별하는
               정보로 사용되지 않습니다.
@@ -175,29 +167,6 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.headerPaddingH,
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    minHeight: 56,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginLeft: 2,
-  },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
@@ -211,16 +180,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 8,
-  },
-  inputShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    paddingLeft: 14,
-    paddingRight: 12,
-    minHeight: 52,
   },
   input: {
     flex: 1,

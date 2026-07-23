@@ -1,19 +1,21 @@
-import { useState } from 'react'
 import {
   View,
   Text,
-  Pressable,
   StyleSheet,
   ScrollView,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import Constants from 'expo-constants'
-import { CaretRight } from 'phosphor-react-native'
-import { Colors, Shadows } from '../../constants/Colors'
-import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
-import { TypeStyle } from '../../constants/Typography'
+import { Colors } from '../../constants/Colors'
+import { Layout, tabBarReserveHeight } from '../../constants/Layout'
 import { TabSceneGate } from '../../components/TabSceneGate'
+import {
+  DangerTextLink,
+  SettingsGroup,
+  SettingsRow,
+  TabScreenTitle,
+} from '../../components/ui'
 
 type RowKind = 'link' | 'version'
 
@@ -72,61 +74,6 @@ const SECTIONS: SettingsSection[] = [
   },
 ]
 
-function SettingsRow({
-  item,
-  isLast,
-  onPress,
-}: {
-  item: SettingsRowItem
-  isLast: boolean
-  onPress?: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-  const isVersion = item.kind === 'version'
-
-  if (isVersion) {
-    return (
-      <View
-        style={[styles.row, !isLast && styles.rowDivider]}
-        accessibilityRole="text"
-        accessibilityLabel={`${item.title}, ${item.trailing ?? ''}`}
-      >
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        {item.trailing ? (
-          <Text style={styles.rowTrailing}>{item.trailing}</Text>
-        ) : null}
-      </View>
-    )
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={item.title}
-      android_ripple={{ color: 'transparent' }}
-      onPress={onPress}
-      onHoverIn={() => setHovered(true)}
-      onHoverOut={() => setHovered(false)}
-      style={({ pressed }) => [pressed && styles.rowPressed]}
-    >
-      <View
-        style={[
-          styles.row,
-          !isLast && styles.rowDivider,
-          hovered && styles.rowHover,
-        ]}
-      >
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <CaretRight size={16} color={Colors.textDisabled} weight="bold" />
-      </View>
-    </Pressable>
-  )
-}
-
 export default function MoreScreen() {
   return (
     <TabSceneGate>
@@ -172,9 +119,7 @@ function MoreScreenBody() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>설정</Text>
-      </View>
+      <TabScreenTitle title="설정" />
 
       <ScrollView
         contentContainerStyle={[
@@ -184,39 +129,28 @@ function MoreScreenBody() {
         showsVerticalScrollIndicator={false}
       >
         {SECTIONS.map((section) => (
-          <View key={section.id} style={styles.section}>
-            {section.title ? (
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-            ) : null}
-            <View style={styles.card}>
-              {section.rows.map((row, i) => (
-                <SettingsRow
-                  key={row.id}
-                  item={row}
-                  isLast={i === section.rows.length - 1}
-                  onPress={
-                    row.kind === 'version'
-                      ? undefined
-                      : () => onRowPress(row.id)
-                  }
-                />
-              ))}
-            </View>
-          </View>
+          <SettingsGroup key={section.id} title={section.title}>
+            {section.rows.map((row, i) => (
+              <SettingsRow
+                key={row.id}
+                title={row.title}
+                trailing={row.trailing}
+                variant={row.kind === 'version' ? 'version' : 'link'}
+                isLast={i === section.rows.length - 1}
+                onPress={
+                  row.kind === 'version'
+                    ? undefined
+                    : () => onRowPress(row.id)
+                }
+              />
+            ))}
+          </SettingsGroup>
         ))}
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="회원탈퇴"
+        <DangerTextLink
+          label="회원탈퇴"
           onPress={() => router.push('/withdraw')}
-          hitSlop={8}
-          style={({ pressed }) => [
-            styles.withdrawBtn,
-            pressed && styles.rowPressed,
-          ]}
-        >
-          <Text style={styles.withdrawText}>회원탈퇴</Text>
-        </Pressable>
+        />
       </ScrollView>
     </SafeAreaView>
   )
@@ -227,76 +161,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    paddingHorizontal: Layout.screenPaddingH,
-  },
-  title: {
-    color: Colors.textPrimary,
-    ...HeaderTitleStyle.tab,
-  },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    gap: 20,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionTitle: {
-    marginLeft: 4,
-    ...TypeStyle.sectionTitle,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    overflow: 'hidden',
-    ...Shadows.elevation,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 56,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingVertical: 14,
-    gap: 10,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
-  },
-  rowPressed: {
-    opacity: 0.88,
-  },
-  rowHover: {
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  rowTitle: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  rowTrailing: {
-    flexShrink: 0,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  withdrawBtn: {
-    alignSelf: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: Layout.headerPaddingH,
-    marginTop: 4,
-  },
-  withdrawText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    gap: Layout.sectionGapLg,
   },
 })

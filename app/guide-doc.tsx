@@ -1,9 +1,9 @@
-import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
-import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { LegalDocSection, ScreenHeader } from '../components/ui'
 import { getLegalDoc } from '../lib/legalDocs'
 
 export default function GuideDocScreen() {
@@ -13,18 +13,7 @@ export default function GuideDocScreen() {
   if (!doc) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="뒤로"
-            hitSlop={8}
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-          >
-            <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-          </Pressable>
-          <Text style={styles.headerTitle}>문서</Text>
-        </View>
+        <ScreenHeader title="문서" onBack={() => router.back()} />
         <View style={styles.empty}>
           <Text style={styles.emptyText}>문서를 찾을 수 없어요.</Text>
         </View>
@@ -34,36 +23,19 @@ export default function GuideDocScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="뒤로"
-          hitSlop={8}
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-        >
-          <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {doc.title}
-        </Text>
-      </View>
+      <ScreenHeader title={doc.title} onBack={() => router.back()} />
 
       <ScrollView
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator
       >
         {doc.sections.map((section, i) => (
-          <View
+          <LegalDocSection
             key={section.title}
-            style={[
-              styles.section,
-              i < doc.sections.length - 1 && styles.sectionDivider,
-            ]}
-          >
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <Text style={styles.sectionBody}>{section.body}</Text>
-          </View>
+            title={section.title}
+            body={section.body}
+            showDivider={i < doc.sections.length - 1}
+          />
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -75,53 +47,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Layout.headerPaddingH,
-    paddingTop: Layout.headerPaddingTop,
-    paddingBottom: Layout.headerContentGap,
-    minHeight: 56,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginLeft: 2,
-    marginRight: 40,
-  },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 48,
-  },
-  section: {
-    paddingVertical: 18,
-  },
-  sectionDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 10,
-  },
-  sectionBody: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 23,
   },
   empty: {
     flex: 1,

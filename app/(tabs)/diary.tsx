@@ -203,13 +203,13 @@ function DiaryScreenBody() {
     return { y, m, d }
   }
 
-  const openDayList = (day: number) => {
+  const openDayPanel = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
     setDayPanelOpen(true)
   }
 
-  /** 기록 없는 날은 선택만 — 있으면 하단 리스트 */
+  /** 기록 없는 날은 선택만 — 있으면 하단 CTA를 밀고 리스트 */
   const onPressDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
@@ -409,52 +409,11 @@ function DiaryScreenBody() {
           </View>
         </View>
 
-        {showDayPanel ? (
-          <View style={styles.dayPanel}>
-            <View style={styles.dayPanelHeader}>
-              <Text style={styles.dayPanelTitle} numberOfLines={1}>
-                {selectedDayTitle}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="닫기"
-                hitSlop={8}
-                onPress={() => setDayPanelOpen(false)}
-                style={({ pressed }) => [
-                  styles.dayPanelClose,
-                  pressed && styles.iconBtnPressed,
-                ]}
-              >
-                <X size={18} color={Colors.textSecondary} weight="bold" />
-              </Pressable>
-            </View>
-            <ScrollView
-              style={{
-                maxHeight: DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
-              }}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={selectedDayEntries.length > 2}
-              contentContainerStyle={styles.dayListContent}
-            >
-              {selectedDayEntries.map((entry) => (
-                <DiaryDayEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/diary-detail',
-                      params: { id: entry.id },
-                    })
-                  }
-                />
-              ))}
-            </ScrollView>
-          </View>
-        ) : selectedDayCount === 0 ? (
+        {!showDayPanel && selectedDayCount === 0 ? (
           <View style={styles.belowCalendar}>
             <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
           </View>
-        ) : (
+        ) : !showDayPanel ? (
           <View style={[styles.distCard, styles.belowCalendar]}>
             <View style={styles.distHeader}>
               <Text style={styles.distTitle} numberOfLines={1}>
@@ -511,21 +470,52 @@ function DiaryScreenBody() {
               <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
               <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
             </Pressable>
+          </View>
+        ) : null}
+      </ScrollView>
+
+      {showDayPanel ? (
+        <View style={styles.dayDock}>
+          <View style={styles.dayPanelHeader}>
+            <Text style={styles.dayPanelTitle} numberOfLines={1}>
+              {selectedDayTitle}
+            </Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="선택한 날 기록 보기"
-              onPress={() => setDayPanelOpen(true)}
+              accessibilityLabel="닫기"
+              hitSlop={8}
+              onPress={() => setDayPanelOpen(false)}
               style={({ pressed }) => [
-                styles.listLinkRow,
+                styles.dayPanelClose,
                 pressed && styles.iconBtnPressed,
               ]}
             >
-              <Text style={styles.listLinkText}>이 날 기록 보기</Text>
-              <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
+              <X size={18} color={Colors.textSecondary} weight="bold" />
             </Pressable>
           </View>
-        )}
-      </ScrollView>
+          <ScrollView
+            style={{
+              maxHeight: DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
+            }}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={selectedDayEntries.length > 2}
+            contentContainerStyle={styles.dayListContent}
+          >
+            {selectedDayEntries.map((entry) => (
+              <DiaryDayEntryCard
+                key={entry.id}
+                entry={entry}
+                onPress={() =>
+                  router.push({
+                    pathname: '/diary-detail',
+                    params: { id: entry.id },
+                  })
+                }
+              />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       <View
         style={[
@@ -671,9 +661,14 @@ const styles = StyleSheet.create({
   belowCalendar: {
     marginTop: 20,
   },
-  dayPanel: {
-    marginTop: 20,
+  dayDock: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 12,
+    paddingBottom: 8,
     gap: 10,
+    backgroundColor: Colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.divider,
   },
   dayPanelHeader: {
     flexDirection: 'row',

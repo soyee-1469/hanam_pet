@@ -92,18 +92,18 @@ export default function RecoveryCodeScreen() {
 
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
-            <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
-            <View style={styles.cardBottom}>
-              <View style={styles.cardCopy}>
-                <Text style={styles.brandName}>하남이네 힐링펫</Text>
-                <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
-              </View>
-              <Image
-                source={DogExpr.soft}
-                style={styles.dog}
-                resizeMode="contain"
-                accessibilityLabel="힐링펫 강아지"
-              />
+            <Text style={styles.brandName}>하남이네 힐링펫</Text>
+            <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
+
+            <Image
+              source={DogExpr.soft}
+              style={styles.dog}
+              resizeMode="contain"
+              accessibilityLabel="힐링펫 강아지"
+            />
+
+            <View style={styles.codePanel}>
+              <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             </View>
           </View>
         </View>
@@ -195,54 +195,62 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   cardShell: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 320,
+    aspectRatio: 0.72,
     backgroundColor: Colors.creamyBeige,
     borderRadius: 28,
-    paddingTop: 40,
+    paddingTop: 28,
     paddingHorizontal: 22,
-    paddingBottom: 22,
+    paddingBottom: 24,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     ...Shadows.elevation,
   },
   cardCapture: {
-    backgroundColor: Colors.creamyBeige,
-  },
-  codeValue: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: Colors.cocoa,
-    letterSpacing: 4,
-    marginBottom: 36,
-  },
-  cardBottom: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    minHeight: 128,
-  },
-  cardCopy: {
     flex: 1,
-    paddingBottom: 10,
-    paddingRight: 8,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
   },
   brandName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.cocoa,
+    textAlign: 'center',
     marginBottom: 4,
   },
   cardSub: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.cocoa,
-    opacity: 0.92,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   dog: {
-    width: 140,
-    height: 140,
-    marginRight: -10,
-    marginBottom: -8,
+    width: 148,
+    height: 148,
+    marginVertical: 8,
+  },
+  codePanel: {
+    marginTop: 'auto',
+    alignSelf: 'stretch',
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  codeValue: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: 3,
+    textAlign: 'center',
   },
   tip: {
     marginTop: 16,

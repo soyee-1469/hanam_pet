@@ -16,7 +16,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, FirstAid, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { CaretLeft, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
@@ -371,20 +371,7 @@ function ChatScreenBody() {
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
           <Text style={styles.title}>대화</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="SOS 긴급 상담"
-            accessibilityHint="전문 상담 기관 연락처를 엽니다"
-            hitSlop={8}
-            onPress={() => setHelpOpen(true)}
-            style={({ pressed }) => [
-              styles.headerSos,
-              pressed && styles.pressed,
-            ]}
-          >
-            <FirstAid size={16} color={Colors.selected} weight="fill" />
-            <Text style={styles.headerSosText}>SOS</Text>
-          </Pressable>
+          <View style={styles.sideBtn} />
         </View>
 
         {!chatting && !depleted ? (
@@ -658,25 +645,6 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerSos: {
-    minWidth: 40,
-    height: 36,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    borderRadius: 999,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.selected,
-  },
-  headerSosText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.selected,
-    letterSpacing: 0.3,
   },
   pressed: {
     opacity: 0.88,

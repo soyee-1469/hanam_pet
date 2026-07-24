@@ -212,16 +212,16 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
   },
   {
     id: 'moderate',
-    label: '중등도',
-    shortLabel: '중등도 수준',
-    displayTitle: '중등도 수준의 우울장애',
+    label: '중증도',
+    shortLabel: '중증도 수준',
+    displayTitle: '중증도 수준의 우울장애',
     min: 19,
     max: 27,
     color: SEVERITY_PILL_TEXT.moderate,
     meaning: '일상 기능 저하, 전문 상담 권장',
-    opinionTitle: '중등도 (19-27점) 전문가 소견',
+    opinionTitle: '중증도 (19-27점) 전문가 소견',
     opinionBody:
-      '지난 2주간 중등도 수준의 우울감이 지속되고 있어요. 의욕 저하·수면 변화 등 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계입니다.',
+      '지난 2주간 중증도 수준의 우울감이 지속되고 있어요. 의욕 저하·수면 변화 등 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계입니다.',
     tips: [
       '규칙적인 수면·식사 등 생활 리듬을 먼저 회복해 보세요.',
       '신뢰할 수 있는 사람에게 마음을 나누는 것이 도움이 돼요.',
@@ -270,14 +270,14 @@ export const ANXIETY_BANDS: SeverityBand[] = [
   },
   {
     id: 'mild',
-    label: '경증',
-    shortLabel: '경증 수준',
-    displayTitle: '경증 수준의 불안장애',
+    label: '경도',
+    shortLabel: '경도 수준',
+    displayTitle: '경도 수준의 불안장애',
     min: 10,
     max: 16,
     color: SEVERITY_PILL_TEXT.mild,
     meaning: '가벼운 불안감, 셀프케어와 관찰 권장',
-    opinionTitle: '경증 (10-16점) 전문가 소견',
+    opinionTitle: '경도 (10-16점) 전문가 소견',
     opinionBody:
       '지난 2주간 가벼운 불안감이 있었을 수 있어요. 일상은 유지되지만, 긴장을 조금 더 살펴보면 좋아요.',
     tips: [
@@ -288,16 +288,16 @@ export const ANXIETY_BANDS: SeverityBand[] = [
   },
   {
     id: 'moderate',
-    label: '중등도',
-    shortLabel: '중등도 수준',
-    displayTitle: '중등도 수준의 불안장애',
+    label: '중증도',
+    shortLabel: '중증도 수준',
+    displayTitle: '중증도 수준의 불안장애',
     min: 17,
     max: 24,
     color: SEVERITY_PILL_TEXT.moderate,
     meaning: '일상 기능 저하, 전문 상담 권장',
-    opinionTitle: '중등도 (17-24점) 전문가 소견',
+    opinionTitle: '중증도 (17-24점) 전문가 소견',
     opinionBody:
-      '지난 2주간 중등도 수준의 불안이 지속된 것으로 보여요. 긴장·걱정으로 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계예요.',
+      '지난 2주간 중증도 수준의 불안이 지속된 것으로 보여요. 긴장·걱정으로 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계예요.',
     tips: [
       '수면·식사 등 생활 리듬을 회복해 보세요.',
       '믿을 수 있는 사람에게 마음을 나눠 보세요.',

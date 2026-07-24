@@ -15,7 +15,6 @@ import {
   getSeverityBand,
   getSeverityBands,
   SEVERITY_BAR_COLOR,
-  SEVERITY_PILL_BG,
   SEVERITY_PILL_TEXT,
   type AssessmentId,
   type SeverityBand,
@@ -156,15 +155,16 @@ export default function MindReportScreen() {
                   <Text style={styles.cardDate}>
                     {formatResultDate(item.at)}
                   </Text>
-                  <View
-                    style={[
-                      styles.bandChip,
-                      {
-                        backgroundColor:
-                          SEVERITY_PILL_BG[band.id] ?? Colors.creamyBeige,
-                      },
-                    ]}
-                  >
+                  <View style={styles.bandChip}>
+                    <View
+                      style={[
+                        styles.bandDot,
+                        {
+                          backgroundColor:
+                            SEVERITY_PILL_TEXT[band.id] ?? band.color,
+                        },
+                      ]}
+                    />
                     <Text
                       style={[
                         styles.bandChipText,
@@ -181,25 +181,32 @@ export default function MindReportScreen() {
 
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreLabel}>내 마음 상태</Text>
-                  <Text style={styles.scoreValue}>
+                  <Text
+                    style={[
+                      styles.scoreValue,
+                      {
+                        color:
+                          SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary,
+                      },
+                    ]}
+                  >
                     {item.score}점
                   </Text>
                 </View>
 
                 <View style={styles.segBar}>
-                  {bands.map((b) => {
-                    const mine = b.id === band.id
+                  {bands.map((b, i) => {
+                    const filled = i <= bands.findIndex((x) => x.id === band.id)
                     return (
                       <View
                         key={b.id}
                         style={[
                           styles.seg,
                           {
-                            backgroundColor:
-                              SEVERITY_BAR_COLOR[b.id] ?? b.color,
-                            opacity: mine ? 1 : 0.5,
+                            backgroundColor: filled
+                              ? SEVERITY_BAR_COLOR[b.id] ?? b.color
+                              : SEG_EMPTY,
                           },
-                          mine && styles.segActive,
                         ]}
                       />
                     )
@@ -364,14 +371,16 @@ const styles = StyleSheet.create({
   bandChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    gap: 6,
+  },
+  bandDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   bandChipText: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   scoreRow: {
@@ -400,10 +409,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 8,
     borderRadius: 4,
-  },
-  segActive: {
-    height: 10,
-    borderRadius: 5,
   },
   cardSummary: {
     fontSize: 13,

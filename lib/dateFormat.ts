@@ -8,7 +8,8 @@
  * - formatTime      → 14:20:28
  * - formatDateFromYmd → 2026.07.08
  * - formatDateFromYmdWithWeekday → 2026.07.08 화요일
- */const TZ = 'Asia/Seoul'
+ */
+const TZ = 'Asia/Seoul'
 
 type SeoulParts = {
   year: string

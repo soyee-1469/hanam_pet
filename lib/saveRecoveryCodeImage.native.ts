@@ -10,9 +10,12 @@ export async function saveRecoveryCodeImage(
   viewRef: RefObject<View | null>,
 ): Promise<SaveRecoveryCodeResult> {
   try {
-    // 시스템 권한 팝업(허용 / 허용 안 함) — writeOnly면 Add-only라 문구가 달라질 수 있음
-    const permission = await MediaLibrary.requestPermissionsAsync()
-    if (!permission.granted) return 'denied'
+    // iOS: 「사진 선택… / 모든 사진에 대한 접근 허용 / 허용 안 함」
+    // writeOnly:false → 읽기 권한 다이얼로그(시안과 동일)
+    const permission = await MediaLibrary.requestPermissionsAsync(false)
+    const allowed =
+      permission.granted || permission.accessPrivileges === 'limited'
+    if (!allowed) return 'denied'
 
     const uri = await captureRef(viewRef, {
       format: 'png',

@@ -103,7 +103,6 @@ export default function RecoveryCodeScreen() {
           기록을 안전하게 불러올 수 있어요.
         </Text>
 
-        {/* 시안: 세로 멤버십 카드 — 번호 위 / 브랜드 / 펫 우하단 */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
             <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
@@ -121,8 +120,6 @@ export default function RecoveryCodeScreen() {
             </View>
           </View>
         </View>
-
-        <Text style={styles.tip}>{restoreCopy.tip}</Text>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -168,7 +165,7 @@ export default function RecoveryCodeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,
@@ -255,13 +252,6 @@ const styles = StyleSheet.create({
     height: 148,
     marginRight: -8,
     marginBottom: -4,
-  },
-  tip: {
-    marginTop: 16,
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    lineHeight: 20,
   },
   footer: {
     ...onboardingFooterStyle,

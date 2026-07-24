@@ -53,7 +53,7 @@ const PETS: {
 ]
 
 /**
- * 설정 → 함께 하는 펫 친구
+ * 설정 → 내 펫 관리
  * 온보딩에서 고른 펫·이름을 다시 바꿀 수 있어요.
  */
 export default function PetManageScreen() {
@@ -254,7 +254,7 @@ export default function PetManageScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,

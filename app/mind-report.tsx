@@ -320,6 +320,23 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: 12,
   },
+  emptyCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+    paddingVertical: 56,
+    paddingHorizontal: Layout.screenPaddingH,
+    alignItems: 'center',
+    gap: 14,
+    ...Shadows.elevation,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 18,

@@ -8,7 +8,6 @@ import {
   Image,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   LayoutAnimation,
   UIManager,
   type TextInput as RNTextInput,

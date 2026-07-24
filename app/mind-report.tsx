@@ -15,6 +15,7 @@ import {
   getSeverityBand,
   getSeverityBands,
   SEVERITY_BAR_COLOR,
+  SEVERITY_PILL_BG,
   SEVERITY_PILL_TEXT,
   type AssessmentId,
   type SeverityBand,

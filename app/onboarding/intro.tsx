@@ -22,6 +22,8 @@ import {
   MagnifyingGlass,
   PawPrint,
   Phone,
+  Shield,
+  ShieldCheck,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -49,10 +51,10 @@ const FEATURE_ICONS: Record<string, Icon> = {
 }
 
 const PROMISE_ICONS: Record<string, Icon> = {
-  anonymous: PawPrint,
-  friend: ChatCircle,
-  safe: CalendarHeart,
-  help: MagnifyingGlass,
+  anonymous: LockKey,
+  friend: Heart,
+  safe: Shield,
+  help: ShieldCheck,
 }
 
 async function dial(phone: string, name: string) {
@@ -76,7 +78,9 @@ function PromisesSlide({
   title: string
   body: string
 }) {
-  const [openKeys, setOpenKeys] = useState<Record<string, boolean>>({})
+  const [openKeys, setOpenKeys] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(copy.promises.map((p) => [p.key, true])),
+  )
 
   return (
     <View style={styles.featuresSlide}>
@@ -84,8 +88,8 @@ function PromisesSlide({
       <Text style={styles.featuresBody}>{body}</Text>
       <View style={styles.featureList}>
         {copy.promises.map((item) => {
-          const IconComp = PROMISE_ICONS[item.key] ?? PawPrint
-          const open = openKeys[item.key] === true
+          const IconComp = PROMISE_ICONS[item.key] ?? LockKey
+          const open = openKeys[item.key] !== false
           return (
             <Pressable
               key={item.key}

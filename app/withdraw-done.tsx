@@ -54,12 +54,12 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
     color: Colors.cocoa,
     textAlign: 'center',
     letterSpacing: -0.4,
-    lineHeight: 34,
+    lineHeight: 36,
   },
   footer: {
     ...onboardingFooterStyle,

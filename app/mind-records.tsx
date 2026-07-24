@@ -246,8 +246,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF0EE',
   },
   actionBtnDisabled: {
-    borderColor: Colors.border,
-    backgroundColor: Colors.buttonDisabledBg,
+    borderColor: Colors.inactive,
+    backgroundColor: Colors.inactive,
   },
   actionBtnPressed: {
     opacity: 0.88,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
   actionBtnTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
   footerNote: {
     marginTop: 8,

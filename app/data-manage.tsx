@@ -367,8 +367,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.error,
   },
   deleteBtnDisabled: {
-    backgroundColor: Colors.buttonDisabledBg,
-    borderColor: Colors.border,
+    backgroundColor: Colors.inactive,
+    borderColor: Colors.inactive,
   },
   deleteBtnPressed: {
     opacity: 0.88,
@@ -379,6 +379,6 @@ const styles = StyleSheet.create({
     color: Colors.error,
   },
   deleteBtnTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
 })

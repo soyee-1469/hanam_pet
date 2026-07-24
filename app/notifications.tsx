@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginTop: 6,
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.selected,
   },
   unreadPlaceholder: {
     width: 8,

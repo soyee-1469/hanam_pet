@@ -85,7 +85,7 @@ export default function OnboardingWelcome() {
       <View style={styles.footer}>
         <ProgressDots total={ONBOARDING_STEPS} index={4} />
         {busy ? (
-          <ActivityIndicator color={Colors.primary} style={styles.loader} />
+          <ActivityIndicator color={Colors.cocoa} style={styles.loader} />
         ) : (
           <PrimaryButton
             label={copy.cta}

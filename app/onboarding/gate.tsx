@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   primaryTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.surface,
     marginBottom: 4,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.cocoa,
     marginBottom: 4,

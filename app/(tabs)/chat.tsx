@@ -1057,7 +1057,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.beige,
+    backgroundColor: Colors.inactive,
     borderWidth: 0,
     overflow: 'hidden',
   },

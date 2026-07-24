@@ -235,18 +235,23 @@ export const DIARY_DEMO_ENTRIES: DiaryEntry[] = [
   },
 ]
 
-/** 목록·상세·레전드 감정 라벨 색 (Inside Out) */
+/** 목록·상세·레전드 감정 라벨 색 */
 export const DIARY_MOOD_LABEL_COLOR: Record<DiaryMoodId, string> = {
   great: Colors.accent, // 기뻐요 · Joy yellow
   good: '#6BA3D1', // 슬퍼요 · Sadness blue
-  ok: '#D96B5E', // 화가나요 · Anger red
+  ok: '#C4847E', // 화가나요 · soft rose (코랄 CTA와 분리)
   bad: '#9B7EBF', // 걱정돼요 · Fear purple
   hard: '#8FA86A', // 불편해요 · Disgust green
 }
 
-/** 분포 막대 면색 — 라벨과 동일 (단일 소스) */
-export const DIARY_MOOD_BAR_COLOR = DIARY_MOOD_LABEL_COLOR
-
+/** 분포 막대 면색 — 파스텔 (라벨보다 연하게) */
+export const DIARY_MOOD_BAR_COLOR: Record<DiaryMoodId, string> = {
+  great: '#F7D7B8',
+  good: '#C5DFF0',
+  ok: '#F0D0CC',
+  bad: '#E4D4F0',
+  hard: '#E4EBB8',
+}
 export function findDiaryEntry(id: string) {
   return DIARY_DEMO_ENTRIES.find((e) => e.id === id)
 }

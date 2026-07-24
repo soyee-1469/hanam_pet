@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -27,7 +26,6 @@ import {
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
-import { DogExpr } from '../../constants/DogExpr'
 import {
   PrimaryButton,
   ScreenHeader,
@@ -38,7 +36,7 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().intro
 const SLIDES = copy.slides
-/** features → brand → help → privacy → diary → healing → mind */
+/** promises → features → help → privacy → diary → healing → mind */
 const TOUR_TOTAL = 7
 const SWIPE_THRESHOLD = 56
 
@@ -48,6 +46,13 @@ const FEATURE_ICONS: Record<string, Icon> = {
   diary: CalendarHeart,
   fill: Heart,
   check: MagnifyingGlass,
+}
+
+const PROMISE_ICONS: Record<string, Icon> = {
+  anonymous: PawPrint,
+  friend: ChatCircle,
+  safe: CalendarHeart,
+  help: MagnifyingGlass,
 }
 
 async function dial(phone: string, name: string) {
@@ -299,10 +304,10 @@ export default function OnboardingIntro() {
         showsVerticalScrollIndicator={false}
         {...panResponder.panHandlers}
       >
-        {item.key === 'features' ? (
+        {item.key === 'promises' ? (
+          <PromisesSlide title={item.title} body={item.body} />
+        ) : item.key === 'features' ? (
           <FeaturesSlide title={item.title} body={item.body} />
-        ) : item.key === 'brand' ? (
-          <BrandSlide title={item.title} body={item.body} />
         ) : item.key === 'privacy' ? (
           <PrivacySlide title={item.title} body={item.body} />
         ) : item.key === 'help' ? (
@@ -346,19 +351,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 24,
-  },
-  brandGlow: {
-    width: 168,
-    height: 168,
-    borderRadius: 84,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  brandImage: {
-    width: 120,
-    height: 120,
   },
   lockGlow: {
     width: 120,

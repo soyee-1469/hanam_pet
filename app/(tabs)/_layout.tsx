@@ -241,7 +241,7 @@ export default function TabLayout() {
           freezeOnBlur: true,
           lazy: true,
           tabBarShowLabel: false,
-          tabBarActiveTintColor: Colors.primary,
+          tabBarActiveTintColor: Colors.cocoa,
           tabBarInactiveTintColor: Colors.textDisabled,
           // Opaque scenes so inactive tabs (e.g. home welcome Modal) cannot
           // sit under / steal taps from the focused tab on web.
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   tabLabelActive: {
     fontWeight: '700',
-    color: Colors.primary,
+    color: Colors.cocoa,
   },
   tabLabelIdle: {
     fontWeight: '500',

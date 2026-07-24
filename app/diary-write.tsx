@@ -993,7 +993,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1004,8 +1004,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tagOn: {
-    backgroundColor: Colors.selected,
-    borderColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
+    borderColor: Colors.cocoa,
   },
   tagText: {
     fontSize: 14,
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   tagTextOn: {
-    color: '#FFFFFF',
+    color: Colors.surface,
   },
   tagExpand: {
     width: 36,

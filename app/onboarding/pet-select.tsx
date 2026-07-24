@@ -432,11 +432,11 @@ const styles = StyleSheet.create({
   },
   cardOff: {
     borderWidth: 1.5,
-    borderColor: Colors.divider,
+    borderColor: Colors.unselected,
   },
   cardOn: {
     borderWidth: 2,
-    borderColor: Colors.selected,
+    borderColor: Colors.cocoa,
   },
   bubble: {
     position: 'absolute',
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   speciesNameOn: {
     fontSize: 15,
     fontWeight: '800',
-    color: Colors.selected,
+    color: Colors.cocoa,
   },
   inputShellDisabled: {
     backgroundColor: Colors.surfaceSecondary,

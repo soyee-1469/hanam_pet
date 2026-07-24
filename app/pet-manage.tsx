@@ -302,11 +302,11 @@ const styles = StyleSheet.create({
   },
   cardOff: {
     borderWidth: 1.5,
-    borderColor: Colors.divider,
+    borderColor: Colors.unselected,
   },
   cardOn: {
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.cocoa,
   },
   petImg: {
     width: 118,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.cocoa,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,

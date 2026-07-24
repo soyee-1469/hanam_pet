@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.cocoa,
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -786,11 +786,11 @@ const styles = StyleSheet.create({
   },
   chipOff: {
     backgroundColor: Colors.surface,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
   },
   chipOn: {
-    backgroundColor: Colors.selected,
-    borderColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
+    borderColor: Colors.cocoa,
   },
   chipText: {
     fontSize: 13,
@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   chipTextOn: {
-    color: '#FFFFFF',
+    color: Colors.surface,
   },
   videoList: {
     gap: 14,

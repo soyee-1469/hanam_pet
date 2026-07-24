@@ -68,7 +68,7 @@ export default function WithdrawScreen() {
         <View style={styles.card}>
           {DELETE_ITEMS.map((item) => (
             <View key={item} style={styles.itemRow}>
-              <Check size={18} color={Colors.primary} weight="bold" />
+              <Check size={18} color={Colors.cocoa} weight="bold" />
               <Text style={styles.itemText}>{item}</Text>
             </View>
           ))}

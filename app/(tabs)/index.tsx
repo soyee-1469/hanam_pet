@@ -485,7 +485,7 @@ function MenuQuickItem({
                 backgroundColor: bgColor,
               },
               ready && styles.menuCircleReady,
-              done && !ready && styles.menuCircleDone,
+              done && !ready && styles.menuCircleReady,
               showRing && styles.menuCircleCooldown,
               highlighted && !showDoneBadge && !cooling && styles.menuCircleNudge,
             ]}
@@ -2215,12 +2215,6 @@ const styles = StyleSheet.create({
   menuCircleReady: {
     borderWidth: 2.5,
     borderColor: Colors.primary,
-    backgroundColor: Colors.background,
-  },
-  /** 출석 완료 — 띠만 강조, 받기용 테두리와 구분 */
-  menuCircleDone: {
-    borderWidth: 1.5,
-    borderColor: Colors.primaryLight,
     backgroundColor: Colors.background,
   },
   menuCircleCooldown: {

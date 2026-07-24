@@ -58,7 +58,7 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
     badge: '마음일기',
     title: () => '오늘의 마음을 남겨요',
     body: () =>
-      '하루에 한 번, 오늘의 감정을 되돌아 보고 간단히 기록해요.',
+      '하루의 감정을 이모지와 짧은 글로 기록해요. 나의 감정이 일기장에 차곡차곡 쌓여요.',
     highlight: 'writeCta',
     route: 'diary',
   },

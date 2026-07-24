@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -91,6 +91,13 @@ function DiaryScreenBody() {
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
   )
+  const selectedDayRef = useRef<View>(null)
+  const [daySpot, setDaySpot] = useState<{
+    x: number
+    y: number
+    w: number
+    h: number
+  } | null>(null)
 
   const tourStep =
     tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
@@ -139,6 +146,20 @@ function DiaryScreenBody() {
 
   const year = cursor.getFullYear()
   const month = cursor.getMonth()
+
+  useEffect(() => {
+    if (!tourHighlightWrite) {
+      setDaySpot(null)
+      return
+    }
+    const t = requestAnimationFrame(() => {
+      selectedDayRef.current?.measureInWindow((x, y, w, h) => {
+        if (w > 0 && h > 0) setDaySpot({ x, y, w, h })
+      })
+    })
+    return () => cancelAnimationFrame(t)
+  }, [tourHighlightWrite, selectedDay, year, month])
+
   const moods = useMemo(
     () => diaryMoodsForMonth(year, month + 1, today),
     [year, month, today, diaryEpoch],
@@ -329,7 +350,12 @@ function DiaryScreenBody() {
                     const emojiIndex = mood ? moodMeta(mood.moodId).emojiIndex : null
 
                     return (
-                      <View key={`d-${day}`} style={styles.dayCell}>
+                      <View
+                        key={`d-${day}`}
+                        ref={selected ? selectedDayRef : undefined}
+                        collapsable={false}
+                        style={styles.dayCell}
+                      >
                         <Pressable
                           accessibilityRole="button"
                           accessibilityLabel={
@@ -353,6 +379,9 @@ function DiaryScreenBody() {
                               styles.dayInner,
                               selected && styles.daySelected,
                               isToday && styles.dayToday,
+                              selected &&
+                                tourHighlightWrite &&
+                                styles.dayTourRing,
                             ]}
                           >
                             <Text
@@ -563,12 +592,28 @@ function DiaryScreenBody() {
           <View style={styles.coachScrimLayer} pointerEvents="auto">
             <View style={styles.coachScrim} />
           </View>
+          {daySpot ? (
+            <View
+              pointerEvents="none"
+              style={[
+                styles.dayTourSpot,
+                {
+                  left: daySpot.x - 3,
+                  top: daySpot.y - 3,
+                  width: daySpot.w + 6,
+                  height: daySpot.h + 6,
+                },
+              ]}
+            >
+              <Text style={styles.dayTourSpotNum}>{selectedDay}</Text>
+            </View>
+          ) : null}
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={Math.max(insets.bottom, 12) + 86}
+            bottom={tabBarSpace + 72}
           />
         </>
       ) : null}
@@ -888,7 +933,29 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: Colors.primary,
     padding: 3,
-    backgroundColor: 'rgba(255, 143, 122, 0.2)',
+    backgroundColor: Colors.surface,
+  },
+  dayTourRing: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
+  },
+  dayTourSpot: {
+    position: 'absolute',
+    zIndex: 30,
+    elevation: 30,
+    borderRadius: 14,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayTourSpotNum: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   ctaPressed: {
     opacity: 0.92,

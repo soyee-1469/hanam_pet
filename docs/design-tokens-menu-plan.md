@@ -38,10 +38,10 @@
 
 ## 메뉴 적용 순서
 
-1. Colors·Button·SelectionChip (기반)
-2. 온보딩 폼 (profile/pet/terms) — 선택 칩
-3. 나의 펫 홈 — 탭/뱃지 코랄 남용 정리
-4. 대화
-5. 마음일기 (태그 선택 = cocoa)
-6. 마음챙김
-7. 더보기·설정·탈퇴·계정
+1. ~~Colors·Button·SelectionChip (기반)~~ ✅
+2. ~~온보딩 폼 (profile/pet/terms) — 선택 칩~~ ✅
+3. ~~나의 펫 홈 — 탭/뱃지 코랄 남용 정리~~ ✅
+4. ~~대화~~ ✅
+5. ~~마음일기 (태그 선택 = cocoa)~~ ✅
+6. ~~마음챙김~~ ✅
+7. ~~더보기·설정·탈퇴·계정~~ ✅ (공유 UI: TourDots, ProgressDots, ConfirmDialog danger)

@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
     width: 22,
     height: 7,
     borderRadius: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
 })

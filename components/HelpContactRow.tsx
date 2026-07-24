@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   phone: {
     fontSize: 18,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.cocoa,
     letterSpacing: -0.2,
   },
   note: {

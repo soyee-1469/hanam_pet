@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     elevation: 30,
     borderRadius: 20,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.surface,
     padding: 6,
     gap: 10,

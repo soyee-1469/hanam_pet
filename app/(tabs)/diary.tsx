@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   weekdaySun: {
-    color: Colors.primary,
+    color: Colors.cocoa,
   },
   daysGrid: {
     width: '100%',
@@ -782,9 +782,9 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     backgroundColor: 'transparent',
   },
-  /** Selected (non-today) — primary border, no fill */
+  /** Selected (non-today) — cocoa border, no fill */
   daySelected: {
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: 'transparent',
   },
   /** Today — soft yellow fill (wins over selected fill) */
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   dayNumSelected: {
-    color: Colors.primary,
+    color: Colors.selected,
     fontWeight: '800',
   },
   dayNumToday: {
@@ -891,13 +891,13 @@ const styles = StyleSheet.create({
   ctaTourRing: {
     borderRadius: 20,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     padding: 3,
     backgroundColor: Colors.surface,
   },
   dayTourRing: {
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     borderRadius: 14,
     backgroundColor: Colors.surface,
   },
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
     elevation: 30,
     borderRadius: 14,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

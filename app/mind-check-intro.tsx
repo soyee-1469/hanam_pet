@@ -199,7 +199,7 @@ export default function MindCheckIntroScreen() {
                 i < assessment.recommends.length - 1 && styles.recommendGap,
               ]}
             >
-              <CheckCircle size={20} color={Colors.primary} weight="fill" />
+              <CheckCircle size={20} color={Colors.cocoa} weight="fill" />
               <Text style={styles.recommendText}>{line}</Text>
             </View>
           ))}

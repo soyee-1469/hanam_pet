@@ -39,7 +39,7 @@ export default function OnboardingGate() {
           <View style={styles.ground}>
             <View style={styles.groundLine} />
             <View style={styles.heart}>
-              <Heart size={16} color={Colors.primary} weight="fill" />
+              <Heart size={16} color={Colors.cocoa} weight="fill" />
             </View>
           </View>
           <Text style={styles.brandName}>

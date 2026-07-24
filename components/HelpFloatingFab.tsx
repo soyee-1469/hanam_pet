@@ -150,7 +150,7 @@ export function HelpFloatingFab({
           >
             <Animated.View style={[styles.sticker, { width: stickerWidth }]}>
               <View style={styles.phoneBadge}>
-                <Phone size={22} color={Colors.primary} weight="fill" />
+                <Phone size={22} color={Colors.cocoa} weight="fill" />
               </View>
 
               <View style={styles.copySlot} pointerEvents="none">

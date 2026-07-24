@@ -190,7 +190,7 @@ function PromisesSlide({
               ]}
             >
               <View style={styles.featureIcon}>
-                <IconComp size={22} color={Colors.primary} weight="regular" />
+                <IconComp size={22} color={Colors.cocoa} weight="regular" />
               </View>
               <View style={styles.featureCopy}>
                 <Text style={styles.featureName}>{item.title}</Text>
@@ -248,7 +248,7 @@ function FeaturesSlide({
               ]}
             >
               <View style={styles.featureIcon}>
-                <IconComp size={22} color={Colors.primary} weight="regular" />
+                <IconComp size={22} color={Colors.cocoa} weight="regular" />
               </View>
               <View style={styles.featureCopy}>
                 <Text style={styles.featureName}>{f.title}</Text>

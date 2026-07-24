@@ -64,10 +64,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    lineHeight: 28,
+    lineHeight: 26,
     marginBottom: 8,
   },
   lead: {

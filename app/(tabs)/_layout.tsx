@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   tourTabSpotlight: {
     borderRadius: 14,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.cardRecessed,
     marginHorizontal: 2,
     marginVertical: 2,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   mainMenuLabelText: {
     fontSize: 12,

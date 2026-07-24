@@ -407,7 +407,7 @@ function MenuCooldownRing({
         cx={cx}
         cy={cx}
         r={r}
-        stroke={Colors.primary}
+        stroke={Colors.selected}
         strokeWidth={MENU_RING_STROKE}
         fill="none"
         strokeDasharray={`${c} ${c}`}
@@ -1622,7 +1622,7 @@ function PetHomeScreenBody() {
                     >
                       <Heart
                         size={h.size}
-                        color={Colors.primary}
+                        color={Colors.cocoa}
                         weight="fill"
                       />
                     </View>
@@ -2045,7 +2045,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
     borderWidth: 1.5,
     borderColor: Colors.background,
   },
@@ -2078,7 +2078,7 @@ const styles = StyleSheet.create({
     elevation: 30,
     borderRadius: 20,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     paddingTop: 6,
     paddingBottom: 4,
     paddingHorizontal: 2,
@@ -2211,7 +2211,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   menuReadyBadgeText: {
     fontSize: 9,
@@ -2221,7 +2221,7 @@ const styles = StyleSheet.create({
   },
   menuCircleReady: {
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.background,
   },
   menuCircleCooldown: {
@@ -2293,7 +2293,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   nameModalInputWrapOn: {
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
   },
   nameModalInput: {
     flex: 1,
@@ -2347,7 +2347,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   nameModalPrimaryDisabled: {
-    backgroundColor: Colors.buttonDisabledBg,
+    backgroundColor: Colors.inactive,
   },
   nameModalPrimaryText: {
     fontSize: 15,
@@ -2364,7 +2364,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   careFxTextAccent: {
-    color: Colors.primary,
+    color: Colors.accent,
   },
   heartFxLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -2520,7 +2520,7 @@ const styles = StyleSheet.create({
     elevation: 30,
     borderRadius: 20,
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     padding: 4,
     backgroundColor: Colors.surface,
   },
@@ -2544,7 +2544,7 @@ const styles = StyleSheet.create({
   },
   stockCardTour: {
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.surface,
   },
   coachScrimLayer: {

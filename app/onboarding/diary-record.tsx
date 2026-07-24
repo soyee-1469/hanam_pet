@@ -14,8 +14,8 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().diaryRecord
 /** features·help·privacy 다음 — 닷 6개 중 4번째 */
-const TOUR_TOTAL = 6
-const TOUR_INDEX = 3
+const TOUR_TOTAL = 7
+const TOUR_INDEX = 4
 
 export default function OnboardingDiaryRecord() {
   const goNext = () => router.push('/onboarding/healing-content')

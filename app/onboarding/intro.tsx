@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -26,6 +27,7 @@ import {
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
 import {
   PrimaryButton,
   ScreenHeader,
@@ -36,8 +38,8 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().intro
 const SLIDES = copy.slides
-/** features → help → privacy → diary → healing → mind */
-const TOUR_TOTAL = 6
+/** features → brand → help → privacy → diary → healing → mind */
+const TOUR_TOTAL = 7
 const SWIPE_THRESHOLD = 56
 
 const FEATURE_ICONS: Record<string, Icon> = {
@@ -62,6 +64,29 @@ async function dial(phone: string, name: string) {
   }
 }
 
+function BrandSlide({
+  title,
+  body,
+}: {
+  title: string
+  body: string
+}) {
+  return (
+    <View style={styles.centerSlide}>
+      <View style={styles.brandGlow}>
+        <Image
+          source={DogExpr.fun}
+          style={styles.brandImage}
+          resizeMode="contain"
+          accessibilityLabel="힐링펫"
+        />
+      </View>
+      <Text style={styles.centerTitle}>{title}</Text>
+      <Text style={styles.centerBody}>{body}</Text>
+    </View>
+  )
+}
+
 function FeaturesSlide({
   title,
   body,
@@ -69,7 +94,9 @@ function FeaturesSlide({
   title: string
   body: string
 }) {
-  const [openKey, setOpenKey] = useState<string | null>(null)
+  const [openKeys, setOpenKeys] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(copy.features.map((f) => [f.key, true])),
+  )
 
   return (
     <View style={styles.featuresSlide}>
@@ -78,20 +105,22 @@ function FeaturesSlide({
       <View style={styles.featureList}>
         {copy.features.map((f) => {
           const IconComp = FEATURE_ICONS[f.key] ?? PawPrint
-          const open = openKey === f.key
+          const open = openKeys[f.key] !== false
           return (
             <Pressable
               key={f.key}
               accessibilityRole="button"
               accessibilityState={{ expanded: open }}
-              onPress={() => setOpenKey(open ? null : f.key)}
+              onPress={() =>
+                setOpenKeys((prev) => ({ ...prev, [f.key]: !open }))
+              }
               style={({ pressed }) => [
                 styles.featureCard,
                 pressed && styles.pressed,
               ]}
             >
               <View style={styles.featureIcon}>
-                <IconComp size={22} color={Colors.selected} weight="fill" />
+                <IconComp size={22} color={Colors.primary} weight="regular" />
               </View>
               <View style={styles.featureCopy}>
                 <Text style={styles.featureName}>{f.title}</Text>
@@ -239,6 +268,8 @@ export default function OnboardingIntro() {
       >
         {item.key === 'features' ? (
           <FeaturesSlide title={item.title} body={item.body} />
+        ) : item.key === 'brand' ? (
+          <BrandSlide title={item.title} body={item.body} />
         ) : item.key === 'privacy' ? (
           <PrivacySlide title={item.title} body={item.body} />
         ) : item.key === 'help' ? (
@@ -282,6 +313,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 24,
+  },
+  brandGlow: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+  brandImage: {
+    width: 120,
+    height: 120,
   },
   lockGlow: {
     width: 120,

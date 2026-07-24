@@ -13,8 +13,8 @@ import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().healingContent
-const TOUR_TOTAL = 6
-const TOUR_INDEX = 4
+const TOUR_TOTAL = 7
+const TOUR_INDEX = 5
 
 export default function OnboardingHealingContent() {
   const goNext = () => router.push('/onboarding/mind-check')

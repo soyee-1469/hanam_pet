@@ -10,8 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CaretLeft,
+  CaretUp,
   CheckCircle,
-  FileMagnifyingGlass,
   Phone,
 } from 'phosphor-react-native'
 import Svg, { Circle } from 'react-native-svg'
@@ -116,13 +116,6 @@ export default function MindCheckResultScreen() {
   const [helpOpen, setHelpOpen] = useState(false)
   const accent = band.color
 
-  const openGuide = () => {
-    router.push({
-      pathname: '/mind-check-guide',
-      params: { id: assessmentId ?? 'phq' },
-    })
-  }
-
   const persistAndGoHome = async () => {
     await saveMindCheckResult({
       assessmentId: assessmentId ?? 'phq',
@@ -170,18 +163,7 @@ export default function MindCheckResultScreen() {
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
         <Text style={styles.headerTitle}>나의 마음 보고서</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="검사 결과 설명"
-          onPress={openGuide}
-          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
-        >
-          <FileMagnifyingGlass
-            size={22}
-            color={Colors.textPrimary}
-            weight="regular"
-          />
-        </Pressable>
+        <View style={styles.sideBtn} />
       </View>
 
       <ScrollView
@@ -232,20 +214,23 @@ export default function MindCheckResultScreen() {
                 </View>
               ))}
             </View>
-          </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="상담 연결"
-            onPress={() => setHelpOpen(true)}
-            style={({ pressed }) => [
-              styles.counselFab,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Phone size={18} color={Colors.textPrimary} weight="fill" />
-            <Text style={styles.counselFabText}>상담 연결</Text>
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="도움이 필요하면 전문 상담 연결"
+              onPress={() => setHelpOpen(true)}
+              style={({ pressed }) => [
+                styles.counselBar,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Phone size={18} color={Colors.selected} weight="fill" />
+              <Text style={styles.counselBarText}>
+                도움이 필요하면 전문 상담 연결
+              </Text>
+              <CaretUp size={16} color={Colors.selected} weight="bold" />
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
 
@@ -388,7 +373,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   opinionWrap: {
-    position: 'relative',
     marginBottom: 8,
   },
   opinionCard: {
@@ -398,7 +382,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: Layout.blockGap,
-    paddingBottom: 22,
+    paddingBottom: Layout.blockGap,
     ...Shadows.elevation,
   },
   opinionHead: {
@@ -432,6 +416,7 @@ const styles = StyleSheet.create({
   },
   tips: {
     gap: 12,
+    marginBottom: 16,
   },
   tipRow: {
     flexDirection: 'row',
@@ -445,22 +430,21 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 20,
   },
-  counselFab: {
-    position: 'absolute',
-    right: 12,
-    bottom: -18,
+  counselBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.accent,
-    borderRadius: 999,
+    gap: 8,
+    minHeight: 48,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    ...Shadows.elevation,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryLight,
   },
-  counselFabText: {
+  counselBarText: {
+    flex: 1,
+    minWidth: 0,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   footer: {

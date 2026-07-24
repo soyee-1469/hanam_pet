@@ -149,7 +149,7 @@ export function assessmentMaxScore(assessment: AssessmentDef): number {
   return assessment.questions.length * 3
 }
 
-/** NDS 0–36 (시안: 0–8 / 9–18 / 19–28 / 29–36) · 파스텔 초록/노랑/주황/핑크 */
+/** NDS 0–36 (시안: 0–9 / 10–18 / 19–27 / 28–36) · 파스텔 초록/노랑/주황/핑크 */
 export const DEPRESSION_BANDS: SeverityBand[] = [
   {
     id: 'normal',
@@ -157,10 +157,10 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     shortLabel: '정상 수준',
     displayTitle: '정상',
     min: 0,
-    max: 8,
+    max: 9,
     color: '#A9B69A',
     meaning: '일상에 지장이 적은 안정적인 상태',
-    opinionTitle: '정상 (0-8점) 전문가 소견',
+    opinionTitle: '정상 (0-9점) 전문가 소견',
     opinionBody:
       '지난 2주간 우울 관련 증상이 거의 없거나 매우 가벼운 편이에요. 지금의 리듬을 잘 유지해 보세요.',
     tips: [
@@ -171,19 +171,19 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
   },
   {
     id: 'mild',
-    label: '경증',
-    shortLabel: '경증 수준',
-    displayTitle: '경증 수준의 우울장애',
-    min: 9,
+    label: '경도',
+    shortLabel: '경도 수준',
+    displayTitle: '경도 수준의 우울장애',
+    min: 10,
     max: 18,
     color: '#E5C76B',
     meaning: '가벼운 우울감, 셀프케어와 관찰 권장',
-    opinionTitle: '경증 (9-18점) 전문가 소견',
+    opinionTitle: '경도 (10-18점) 전문가 소견',
     opinionBody:
-      '지난 2주간 가벼운 우울 느낌이 있었을 수 있어요. 일상은 유지되지만, 마음을 조금 더 살펴보면 좋아요.',
+      '지난 2주간 가벼운 우울감이 있었을 수 있어요. 일상은 유지되지만, 마음을 조금 더 살펴보면 좋아요.',
     tips: [
       '수면·식사 등 생활 리듬을 점검해 보세요.',
-      '믿을 수 있는 사람에게 마음을 나눠 보세요.',
+      '신뢰할 수 있는 사람에게 마음을 나눠 보세요.',
       '증상이 이어지면 상담을 고려해 보세요.',
     ],
   },
@@ -193,16 +193,16 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     shortLabel: '중등도 수준',
     displayTitle: '중등도 수준의 우울장애',
     min: 19,
-    max: 28,
-    color: '#E8A07A',
+    max: 27,
+    color: '#FF8F7A',
     meaning: '일상 기능 저하, 전문 상담 권장',
-    opinionTitle: '중등도 (19-28점) 전문가 소견',
+    opinionTitle: '중등도 (19-27점) 전문가 소견',
     opinionBody:
-      '지난 2주간 중등도 수준의 우울 느낌이 지속된 것으로 보여요. 의욕 저하·수면 변화 등으로 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계예요.',
+      '지난 2주간 중등도 수준의 우울감이 지속되고 있어요. 의욕 저하·수면 변화 등 일상 기능에 영향을 줄 수 있어 적극적인 관리가 필요한 단계입니다.',
     tips: [
-      '규칙적인 수면·식사 등 생활 리듬을 회복해 보세요.',
-      '믿을 수 있는 사람에게 마음을 나눠 보세요.',
-      '2주 이상 지속되면 정신건강의학과·상담센터 방문을 권해요.',
+      '규칙적인 수면·식사 등 생활 리듬을 먼저 회복해 보세요.',
+      '신뢰할 수 있는 사람에게 마음을 나누는 것이 도움이 돼요.',
+      '증상이 2주 이상 지속되면 정신건강의학과·상담센터 방문을 권해요.',
     ],
   },
   {
@@ -210,11 +210,11 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     label: '중증',
     shortLabel: '중증 수준',
     displayTitle: '중증 수준의 우울장애',
-    min: 29,
+    min: 28,
     max: 36,
     color: '#E09A96',
     meaning: '즉각적인 전문 치료와 개입 필요',
-    opinionTitle: '중증 (29-36점) 전문가 소견',
+    opinionTitle: '중증 (28-36점) 전문가 소견',
     opinionBody:
       '높은 수준의 우울 관련 증상이 보여요. 혼자 견디기보다 전문 기관의 도움을 빠르게 받는 것이 중요해요.',
     tips: [

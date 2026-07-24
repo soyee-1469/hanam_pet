@@ -27,18 +27,18 @@ export type SeverityBand = {
 
 /** 필·바 면 — 시안 톤온톤 연한 파스텔 */
 export const SEVERITY_PILL_BG: Record<SeverityId, string> = {
-  normal: '#E4EBB8',
-  mild: '#FBECC4',
-  moderate: '#F7D7B8',
-  severe: '#F5D0CD',
+  normal: '#E5EEB4',
+  mild: '#FFF0C7',
+  moderate: '#F7DEC4',
+  severe: '#F2D4D4',
 }
 
 /** 필 글자·링·닷 — 같은 색 계열의 진한 톤 */
 export const SEVERITY_PILL_TEXT: Record<SeverityId, string> = {
-  normal: '#5F8F4A',
-  mild: '#C49A28',
-  moderate: '#D97850',
-  severe: '#D06B6B',
+  normal: '#5B7936',
+  mild: '#B2933E',
+  moderate: '#C07B5A',
+  severe: '#BE787A',
 }
 
 /** @deprecated SEVERITY_PILL_TEXT 사용 */

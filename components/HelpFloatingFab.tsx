@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  Text,
   Pressable,
   StyleSheet,
   Animated,
@@ -14,16 +13,19 @@ import { HelpContactsSheet } from './HelpContactsSheet'
 
 type HelpFloatingFabProps = {
   visible?: boolean
+  /** 입력창·탭바 위로 띄울 하단 inset */
+  bottom?: number
   style?: StyleProp<ViewStyle>
 }
 
 /**
- * 대화 — 채팅 입력창 위 우측 도움 플로팅 버튼.
+ * 대화 — 우측 전화기 플로팅.
  * 등장 시 스프링 「뿅」, 탭하면 상담 기관 시트.
  * 위기·도움용이라 Primary 코랄 금지 → cocoa/selected.
  */
 export function HelpFloatingFab({
   visible = true,
+  bottom = 120,
   style,
 }: HelpFloatingFabProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -60,7 +62,7 @@ export function HelpFloatingFab({
   const openSheet = () => {
     Animated.sequence([
       Animated.timing(pressScale, {
-        toValue: 0.92,
+        toValue: 0.9,
         duration: 70,
         useNativeDriver: true,
       }),
@@ -77,9 +79,10 @@ export function HelpFloatingFab({
   return (
     <>
       <Animated.View
+        pointerEvents="box-none"
         style={[
           styles.wrap,
-          { opacity, transform: [{ scale }] },
+          { bottom, opacity, transform: [{ scale }] },
           style,
         ]}
       >
@@ -92,8 +95,7 @@ export function HelpFloatingFab({
             hitSlop={8}
             style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
           >
-            <Phone size={18} color={Colors.selected} weight="fill" />
-            <Text style={styles.label}>도움</Text>
+            <Phone size={22} color={Colors.selected} weight="fill" />
           </Pressable>
         </Animated.View>
       </Animated.View>
@@ -108,29 +110,27 @@ export function HelpFloatingFab({
 
 const styles = StyleSheet.create({
   wrap: {
-    alignSelf: 'flex-end',
-    zIndex: 2,
+    position: 'absolute',
+    right: 16,
+    zIndex: 24,
+    elevation: 12,
   },
   fab: {
-    flexDirection: 'row',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
-    gap: 6,
-    minHeight: 44,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
+    justifyContent: 'center',
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.selected,
-    ...Shadows.elevation,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: Colors.selected,
-    letterSpacing: -0.2,
+    shadowColor: Colors.cocoa,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 8,
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.92,
   },
 })

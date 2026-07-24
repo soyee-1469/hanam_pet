@@ -554,64 +554,65 @@ function ChatScreenBody() {
               </Text>
             </View>
           ) : (
-            <>
-              <HelpFloatingFab visible={showHelpFab} />
-
-              <View
-                style={[
-                  styles.composer,
-                  inputFocused && styles.composerFocused,
-                  tourHighlightComposer && styles.composerTour,
-                  typing && styles.composerLocked,
+            <View
+              style={[
+                styles.composer,
+                inputFocused && styles.composerFocused,
+                tourHighlightComposer && styles.composerTour,
+                typing && styles.composerLocked,
+              ]}
+              pointerEvents={typing ? 'none' : 'auto'}
+            >
+              <TextInput
+                {...TextKeyboardProps}
+                ref={inputRef}
+                style={styles.input}
+                value={message}
+                onChangeText={setMessage}
+                onFocus={() => {
+                  if (typing) return
+                  setInputFocused(true)
+                  scrollToEnd()
+                }}
+                onBlur={() => setInputFocused(false)}
+                placeholder={
+                  typing ? '대답을 듣고 있어요…' : '마음을 들려주세요.'
+                }
+                placeholderTextColor={Colors.textDisabled}
+                editable={!typing && !depleted}
+                returnKeyType="send"
+                onSubmitEditing={() => {
+                  void sendMessage()
+                }}
+                blurOnSubmit={false}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="보내기"
+                disabled={!canSend}
+                onPress={() => {
+                  void sendMessage()
+                }}
+                style={({ pressed }) => [
+                  styles.sendBtn,
+                  canSend && styles.sendBtnActive,
+                  pressed && canSend && styles.pressed,
                 ]}
-                pointerEvents={typing ? 'none' : 'auto'}
               >
-                <TextInput
-                  {...TextKeyboardProps}
-                  ref={inputRef}
-                  style={styles.input}
-                  value={message}
-                  onChangeText={setMessage}
-                  onFocus={() => {
-                    if (typing) return
-                    setInputFocused(true)
-                    scrollToEnd()
-                  }}
-                  onBlur={() => setInputFocused(false)}
-                  placeholder={
-                    typing ? '대답을 듣고 있어요…' : '마음을 들려주세요.'
-                  }
-                  placeholderTextColor={Colors.textDisabled}
-                  editable={!typing && !depleted}
-                  returnKeyType="send"
-                  onSubmitEditing={() => {
-                    void sendMessage()
-                  }}
-                  blurOnSubmit={false}
+                <PaperPlaneTilt
+                  size={16}
+                  color={Colors.buttonPrimaryText}
+                  weight="fill"
                 />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="보내기"
-                  disabled={!canSend}
-                  onPress={() => {
-                    void sendMessage()
-                  }}
-                  style={({ pressed }) => [
-                    styles.sendBtn,
-                    canSend && styles.sendBtnActive,
-                    pressed && canSend && styles.pressed,
-                  ]}
-                >
-                  <PaperPlaneTilt
-                    size={16}
-                    color={Colors.buttonPrimaryText}
-                    weight="fill"
-                  />
-                </Pressable>
-              </View>
-            </>
+              </Pressable>
+            </View>
           )}
         </View>
+
+        <HelpFloatingFab
+          visible={showHelpFab}
+          bottom={composerBottomPad + 72}
+        />
       </KeyboardAvoidingView>
 
       {showChatTour && tourStep ? (

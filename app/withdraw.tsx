@@ -5,14 +5,14 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Check } from 'phosphor-react-native'
+import { Check, Trash } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import {
+  ConfirmDialog,
   PrimaryButton,
   ScreenHeader,
   onboardingFooterStyle,
@@ -27,24 +27,34 @@ const DELETE_ITEMS = [
   '기록을 이어주는 번호가 즉시 사라져요',
 ] as const
 
+type DialogKind = 'confirm' | 'fail' | null
+
 export default function WithdrawScreen() {
   const [busy, setBusy] = useState(false)
+  const [dialog, setDialog] = useState<DialogKind>(null)
 
   const stay = () => {
     if (busy) return
+    setDialog(null)
     router.back()
   }
 
-  const withdraw = async () => {
+  const closeDialog = () => {
+    if (busy) return
+    setDialog(null)
+  }
+
+  const runWithdraw = async () => {
     if (busy) return
     setBusy(true)
+    setDialog(null)
     try {
       await resetOnboardingCompleted()
       resetOnboardingDraft()
       router.replace('/withdraw-done')
     } catch {
-      Alert.alert('탈퇴 실패', '잠시 후 다시 시도해 주세요.')
       setBusy(false)
+      setDialog('fail')
     }
   }
 
@@ -86,9 +96,7 @@ export default function WithdrawScreen() {
           accessibilityRole="button"
           accessibilityLabel="하남이와 헤어질래요"
           disabled={busy}
-          onPress={() => {
-            void withdraw()
-          }}
+          onPress={() => setDialog('confirm')}
           hitSlop={8}
           style={({ pressed }) => [
             styles.leaveLink,
@@ -99,6 +107,40 @@ export default function WithdrawScreen() {
           <Text style={styles.leaveLinkText}>하남이와 헤어질래요</Text>
         </Pressable>
       </View>
+
+      <ConfirmDialog
+        visible={dialog === 'confirm'}
+        Icon={Trash}
+        tone="danger"
+        title="정말 탈퇴하시겠어요?"
+        body={
+          '탈퇴하시면 모든 추억이 사라지고,\n이전 기록을 다시 되돌릴 수 없어요.'
+        }
+        confirmLabel="탈퇴할게요"
+        cancelLabel="계속 이용할게요"
+        actionsOrder="confirm-cancel"
+        cancelTone="primary"
+        onConfirm={() => {
+          void runWithdraw()
+        }}
+        onCancel={stay}
+        onBackdropPress={closeDialog}
+      />
+
+      <ConfirmDialog
+        visible={dialog === 'fail'}
+        Icon={Trash}
+        tone="danger"
+        title="탈퇴 처리에 실패했어요."
+        body={'기록은 그대로 있어요.\n잠시 후 다시 시도해 주세요.'}
+        confirmLabel="다시 시도하기"
+        cancelLabel="나중에 하기"
+        onConfirm={() => {
+          void runWithdraw()
+        }}
+        onCancel={stay}
+        onBackdropPress={closeDialog}
+      />
     </SafeAreaView>
   )
 }

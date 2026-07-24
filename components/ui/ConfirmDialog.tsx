@@ -6,6 +6,8 @@ import { TypeStyle } from '../../constants/Typography'
 import { CenterDialog } from './AppOverlay'
 
 type ConfirmTone = 'danger' | 'warning'
+type CancelTone = 'outline' | 'primary'
+type ActionsOrder = 'cancel-confirm' | 'confirm-cancel'
 
 type ConfirmDialogProps = {
   visible: boolean
@@ -15,6 +17,10 @@ type ConfirmDialogProps = {
   confirmLabel?: string
   /** danger=삭제(error), warning=이탈 경고(악센트+주황 CTA) */
   tone?: ConfirmTone
+  /** outline=테두리 취소, primary=코랄 면(계속 이용 등) */
+  cancelTone?: CancelTone
+  /** 기본 cancel→confirm. 탈퇴 확인처럼 위험 액션을 왼쪽에 둘 때 confirm-cancel */
+  actionsOrder?: ActionsOrder
   Icon?: Icon
   onCancel: () => void
   onConfirm: () => void
@@ -22,7 +28,7 @@ type ConfirmDialogProps = {
   onBackdropPress?: () => void
 }
 
-/** 가운데 팝업 — 삭제·이탈 등 신중한 확인용 (바텀시트와 구분) */
+/** 가운데 팝업 — 삭제·이탈·탈퇴 등 신중한 확인용 (바텀시트와 구분) */
 export function ConfirmDialog({
   visible,
   title,
@@ -30,6 +36,8 @@ export function ConfirmDialog({
   cancelLabel = '나중에 할게요',
   confirmLabel = '지울래요',
   tone = 'danger',
+  cancelTone = 'outline',
+  actionsOrder = 'cancel-confirm',
   Icon,
   onCancel,
   onConfirm,
@@ -38,6 +46,43 @@ export function ConfirmDialog({
   const isDanger = tone === 'danger'
   const Glyph = Icon ?? (isDanger ? Trash : Warning)
   const iconColor = isDanger ? Colors.error : Colors.accent
+  const confirmFirst = actionsOrder === 'confirm-cancel'
+
+  const cancelBtn = (
+    <Pressable
+      key="cancel"
+      accessibilityRole="button"
+      accessibilityLabel={cancelLabel}
+      onPress={onCancel}
+      style={({ pressed }) => [
+        cancelTone === 'primary' ? styles.primary : styles.secondary,
+        pressed && (cancelTone === 'primary' ? styles.actionPressed : styles.pressed),
+      ]}
+    >
+      <Text
+        style={
+          cancelTone === 'primary' ? styles.confirmText : styles.secondaryText
+        }
+      >
+        {cancelLabel}
+      </Text>
+    </Pressable>
+  )
+
+  const confirmBtn = (
+    <Pressable
+      key="confirm"
+      accessibilityRole="button"
+      accessibilityLabel={confirmLabel}
+      onPress={onConfirm}
+      style={({ pressed }) => [
+        isDanger ? styles.danger : styles.primary,
+        pressed && styles.actionPressed,
+      ]}
+    >
+      <Text style={styles.confirmText}>{confirmLabel}</Text>
+    </Pressable>
+  )
 
   return (
     <CenterDialog
@@ -57,25 +102,17 @@ export function ConfirmDialog({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>{body}</Text>
       <View style={styles.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
-          onPress={onCancel}
-          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
-        >
-          <Text style={styles.secondaryText}>{cancelLabel}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={confirmLabel}
-          onPress={onConfirm}
-          style={({ pressed }) => [
-            isDanger ? styles.danger : styles.primary,
-            pressed && styles.actionPressed,
-          ]}
-        >
-          <Text style={styles.confirmText}>{confirmLabel}</Text>
-        </Pressable>
+        {confirmFirst ? (
+          <>
+            {confirmBtn}
+            {cancelBtn}
+          </>
+        ) : (
+          <>
+            {cancelBtn}
+            {confirmBtn}
+          </>
+        )}
       </View>
     </CenterDialog>
   )
@@ -152,7 +189,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   confirmText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.buttonPrimaryText,
   },

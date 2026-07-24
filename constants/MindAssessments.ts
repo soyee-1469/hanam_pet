@@ -25,20 +25,20 @@ export type SeverityBand = {
   tips: string[]
 }
 
-/** 그래프·선·필 공통 — 감정분포 파스텔과 같은 톤 */
+/** 그래프·선·필 공통 — 크림 배경에서도 탁하지 않게 맑은 파스텔 */
 export const SEVERITY_CHART_COLOR: Record<SeverityId, string> = {
-  normal: '#E4EBB8',
-  mild: '#FBECC4',
-  moderate: '#F7D7B8',
-  severe: '#F5D0CD',
+  normal: '#C8E6A8',
+  mild: '#FFE28A',
+  moderate: '#FFC4B0',
+  severe: '#F5C0C8',
 }
 
 /** 분포 바 면 — 차트색보다 한 톤 더 옅게 */
 export const SEVERITY_BAR_COLOR: Record<SeverityId, string> = {
-  normal: '#EEF3DC',
-  mild: '#FDF6E0',
-  moderate: '#FCEEE6',
-  severe: '#FAEAEA',
+  normal: '#E0F0D0',
+  mild: '#FFF3C8',
+  moderate: '#FFE6DC',
+  severe: '#FAE4E8',
 }
 
 export type AssessmentDef = {
@@ -175,7 +175,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '정상',
     min: 0,
     max: 9,
-    color: '#E4EBB8',
+    color: '#C8E6A8',
     meaning: '일상에 지장이 적은 안정적인 상태',
     opinionTitle: '정상 (0-9점) 전문가 소견',
     opinionBody:
@@ -193,7 +193,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '경도 수준의 우울장애',
     min: 10,
     max: 18,
-    color: '#FBECC4',
+    color: '#FFE28A',
     meaning: '가벼운 우울감, 셀프케어와 관찰 권장',
     opinionTitle: '경도 (10-18점) 전문가 소견',
     opinionBody:
@@ -211,7 +211,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중등도 수준의 우울장애',
     min: 19,
     max: 27,
-    color: '#F7D7B8',
+    color: '#FFC4B0',
     meaning: '일상 기능 저하, 전문 상담 권장',
     opinionTitle: '중등도 (19-27점) 전문가 소견',
     opinionBody:
@@ -229,7 +229,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 우울장애',
     min: 28,
     max: 36,
-    color: '#F5D0CD',
+    color: '#F5C0C8',
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (28-36점) 전문가 소견',
     opinionBody:
@@ -251,7 +251,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '정상',
     min: 0,
     max: 9,
-    color: '#E4EBB8',
+    color: '#C8E6A8',
     meaning: '일상에 지장이 적은 안정적인 상태',
     opinionTitle: '정상 (0-9점) 전문가 소견',
     opinionBody:
@@ -269,7 +269,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '경증 수준의 불안장애',
     min: 10,
     max: 16,
-    color: '#E8F0D0',
+    color: '#D8ECA8',
     meaning: '가벼운 불안감, 셀프케어와 관찰 권장',
     opinionTitle: '경증 (10-16점) 전문가 소견',
     opinionBody:
@@ -287,7 +287,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '중등도 수준의 불안장애',
     min: 17,
     max: 24,
-    color: '#F7D7B8',
+    color: '#FFC4B0',
     meaning: '일상 기능 저하, 전문 상담 권장',
     opinionTitle: '중등도 (17-24점) 전문가 소견',
     opinionBody:
@@ -305,7 +305,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 불안장애',
     min: 25,
     max: 33,
-    color: '#F5D0CD',
+    color: '#F5C0C8',
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (25-33점) 전문가 소견',
     opinionBody:
@@ -327,7 +327,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '낮은 수준의 스트레스',
     min: 0,
     max: 10,
-    color: '#E4EBB8',
+    color: '#C8E6A8',
     meaning: '대처 능력이 우수하며 안정적인 상태',
     opinionTitle: '낮은 수준 (0-10점) 전문가 소견',
     opinionBody:
@@ -345,7 +345,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '중등도 이상의 스트레스',
     min: 11,
     max: 20,
-    color: '#FBECC4',
+    color: '#FFE28A',
     meaning: '지속적인 주의와 점진적 해소 방법 필요',
     opinionTitle: '중등도 이상 (11-20점) 전문가 소견',
     opinionBody:
@@ -363,7 +363,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '매우 높은 중증 스트레스',
     min: 21,
     max: 33,
-    color: '#F5D0CD',
+    color: '#F5C0C8',
     meaning: '적극적인 원인 파악 및 전문적 도움 권장',
     opinionTitle: '매우 높은 중증 (21-33점) 전문가 소견',
     opinionBody:

@@ -22,8 +22,10 @@ import { HelpContactsSheet } from '../components/HelpContactsSheet'
 import {
   getSeverityBand,
   getSeverityBands,
+  SEVERITY_CHART_COLOR,
   statusLabel,
   type AssessmentId,
+  type SeverityId,
 } from '../constants/MindAssessments'
 import { showToast } from '../lib/toast'
 import { saveMindCheckResult } from '../lib/mindCheckResults'
@@ -39,6 +41,8 @@ const RING_SIZE = 160
 const RING_STROKE = 16
 const RING_R = (RING_SIZE - RING_STROKE) / 2
 const RING_C = 2 * Math.PI * RING_R
+/** 크림 배경과 안 묻히는 차가운 트랙 */
+const RING_TRACK = '#F1ECE6'
 
 function ScoreRing({
   score,
@@ -59,7 +63,7 @@ function ScoreRing({
           cx={RING_SIZE / 2}
           cy={RING_SIZE / 2}
           r={RING_R}
-          stroke={Colors.energyTrack}
+          stroke={RING_TRACK}
           strokeWidth={RING_STROKE}
           fill="none"
         />
@@ -113,7 +117,8 @@ export default function MindCheckResultScreen() {
   const [saving, setSaving] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const accent = band.color
+  const accent =
+    SEVERITY_CHART_COLOR[band.id as SeverityId] ?? band.color
 
   const persistAndGoHome = async () => {
     await saveMindCheckResult({
@@ -175,12 +180,14 @@ export default function MindCheckResultScreen() {
           <View style={styles.spectrumRow}>
             {bands.map((b) => {
               const mine = b.id === band.id
+              const segColor =
+                SEVERITY_CHART_COLOR[b.id as SeverityId] ?? b.color
               return (
                 <View key={b.id} style={styles.spectrumItem}>
                   <View
                     style={[
                       styles.spectrumSeg,
-                      { backgroundColor: b.color },
+                      { backgroundColor: segColor },
                       mine && styles.spectrumSegActive,
                     ]}
                   />

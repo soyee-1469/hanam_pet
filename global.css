@@ -22,9 +22,13 @@ button {
   -webkit-appearance: none;
   border: none;
   margin: 0;
-  /* UA padding·기본 면색이 원형/텍스트 버튼 뒤에 사각으로 남는 것 방지 */
+  /* UA padding이 원형 버튼 뒤에 사각으로 남는 것 방지 */
   padding: 0;
-  background: transparent !important;
+  /*
+   * 절대 background: transparent !important 쓰지 마세요.
+   * RN Web Pressable → <button> 이라 CTA 코랄 배경까지 지워집니다.
+   * 면색이 필요하면 Pressable 안쪽 View에 backgroundColor를 두세요.
+   */
 }
 
 input:focus,

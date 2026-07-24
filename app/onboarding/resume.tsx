@@ -27,7 +27,7 @@ import {
   Question,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'

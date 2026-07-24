@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { Images } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
@@ -100,23 +99,23 @@ export default function RecoveryCodeScreen() {
         </View>
 
         <Text style={styles.description}>
-          휴대폰을 변경하거나 앱을 재설치할 때, 이 번호로 기존의 소중한 마음
-          기록을 안전하게 불러올 수 있어요.
+          휴대폰을 바꾸거나 앱을 다시 설치할 때, 이 번호로 마음 기록을 불러올 수
+          있어요.
         </Text>
 
-        {/* 멤버십 카드 — 크림 그라데이션 · 스트라이프 · 번호 · 브랜드 · 펫 */}
+        {/* 멤버십 카드 — 단색 크림 면 + 코코아 밴드 (그라데이션 없음) */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
-            <LinearGradient
-              colors={['#FFF9F3', '#F3E6DA', '#E8D5C6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
+            <View style={styles.stripe}>
+              <View style={styles.stripeDot} />
+              <View style={[styles.stripeDot, styles.stripeDotSoft]} />
+            </View>
 
-            <View style={styles.stripe} />
+            <View style={styles.codePlate}>
+              <Text style={styles.codeCaption}>기록 번호</Text>
+              <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
+            </View>
 
-            <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             <Text style={styles.brandName}>하남이네 힐링펫</Text>
             <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
 
@@ -213,7 +212,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
-    marginBottom: 28,
+    marginBottom: 24,
   },
   cardShell: {
     alignSelf: 'center',
@@ -223,33 +222,61 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.sand,
+    borderColor: Colors.border,
     backgroundColor: Colors.creamyBeige,
-    shadowColor: Colors.cocoa,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    elevation: 12,
+    ...Shadows.elevation,
   },
   cardCapture: {
     flex: 1,
+    backgroundColor: Colors.creamyBeige,
     paddingTop: 0,
     paddingHorizontal: 22,
     paddingBottom: 10,
     overflow: 'hidden',
   },
   stripe: {
-    height: 36,
+    height: 40,
     marginHorizontal: -22,
-    marginBottom: 28,
+    marginBottom: 22,
     backgroundColor: Colors.selected,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: 18,
+    gap: 8,
+  },
+  stripeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.accent,
+  },
+  stripeDotSoft: {
+    backgroundColor: Colors.accentSoft,
+    opacity: 0.9,
+  },
+  codePlate: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.sand,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    marginBottom: 18,
+    alignItems: 'center',
+    gap: 6,
+  },
+  codeCaption: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    letterSpacing: -0.2,
   },
   codeValue: {
-    fontSize: 36,
+    fontSize: 34,
     fontWeight: '800',
     color: Colors.cocoa,
-    letterSpacing: 3,
-    marginBottom: 14,
+    letterSpacing: 4,
   },
   brandName: {
     fontSize: 16,

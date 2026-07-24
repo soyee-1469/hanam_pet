@@ -41,13 +41,14 @@ const SECTIONS: SettingsSection[] = [
     rows: [
       { id: 'recovery', title: '내 기록 가져오기 번호' },
       { id: 'nickname', title: '내 닉네임' },
-      { id: 'pet', title: '함께 하는 펫 친구' },
+      { id: 'pet', title: '내 펫 관리' },
     ],
   },
   {
     id: 'records',
     title: '기록 관리',
     rows: [
+      { id: 'new-chat', title: '새로운 대화 시작하기' },
       { id: 'new-diary', title: '새로운 마음일기 쓰기' },
       { id: 'new-mind', title: '새로운 마음 살피기' },
     ],
@@ -63,7 +64,7 @@ const SECTIONS: SettingsSection[] = [
         id: 'version',
         title: `앱 버전 ${APP_VERSION}`,
         kind: 'version',
-        trailing: '최신 버전',
+        trailing: '업데이트',
       },
     ],
   },
@@ -87,18 +88,31 @@ function SettingsRow({
 
   if (isVersion) {
     return (
-      <View
-        style={[styles.row, !isLast && styles.rowDivider]}
-        accessibilityRole="text"
+      <Pressable
+        accessibilityRole="button"
         accessibilityLabel={`${item.title}, ${item.trailing ?? ''}`}
+        android_ripple={{ color: 'transparent' }}
+        onPress={onPress}
+        onHoverIn={() => setHovered(true)}
+        onHoverOut={() => setHovered(false)}
+        style={({ pressed }) => [pressed && styles.rowPressed]}
       >
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        {item.trailing ? (
-          <Text style={styles.rowTrailing}>{item.trailing}</Text>
-        ) : null}
-      </View>
+        <View
+          style={[
+            styles.row,
+            !isLast && styles.rowDivider,
+            hovered && styles.rowHover,
+          ]}
+        >
+          <Text style={styles.rowTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          {item.trailing ? (
+            <Text style={styles.rowTrailingUpdate}>{item.trailing}</Text>
+          ) : null}
+          <CaretRight size={16} color={Colors.textDisabled} weight="bold" />
+        </View>
+      </Pressable>
     )
   }
 
@@ -151,6 +165,9 @@ function MoreScreenBody() {
       case 'pet':
         router.push('/pet-manage')
         return
+      case 'new-chat':
+        router.push({ pathname: '/record-reset', params: { kind: 'chat' } })
+        return
       case 'new-diary':
         router.push({ pathname: '/record-reset', params: { kind: 'diary' } })
         return
@@ -165,6 +182,9 @@ function MoreScreenBody() {
         return
       case 'oss':
         router.push({ pathname: '/guide-doc', params: { id: 'oss' } })
+        return
+      case 'version':
+        // 스토어 연결 전 — 안내만
         return
       case 'support':
         router.push('/support')
@@ -198,11 +218,7 @@ function MoreScreenBody() {
                   key={row.id}
                   item={row}
                   isLast={i === section.rows.length - 1}
-                  onPress={
-                    row.kind === 'version'
-                      ? undefined
-                      : () => onRowPress(row.id)
-                  }
+                  onPress={() => onRowPress(row.id)}
                 />
               ))}
             </View>

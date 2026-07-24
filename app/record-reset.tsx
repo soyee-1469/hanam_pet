@@ -14,9 +14,10 @@ import { Layout } from '../constants/Layout'
 import { ConfirmDialog, ScreenHeader } from '../components/ui'
 import { clearDiaryRecords } from '../lib/diaryRecords'
 import { clearMindCheckResults } from '../lib/mindCheckResults'
+import { clearChatSession } from '../lib/chatSession'
 import { showToast } from '../lib/toast'
 
-type ResetKind = 'diary' | 'mind'
+type ResetKind = 'chat' | 'diary' | 'mind'
 
 type ResetConfig = {
   title: string
@@ -34,6 +35,19 @@ const WARNING =
   '삭제하거나 초기화를 하면 하남이와 처음 만난 날의 상태로 돌아가요. 기록을 다시 찾을 수 없으니 신중하게 해주세요.'
 
 const CONFIG: Record<ResetKind, ResetConfig> = {
+  chat: {
+    title: '새로운 대화 시작하기',
+    actionTitle: '새로운 대화 시작하기',
+    actionDesc:
+      '펫과 나눈 대화를 모두 비우고 처음부터 다시 이야기해요.',
+    confirmTitle: '대화를 모두 비울까요?',
+    confirmBody:
+      '저장된 대화 내용이 삭제돼요. 이 작업은 되돌릴 수 없어요.',
+    confirmLabel: '비울래요',
+    doneMessage: '대화를 비웠어요. 새로 이야기해 볼까요?',
+    afterHref: '/(tabs)/chat',
+    clear: () => clearChatSession(),
+  },
   diary: {
     title: '새로운 마음일기 쓰기',
     actionTitle: '새로운 마음일기 쓰기',
@@ -64,7 +78,7 @@ const CONFIG: Record<ResetKind, ResetConfig> = {
 
 function parseKind(raw: string | string[] | undefined): ResetKind | null {
   const v = Array.isArray(raw) ? raw[0] : raw
-  if (v === 'diary' || v === 'mind') return v
+  if (v === 'chat' || v === 'diary' || v === 'mind') return v
   return null
 }
 

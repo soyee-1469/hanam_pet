@@ -80,6 +80,8 @@ export default function OnboardingRestoreCode() {
     setPermSheetOpen(false)
     setSaving(true)
     try {
+      // 안내 시트가 닫힌 뒤 시스템 권한 팝업이 보이도록 잠깐 대기
+      await new Promise((r) => setTimeout(r, 320))
       const result = await saveRecoveryCodeImage(cardRef)
       if (result === 'saved') {
         showToast(copy.savedToast)

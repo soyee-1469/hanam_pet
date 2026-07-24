@@ -322,37 +322,39 @@ function DiaryScreenBody() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.monthRow}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => shiftMonth(-1)}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.monthNav,
-              { cursor: 'pointer' } as object,
-              pressed && styles.iconBtnPressed,
-            ]}
-          >
-            <CaretLeft size={20} color={Colors.textSecondary} weight="bold" />
-          </Pressable>
-          <Text style={styles.monthLabel}>
-            {year}년 {month + 1}월
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => shiftMonth(1)}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.monthNav,
-              { cursor: 'pointer' } as object,
-              pressed && styles.iconBtnPressed,
-            ]}
-          >
-            <CaretRight size={20} color={Colors.textSecondary} weight="bold" />
-          </Pressable>
-        </View>
-
         <View style={styles.calendarCard}>
+          <View style={styles.monthRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="이전 달"
+              onPress={() => shiftMonth(-1)}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.monthNav,
+                { cursor: 'pointer' } as object,
+                pressed && styles.iconBtnPressed,
+              ]}
+            >
+              <CaretLeft size={20} color={Colors.textSecondary} weight="bold" />
+            </Pressable>
+            <Text style={styles.monthLabel}>
+              {year}년 {month + 1}월
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="다음 달"
+              onPress={() => shiftMonth(1)}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.monthNav,
+                { cursor: 'pointer' } as object,
+                pressed && styles.iconBtnPressed,
+              ]}
+            >
+              <CaretRight size={20} color={Colors.textSecondary} weight="bold" />
+            </Pressable>
+          </View>
+
           <View style={styles.weekdayRow}>
             {WEEKDAYS.map((w, i) => (
               <Text
@@ -570,11 +572,7 @@ function DiaryScreenBody() {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            selectedDayCount > 0
-              ? '마음을 더 기록할게요'
-              : '마음을 기록할게요'
-          }
+          accessibilityLabel="+ 마음을 기록할게요"
           onPress={openWriteForSelected}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
@@ -586,11 +584,7 @@ function DiaryScreenBody() {
           >
             <View style={styles.cta} collapsable={false}>
               <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-              <Text style={styles.ctaText}>
-                {selectedDayCount > 0
-                  ? '마음을 더 기록할게요'
-                  : '마음을 기록할게요'}
-              </Text>
+              <Text style={styles.ctaText}>마음을 기록할게요</Text>
             </View>
           </View>
         </Pressable>
@@ -693,7 +687,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 10,
     gap: 12,
   },
   monthNav: {
@@ -714,7 +708,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 20,
     paddingHorizontal: 10,
-    paddingTop: 14,
+    paddingTop: 10,
     paddingBottom: 10,
   },
   belowCalendar: {

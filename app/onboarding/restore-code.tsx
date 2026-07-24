@@ -26,6 +26,7 @@ import {
   onboardingFooterStyle,
 } from '../../components/ui'
 import { PhotoPermissionDeniedDialog } from '../../components/PhotoPermissionDeniedDialog'
+import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
 import { getOnboardingDraft } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -52,6 +53,7 @@ export default function OnboardingRestoreCode() {
   const cardRef = useRef<View>(null)
 
   const [saving, setSaving] = useState(false)
+  const [permSheetOpen, setPermSheetOpen] = useState(false)
   const [deniedOpen, setDeniedOpen] = useState(false)
   const [methodsOpen, setMethodsOpen] = useState(false)
   const didNavigate = useRef(false)
@@ -75,6 +77,7 @@ export default function OnboardingRestoreCode() {
 
   const saveToGallery = async () => {
     if (saving) return
+    setPermSheetOpen(false)
     setSaving(true)
     try {
       const result = await saveRecoveryCodeImage(cardRef)
@@ -101,6 +104,13 @@ export default function OnboardingRestoreCode() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const saveOtherWay = () => {
+    setPermSheetOpen(false)
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setMethodsOpen(true)
+    void copyCode()
   }
 
   const toggleMethods = () => {
@@ -180,9 +190,7 @@ export default function OnboardingRestoreCode() {
           <PrimaryButton
             label={copy.cta}
             emphasized
-            onPress={() => {
-              void saveToGallery()
-            }}
+            onPress={() => setPermSheetOpen(true)}
           />
         )}
         <Pressable
@@ -200,6 +208,14 @@ export default function OnboardingRestoreCode() {
           <Text style={styles.copyLinkText}>{copy.copyLink}</Text>
         </Pressable>
       </View>
+
+      <PhotoPermissionSheet
+        visible={permSheetOpen}
+        onAllow={() => {
+          void saveToGallery()
+        }}
+        onOtherWay={saveOtherWay}
+      />
 
       <PhotoPermissionDeniedDialog
         visible={deniedOpen}

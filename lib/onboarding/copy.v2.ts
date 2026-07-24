@@ -263,11 +263,11 @@ export const onboardingCopyV2 = {
     savingMessage: '번호를 사진첩에 저장하는 중이에요',
     copiedToast: '클립보드에 복사되었어요!',
     savedToast: '사진첩에 저장했어요',
-    sheetTitle: '번호를 안전하게 보관해요',
+    sheetTitle: '사진 및 사진첩 접근 권한',
     sheetBody:
-      '클립보드에 번호를 복사해 드릴게요. 메모장에 붙여 넣거나 스크린샷으로 남겨 두세요.',
-    sheetPrimary: '복사하고 계속하기',
-    sheetAlt: '나중에 할게요',
+      "사진첩에 번호를 저장하기 위해 권한이 필요해요.\n다음 화면에서 '허용'을 눌러 주세요.",
+    sheetPrimary: '알겠어요',
+    sheetAlt: '다른 방법으로 저장할게요',
   },
 
   /** ob-01 환영 — 펫 만나기 전, 준비 시작 안내 */

@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
-import { Copy } from 'phosphor-react-native'
+import { Images } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { BottomSheet } from './ui/AppOverlay'
 import { PrimaryButton } from './ui'
@@ -12,8 +12,7 @@ type PhotoPermissionSheetProps = {
 }
 
 /**
- * 기록 가져오기 번호 보관 안내 바텀시트
- * (실제 동작은 클립보드 복사 + 스크린샷 유도 — 사진첩 저장 아님)
+ * 기록 가져오기 번호 — 사진첩 저장 전 권한 안내 바텀시트
  */
 export function PhotoPermissionSheet({
   visible,
@@ -25,11 +24,11 @@ export function PhotoPermissionSheet({
   return (
     <BottomSheet visible={visible} onRequestClose={onOtherWay}>
       <View style={styles.iconWrap}>
-        <Copy size={36} color={Colors.selected} weight="fill" />
+        <Images size={34} color={Colors.selected} weight="fill" />
       </View>
       <Text style={styles.title}>{sheet.sheetTitle}</Text>
       <Text style={styles.body}>{sheet.sheetBody}</Text>
-      <PrimaryButton label={sheet.sheetPrimary} onPress={onAllow} />
+      <PrimaryButton label={sheet.sheetPrimary} emphasized onPress={onAllow} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={sheet.sheetAlt}
@@ -56,7 +55,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
@@ -76,8 +75,9 @@ const styles = StyleSheet.create({
   },
   altText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textDisabled,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textDecorationLine: 'underline',
   },
   pressed: {
     opacity: 0.75,

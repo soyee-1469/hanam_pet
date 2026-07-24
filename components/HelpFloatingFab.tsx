@@ -152,7 +152,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   chevron: {
-    marginRight: 0,
+    width: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   copy: {
     alignItems: 'center',

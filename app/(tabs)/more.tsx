@@ -308,12 +308,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
   },
-  rowTrailingUpdate: {
-    flexShrink: 0,
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.primary,
-  },
   withdrawBtn: {
     alignSelf: 'center',
     paddingVertical: 8,

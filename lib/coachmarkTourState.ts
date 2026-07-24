@@ -40,6 +40,13 @@ export function clearPetTour(): void {
   setPetTourStepIndex(null)
 }
 
+/** 마지막 「시작」 — 완료 시트 없이 투어 종료 */
+export function finishPetTourDone(): void {
+  stepIndex = null
+  completePending = false
+  emit()
+}
+
 /** 마지막 스텝 다음 — 투어 종료 + 완료 시트 대기 */
 export function finishPetTourWithComplete(): void {
   stepIndex = null

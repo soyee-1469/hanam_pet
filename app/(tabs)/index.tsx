@@ -98,6 +98,7 @@ import {
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
   dismissPetTourComplete,
+  finishPetTourDone,
   finishPetTourWithComplete,
   getPetTourCompletePending,
   getPetTourStepIndex,
@@ -1012,7 +1013,7 @@ function PetHomeScreenBody() {
   }
 
   const finishPetTour = async () => {
-    finishPetTourWithComplete()
+    finishPetTourDone()
     await setCoachmarkWelcomeStatus('accepted')
   }
 
@@ -1035,6 +1036,7 @@ function PetHomeScreenBody() {
   const showPetTour = tourStep?.route === 'pet'
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
   const tourHighlightMenu = showPetTour && tourStep?.highlight === 'menu'
+  const tourHighlightTabs = showPetTour && tourStep?.highlight === 'tabs'
   const showGuideTips =
     tipsReady && !coachWelcomeOpen && !showPetTour && !coachCompleteOpen
   const showStockTip = showGuideTips && stockTipOn
@@ -1714,15 +1716,17 @@ function PetHomeScreenBody() {
             stepIndex={coachTourStep ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            {...(tourHighlightMenu
-              ? {
-                  top: headerTopPad + 118,
-                  tailAlign: 'start' as const,
-                }
-              : {
-                  bottom:
-                    tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38,
-                })}
+            {...(tourHighlightTabs
+              ? { center: true as const }
+              : tourHighlightMenu
+                ? {
+                    top: headerTopPad + 118,
+                    tailAlign: 'start' as const,
+                  }
+                : {
+                    bottom:
+                      tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38,
+                  })}
           />
         </>
       ) : null}

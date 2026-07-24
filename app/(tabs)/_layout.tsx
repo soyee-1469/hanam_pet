@@ -13,7 +13,7 @@ import type { Icon } from 'phosphor-react-native'
 import { ChatTabIcon } from '../../components/ChatTabIcon'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
-import { petTourTabRouteName } from '../../lib/coachmarkTour'
+import { petTourTabHighlight, type PetTourTabHighlight } from '../../lib/coachmarkTour'
 import {
   getPetTourStepIndex,
   subscribePetTour,
@@ -26,6 +26,8 @@ import {
 
 type TourTabName = 'chat' | 'diary' | 'index' | 'mind' | 'more'
 
+const MAIN_MENU_TABS: TourTabName[] = ['chat', 'diary', 'index', 'mind']
+
 /** Soft tab button — navigation tab bar button props */
 type SoftTabButtonProps = {
   children: ReactNode
@@ -37,12 +39,21 @@ type SoftTabButtonProps = {
   testID?: string
 }
 
-function useTourTabHighlight(): ReturnType<typeof petTourTabRouteName> {
+function useTourTabHighlight(): PetTourTabHighlight {
   const [step, setStep] = useState(getPetTourStepIndex)
   useEffect(() => {
     return subscribePetTour(() => setStep(getPetTourStepIndex()))
   }, [])
-  return petTourTabRouteName(step)
+  return petTourTabHighlight(step)
+}
+
+function isTourTabSpotlight(
+  routeName: TourTabName,
+  highlight: PetTourTabHighlight,
+): boolean {
+  if (highlight == null) return false
+  if (highlight.mode === 'mainMenu') return MAIN_MENU_TABS.includes(routeName)
+  return highlight.route === routeName
 }
 
 function SoftTabButton({
@@ -57,10 +68,11 @@ function SoftTabButton({
   highlightRoute,
 }: SoftTabButtonProps & {
   routeName: TourTabName
-  highlightRoute: ReturnType<typeof petTourTabRouteName>
+  highlightRoute: PetTourTabHighlight
 }) {
-  const spotlight = highlightRoute != null && highlightRoute === routeName
-  const dimmed = highlightRoute != null && highlightRoute !== routeName
+  const spotlight = isTourTabSpotlight(routeName, highlightRoute)
+  const dimmed = highlightRoute != null && !spotlight
+  const mainMenu = highlightRoute?.mode === 'mainMenu' && spotlight
 
   return (
     <Pressable
@@ -74,6 +86,7 @@ function SoftTabButton({
       style={({ pressed }) => [
         style,
         spotlight && styles.tourTabSpotlight,
+        mainMenu && styles.tourTabMainMenu,
         dimmed && styles.tourTabDimmed,
         pressed && !dimmed && styles.tabPressed,
       ]}
@@ -219,111 +232,123 @@ export default function TabLayout() {
   )
 
   return (
-    <Tabs
-      initialRouteName="index"
-      detachInactiveScreens
-      screenOptions={{
-        headerShown: false,
-        freezeOnBlur: true,
-        lazy: true,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textDisabled,
-        // Opaque scenes so inactive tabs (e.g. home welcome Modal) cannot
-        // sit under / steal taps from the focused tab on web.
-        sceneStyle: { backgroundColor: Colors.background, flex: 1 },
-        tabBarStyle,
-        tabBarItemStyle: {
-          flex: 1,
-          paddingHorizontal: 0,
-        },
-        tabBarIconStyle: {
-          width: '100%',
-          height: 50,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: '대화',
-          tabBarButton: chatTabButton,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              focused={focused}
-              label="대화"
-              customIcon={
-                <ChatTabIcon
-                  focused={focused}
-                  size={31}
-                  color={String(color)}
-                />
-              }
-            />
-          ),
+    <>
+      <Tabs
+        initialRouteName="index"
+        detachInactiveScreens
+        screenOptions={{
+          headerShown: false,
+          freezeOnBlur: true,
+          lazy: true,
+          tabBarShowLabel: false,
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.textDisabled,
+          // Opaque scenes so inactive tabs (e.g. home welcome Modal) cannot
+          // sit under / steal taps from the focused tab on web.
+          sceneStyle: { backgroundColor: Colors.background, flex: 1 },
+          tabBarStyle,
+          tabBarItemStyle: {
+            flex: 1,
+            paddingHorizontal: 0,
+          },
+          tabBarIconStyle: {
+            width: '100%',
+            height: 50,
+          },
         }}
-      />
-      <Tabs.Screen
-        name="diary"
-        options={{
-          title: '마음일기',
-          tabBarButton: diaryTabButton,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              IconComponent={NotePencil}
-              color={String(color)}
-              focused={focused}
-              label="마음일기"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '나의 펫',
-          tabBarButton: petTabButton,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              IconComponent={PawPrint}
-              color={String(color)}
-              focused={focused}
-              label="나의 펫"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="mind"
-        options={{
-          title: '마음챙김',
-          tabBarButton: mindTabButton,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              IconComponent={FlowerLotus}
-              color={String(color)}
-              focused={focused}
-              label="마음챙김"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: '설정',
-          tabBarButton: moreTabButton,
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon
-              IconComponent={GearSix}
-              color={String(color)}
-              focused={focused}
-              label="설정"
-            />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="chat"
+          options={{
+            title: '대화',
+            tabBarButton: chatTabButton,
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon
+                focused={focused}
+                label="대화"
+                customIcon={
+                  <ChatTabIcon
+                    focused={focused}
+                    size={31}
+                    color={String(color)}
+                  />
+                }
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="diary"
+          options={{
+            title: '마음일기',
+            tabBarButton: diaryTabButton,
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon
+                IconComponent={NotePencil}
+                color={String(color)}
+                focused={focused}
+                label="마음일기"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: '나의 펫',
+            tabBarButton: petTabButton,
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon
+                IconComponent={PawPrint}
+                color={String(color)}
+                focused={focused}
+                label="나의 펫"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="mind"
+          options={{
+            title: '마음챙김',
+            tabBarButton: mindTabButton,
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon
+                IconComponent={FlowerLotus}
+                color={String(color)}
+                focused={focused}
+                label="마음챙김"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="more"
+          options={{
+            title: '설정',
+            tabBarButton: moreTabButton,
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon
+                IconComponent={GearSix}
+                color={String(color)}
+                focused={focused}
+                label="설정"
+              />
+            ),
+          }}
+        />
+      </Tabs>
+      {tourHighlight?.mode === 'mainMenu' && !overlayLocked ? (
+        <View
+          pointerEvents="none"
+          style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 8 }]}
+        >
+          <View style={styles.mainMenuLabel}>
+            <Text style={styles.mainMenuLabelText}>메인 메뉴 탐색</Text>
+          </View>
+        </View>
+      ) : null}
+    </>
   )
 }
 
@@ -364,10 +389,33 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     marginVertical: 2,
   },
+  tourTabMainMenu: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+  },
   tourTabDimmed: {
     opacity: 0.4,
   },
   tabPressed: {
     opacity: 0.88,
+  },
+  mainMenuLabelWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 60,
+    elevation: 60,
+    alignItems: 'center',
+  },
+  mainMenuLabel: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+  },
+  mainMenuLabelText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.surface,
   },
 })

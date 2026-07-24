@@ -6,6 +6,7 @@ export type PetTourHighlight =
   | 'writeCta'
   | 'checkTool'
   | 'menu'
+  | 'tabs'
   | 'none'
 
 export type PetTourRoute = 'pet' | 'chat' | 'diary' | 'mind'
@@ -17,8 +18,10 @@ export type PetTourStep = {
   body: (petName: string) => string
   highlight: PetTourHighlight
   route: PetTourRoute
-  /** 기본 down — 하이라이트가 카드 위일 때 up */
-  tail?: 'up' | 'down'
+  /** 기본 down — 하이라이트가 카드 위일 때 up, 최종 스텝은 none */
+  tail?: 'up' | 'down' | 'none'
+  /** 기본 「다음」 */
+  ctaLabel?: string
 }
 
 /** 시안 기준 총 장수 */
@@ -72,6 +75,17 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
     route: 'mind',
     tail: 'up',
   },
+  {
+    id: 'cm-06',
+    badge: '시작하기',
+    title: () => '이제 준비가 끝났어요!',
+    body: () =>
+      '아래 메뉴에서 원하는 기능을 자유롭게 이용해 보세요. 시작해 볼까요?',
+    highlight: 'tabs',
+    route: 'pet',
+    tail: 'none',
+    ctaLabel: '시작',
+  },
 ]
 
 export function petTourHref(route: PetTourRoute): string {
@@ -88,13 +102,32 @@ export function petTourHref(route: PetTourRoute): string {
   }
 }
 
-/** 탭 바 하이라이트용 — Tabs.Screen name */
+export type PetTourTabName = 'chat' | 'diary' | 'index' | 'mind'
+
+export type PetTourTabHighlight =
+  | { mode: 'single'; route: PetTourTabName }
+  | { mode: 'mainMenu' }
+  | null
+
+/** 탭 바 하이라이트 */
+export function petTourTabHighlight(
+  stepIndex: number | null,
+): PetTourTabHighlight {
+  if (stepIndex == null) return null
+  const step = PET_TOUR_STEPS[stepIndex]
+  if (!step) return null
+  if (step.highlight === 'tabs') return { mode: 'mainMenu' }
+  if (step.route === 'pet') return { mode: 'single', route: 'index' }
+  if (step.route === 'chat' || step.route === 'diary' || step.route === 'mind') {
+    return { mode: 'single', route: step.route }
+  }
+  return null
+}
+
+/** @deprecated use petTourTabHighlight */
 export function petTourTabRouteName(
   stepIndex: number | null,
-): 'chat' | 'diary' | 'index' | 'mind' | null {
-  if (stepIndex == null) return null
-  const route = PET_TOUR_STEPS[stepIndex]?.route
-  if (route === 'pet') return 'index'
-  if (route === 'chat' || route === 'diary' || route === 'mind') return route
-  return null
+): PetTourTabName | null {
+  const h = petTourTabHighlight(stepIndex)
+  return h?.mode === 'single' ? h.route : null
 }

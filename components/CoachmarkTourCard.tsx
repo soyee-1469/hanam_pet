@@ -8,10 +8,12 @@ type CoachmarkTourCardProps = {
   stepIndex: number
   petName: string
   onNext: () => void
-  /** 카드 세로 위치 (하단 기준) — top과 둘 중 하나 */
+  /** 카드 세로 위치 (하단 기준) — top / center와 택일 */
   bottom?: number
-  /** 카드 세로 위치 (상단 기준) — 하이라이트가 위일 때 */
+  /** 카드 세로 위치 (상단 기준) */
   top?: number
+  /** 화면 세로 중앙 */
+  center?: boolean
   /** 꼬리 가로 정렬 (상단 메뉴 등 왼쪽 타깃용) */
   tailAlign?: 'center' | 'start'
 }
@@ -24,10 +26,14 @@ export function CoachmarkTourCard({
   onNext,
   bottom,
   top,
+  center = false,
   tailAlign = 'center',
 }: CoachmarkTourCardProps) {
   const page = stepIndex + 1
-  const tailUp = step.tail === 'up'
+  const tailMode = step.tail ?? 'down'
+  const showTail = tailMode !== 'none'
+  const tailUp = tailMode === 'up'
+  const ctaLabel = step.ctaLabel ?? '다음'
   const tailStyle = [
     styles.tail,
     tailUp && styles.tailUp,
@@ -39,10 +45,11 @@ export function CoachmarkTourCard({
       pointerEvents="box-none"
       style={[
         styles.wrap,
-        top != null ? { top } : { bottom: bottom ?? 0 },
+        center && styles.wrapCenter,
+        !center && (top != null ? { top } : { bottom: bottom ?? 0 }),
       ]}
     >
-      {tailUp ? <View style={tailStyle} /> : null}
+      {showTail && tailUp ? <View style={tailStyle} /> : null}
       <View style={styles.card}>
         <View style={styles.topRow}>
           <View style={styles.badge}>
@@ -71,18 +78,18 @@ export function CoachmarkTourCard({
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="다음"
+            accessibilityLabel={ctaLabel}
             onPress={onNext}
             style={({ pressed }) => [
               styles.nextBtn,
               pressed && styles.pressed,
             ]}
           >
-            <Text style={styles.nextText}>다음</Text>
+            <Text style={styles.nextText}>{ctaLabel}</Text>
           </Pressable>
         </View>
       </View>
-      {!tailUp ? <View style={tailStyle} /> : null}
+      {showTail && !tailUp ? <View style={tailStyle} /> : null}
     </View>
   )
 }
@@ -95,6 +102,9 @@ const styles = StyleSheet.create({
     zIndex: 40,
     elevation: 40,
     alignItems: 'center',
+  },
+  wrapCenter: {
+    top: '28%',
   },
   card: {
     width: '100%',

@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft, CaretRight, Plus, X } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, List, Plus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -56,6 +56,31 @@ function moodMeta(id: DiaryMoodId) {
   return DIARY_MOODS.find((m) => m.id === id)!
 }
 
+/** 월간 분포 인사이트 — 가장 많은 감정 기준 */
+function monthMoodInsight(
+  month: number,
+  counts: Record<DiaryMoodId, number>,
+): string | null {
+  let topId: DiaryMoodId | null = null
+  let topCount = 0
+  for (const m of DIARY_MOODS) {
+    const n = counts[m.id]
+    if (n > topCount) {
+      topCount = n
+      topId = m.id
+    }
+  }
+  if (!topId || topCount === 0) return null
+  const phrase: Record<DiaryMoodId, string> = {
+    great: '기쁜 마음이 더 많았네요!',
+    good: '슬픈 마음이 더 많았네요!',
+    ok: '화난 마음이 더 많았네요!',
+    bad: '걱정인 마음이 더 많았네요!',
+    hard: '불편한 마음이 더 많았네요!',
+  }
+  return `${month}월은 ${phrase[topId]}`
+}
+
 function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 }
@@ -86,7 +111,6 @@ function DiaryScreenBody() {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   )
   const [selectedDay, setSelectedDay] = useState(today.getDate())
-  const [dayPanelOpen, setDayPanelOpen] = useState(false)
   const [petName, setPetName] = useState('하치')
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
@@ -203,13 +227,13 @@ function DiaryScreenBody() {
       count: moods.length,
       chips,
       legend,
+      insight: monthMoodInsight(month + 1, counts),
     }
-  }, [moods])
+  }, [moods, month])
 
   const shiftMonth = (delta: number) => {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
     setSelectedDay(1)
-    setDayPanelOpen(false)
   }
 
   const isFutureDay = (day: number) => {
@@ -229,8 +253,6 @@ function DiaryScreenBody() {
   const onPressDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
-    const count = countDiaryEntriesByDate(year, month + 1, day)
-    setDayPanelOpen(count > 0)
   }
 
   const selectedDayCount = useMemo(() => {
@@ -247,11 +269,11 @@ function DiaryScreenBody() {
 
   const selectedDayTitle = useMemo(() => {
     const { y, m, d } = resolveSelectedYmd()
-    return `${formatDateFromYmd(y, m, d)} · ${selectedDayCount}개 기록`
+    return `${formatDateFromYmd(y, m, d)} ${selectedDayCount}개 기록`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, selectedDayCount])
 
-  const showDayPanel = dayPanelOpen && selectedDayCount > 0
+  const showDayPanel = selectedDayCount > 0
 
   const openWriteForSelected = () => {
     const { y, m, d } = resolveSelectedYmd()
@@ -279,8 +301,20 @@ function DiaryScreenBody() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <Text style={styles.title}>마음일기</Text>
+          <Text style={styles.title}>마음 일기</Text>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="기록한 마음 보러가기"
+          hitSlop={8}
+          onPress={openMonthList}
+          style={({ pressed }) => [
+            styles.iconBtn,
+            pressed && styles.iconBtnPressed,
+          ]}
+        >
+          <List size={24} color={Colors.textPrimary} weight="regular" />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -326,6 +360,7 @@ function DiaryScreenBody() {
                 style={[
                   styles.weekday,
                   i === 0 && styles.weekdaySun,
+                  i === 6 && styles.weekdaySat,
                 ]}
               >
                 {w}
@@ -430,23 +465,9 @@ function DiaryScreenBody() {
 
         {showDayPanel ? (
           <View style={[styles.dayPanel, styles.belowCalendar]}>
-            <View style={styles.dayPanelHeader}>
-              <Text style={styles.dayPanelTitle} numberOfLines={1}>
-                {selectedDayTitle}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="닫기"
-                hitSlop={8}
-                onPress={() => setDayPanelOpen(false)}
-                style={({ pressed }) => [
-                  styles.dayPanelClose,
-                  pressed && styles.iconBtnPressed,
-                ]}
-              >
-                <X size={18} color={Colors.textSecondary} weight="bold" />
-              </Pressable>
-            </View>
+            <Text style={styles.dayPanelTitle} numberOfLines={1}>
+              {selectedDayTitle}
+            </Text>
             <ScrollView
               style={
                 selectedDayEntries.length >= DIARY_DAY_LIST_VISIBLE
@@ -493,12 +514,9 @@ function DiaryScreenBody() {
               showDayPanel ? styles.belowDayPanel : styles.belowCalendar,
             ]}
           >
-            <View style={styles.distHeader}>
-              <Text style={styles.distTitle} numberOfLines={1}>
-                이번 달 {petName}와 나눈 마음
-              </Text>
-              <Text style={styles.distCount}>{dist.count}일 기록</Text>
-            </View>
+            <Text style={styles.distTitle} numberOfLines={2}>
+              {month + 1}월 {petName}와 마음 {dist.count}일 기록
+            </Text>
             <View style={styles.distBar}>
               {dist.count === 0 ? (
                 <View style={[styles.distSeg, styles.distEmpty, { flex: 1 }]} />
@@ -535,18 +553,9 @@ function DiaryScreenBody() {
               ))}
             </View>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="기록한 마음일기 보러가기"
-              onPress={openMonthList}
-              style={({ pressed }) => [
-                styles.listLinkRow,
-                pressed && styles.iconBtnPressed,
-              ]}
-            >
-              <Text style={styles.listLinkText}>기록한 마음 보러가기</Text>
-              <CaretRight size={16} color={Colors.textSecondary} weight="bold" />
-            </Pressable>
+            {dist.insight ? (
+              <Text style={styles.distInsight}>{dist.insight}</Text>
+            ) : null}
           </View>
         )}
       </ScrollView>
@@ -717,24 +726,11 @@ const styles = StyleSheet.create({
   dayPanel: {
     gap: 10,
   },
-  dayPanelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 4,
-  },
   dayPanelTitle: {
-    flex: 1,
-    minWidth: 0,
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
-  },
-  dayPanelClose: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   dayListContent: {
     gap: 10,
@@ -756,6 +752,9 @@ const styles = StyleSheet.create({
   },
   weekdaySun: {
     color: Colors.primary,
+  },
+  weekdaySat: {
+    color: Colors.cocoa,
   },
   daysGrid: {
     width: '100%',
@@ -847,23 +846,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 18,
   },
-  distHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
   distTitle: {
-    flex: 1,
-    marginRight: 8,
+    marginBottom: 14,
     fontSize: 15,
     fontWeight: '700',
     color: Colors.textPrimary,
-  },
-  distCount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
   },
   distBar: {
     height: 8,
@@ -904,19 +891,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
   },
-  listLinkRow: {
-    marginTop: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: Layout.sectionGap,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.divider,
-  },
-  listLinkText: {
+  distInsight: {
+    marginTop: 16,
     fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   cta: {
     height: 54,

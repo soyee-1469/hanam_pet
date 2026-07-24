@@ -254,7 +254,7 @@ export default function PetManageScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,

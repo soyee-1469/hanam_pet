@@ -36,7 +36,7 @@ function goMindCheckTab() {
 }
 
 const RING_SIZE = 160
-const RING_STROKE = 14
+const RING_STROKE = 16
 const RING_R = (RING_SIZE - RING_STROKE) / 2
 const RING_C = 2 * Math.PI * RING_R
 
@@ -188,7 +188,6 @@ export default function MindCheckResultScreen() {
                     style={[
                       styles.spectrumLabel,
                       mine && styles.spectrumLabelActive,
-                      mine && { color: accent },
                     ]}
                   >
                     {b.label} {b.min}-{b.max}
@@ -204,7 +203,7 @@ export default function MindCheckResultScreen() {
             <View style={styles.opinionHead}>
               <Text style={styles.opinionTitle}>전문가 소견</Text>
               <View style={styles.bandBadge}>
-                <Text style={[styles.bandBadgeText, { color: accent }]}>
+                <Text style={styles.bandBadgeText}>
                   {band.label} ({score}점)
                 </Text>
               </View>
@@ -380,6 +379,7 @@ const styles = StyleSheet.create({
   },
   spectrumLabelActive: {
     fontWeight: '800',
+    color: Colors.textPrimary,
   },
   opinionWrap: {
     position: 'relative',
@@ -416,6 +416,7 @@ const styles = StyleSheet.create({
   bandBadgeText: {
     fontSize: 12,
     fontWeight: '800',
+    color: Colors.textPrimary,
   },
   opinionBody: {
     fontSize: 14,

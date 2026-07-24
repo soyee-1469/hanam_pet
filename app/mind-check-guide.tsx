@@ -21,16 +21,12 @@ import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import {
   getAssessment,
   getSeverityBands,
+  SEVERITY_CHART_COLOR,
   type AssessmentId,
 } from '../constants/MindAssessments'
 
-/** 결과 해석 pill 면색 (intro와 동일) */
-const BAND_PILL_BG: Record<string, string> = {
-  normal: '#E4EBB8',
-  mild: '#FBECC4',
-  moderate: '#F7D7B8',
-  severe: '#F5D0CD',
-}
+/** 결과 해석 pill 면색 — SEVERITY_CHART_COLOR와 동일 톤 */
+const BAND_PILL_BG = SEVERITY_CHART_COLOR
 
 export default function MindCheckGuideScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()

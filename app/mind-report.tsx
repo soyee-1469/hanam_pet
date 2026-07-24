@@ -14,9 +14,9 @@ import { Layout } from '../constants/Layout'
 import {
   getSeverityBand,
   getSeverityBands,
+  SEVERITY_BAR_COLOR,
   type AssessmentId,
   type SeverityBand,
-  type SeverityId,
 } from '../constants/MindAssessments'
 import {
   formatResultDate,
@@ -32,15 +32,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'stress', label: '스트레스' },
 ]
 
-/** 카드/분포용 파스텔 세그먼트 — 링·점수색보다 한 톤 더 밝게 */
-const SEG_PASTEL: Record<SeverityId, string> = {
-  normal: '#D8E6CC',
-  mild: '#F8ECC8',
-  moderate: '#FCE4DA',
-  severe: '#F8E0DE',
-}
-
-const SEG_EMPTY = '#EDE6DE'
+const SEG_EMPTY = '#F3EEE8'
 
 function bandLevel(band: SeverityBand, bands: SeverityBand[]): number {
   const i = bands.findIndex((b) => b.id === band.id)
@@ -195,7 +187,7 @@ export default function MindReportScreen() {
                           styles.seg,
                           {
                             backgroundColor: filled
-                              ? SEG_PASTEL[b.id] ?? b.color
+                              ? SEVERITY_BAR_COLOR[b.id] ?? b.color
                               : SEG_EMPTY,
                           },
                         ]}

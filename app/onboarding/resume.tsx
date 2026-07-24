@@ -116,6 +116,7 @@ function OtpGroup({
               selectTextOnFocus
               textContentType="oneTimeCode"
               style={styles.otpCell}
+              selectionColor={Colors.selected}
               accessibilityLabel={`${i + 1}번째 자리`}
             />
           </View>
@@ -796,7 +797,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   otpCellOn: {
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.surface,
   },
   otpCellFilled: {

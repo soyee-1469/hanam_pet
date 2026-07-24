@@ -634,6 +634,7 @@ const styles = StyleSheet.create({
   },
   reasonCardOn: {
     borderColor: Colors.selected,
+    backgroundColor: Colors.surfaceSecondary,
   },
   reasonIcon: {
     width: 44,

@@ -27,6 +27,7 @@ import {
 import { type PetChoice, NICKNAME_MAX } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { defaultPetName } from '../../lib/petProfile'
+import { fieldBorderColor } from '../../lib/fieldBorderColor'
 import {
   keyboardAvoidingBehavior,
   keyboardVerticalOffset,
@@ -80,13 +81,11 @@ export default function OnboardingProfile() {
     router.push('/onboarding/pet-select')
   }
 
-  const borderColor = tooShort
-    ? Colors.error
-    : focused
-      ? Colors.primary
-      : trimmed.length > 0
-        ? Colors.beige
-        : Colors.border
+  const borderColor = fieldBorderColor({
+    error: tooShort,
+    focused,
+    filled: trimmed.length > 0,
+  })
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -131,6 +130,7 @@ export default function OnboardingProfile() {
                 style={styles.input}
                 returnKeyType="done"
                 onSubmitEditing={goNext}
+                selectionColor={Colors.selected}
               />
               {showCounter ? (
                 <Text
@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
   ageChip: {
     flex: 1,
@@ -335,15 +336,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   chipOff: {
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
   },
   chipOn: {
     backgroundColor: Colors.selected,
+    borderColor: Colors.selected,
   },
   chipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
   chipTextOn: {
     color: Colors.surface,

@@ -32,6 +32,7 @@ import {
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { PET_NAME_MAX, defaultPetName } from '../../lib/petProfile'
+import { fieldBorderColor } from '../../lib/fieldBorderColor'
 import { DogExpr } from '../../constants/DogExpr'
 import {
   keyboardAvoidingBehavior,
@@ -204,11 +205,13 @@ export default function OnboardingPetSelect() {
     }
   }
 
-  const borderColor = tooShort
-    ? Colors.error
-    : nameFocused || trimmedName.length > 0
-      ? Colors.primary
-      : Colors.border
+  const nameDisabled = petId == null
+  const borderColor = fieldBorderColor({
+    error: tooShort,
+    disabled: nameDisabled,
+    focused: nameFocused,
+    filled: trimmedName.length > 0,
+  })
 
   const goNext = () => {
     if (!valid || !petId) return
@@ -256,7 +259,13 @@ export default function OnboardingPetSelect() {
 
           <View style={styles.fieldBlock}>
             <Text style={styles.nameLabel}>{copy.nameLabel}</Text>
-            <View style={[styles.inputShell, { borderColor }]}>
+            <View
+              style={[
+                styles.inputShell,
+                { borderColor },
+                nameDisabled && styles.inputShellDisabled,
+              ]}
+            >
               <TextInput
                 {...TextKeyboardProps}
                 value={petName}
@@ -268,19 +277,23 @@ export default function OnboardingPetSelect() {
                 maxLength={PET_NAME_MAX}
                 autoCapitalize="none"
                 autoCorrect={false}
-                editable={petId != null}
+                editable={!nameDisabled}
                 onFocus={() => {
                   setNameFocused(true)
                   scrollNameIntoView()
                 }}
                 onBlur={() => setNameFocused(false)}
-                style={styles.input}
+                style={[styles.input, nameDisabled && styles.inputDisabled]}
                 returnKeyType="done"
                 onSubmitEditing={goNext}
-                selectionColor={Colors.primary}
+                selectionColor={Colors.selected}
               />
               <Text
-                style={[styles.counter, tooShort && styles.counterError]}
+                style={[
+                  styles.counter,
+                  tooShort && styles.counterError,
+                  nameDisabled && styles.counterDisabled,
+                ]}
               >
                 {petName.length} / {PET_NAME_MAX}
               </Text>
@@ -423,7 +436,7 @@ const styles = StyleSheet.create({
   },
   cardOn: {
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
   },
   bubble: {
     position: 'absolute',
@@ -466,7 +479,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -479,7 +492,16 @@ const styles = StyleSheet.create({
   speciesNameOn: {
     fontSize: 15,
     fontWeight: '800',
-    color: Colors.primary,
+    color: Colors.selected,
+  },
+  inputShellDisabled: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  inputDisabled: {
+    color: Colors.textDisabled,
+  },
+  counterDisabled: {
+    color: Colors.textDisabled,
   },
   footer: {
     ...onboardingFooterStyle,

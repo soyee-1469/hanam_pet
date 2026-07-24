@@ -15,19 +15,22 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { Check, Plus } from 'phosphor-react-native'
 import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
-import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
-  ONBOARDING_STEPS,
+  PrimaryButton,
+  ScreenHeader,
+  onboardingFooterStyle,
+} from '../../components/ui'
+import {
   getOnboardingDraft,
   setOnboardingDraft,
 } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
-import { PET_NAME_MAX } from '../../lib/petProfile'
+import { PET_NAME_MAX, defaultPetName } from '../../lib/petProfile'
 import { DogExpr } from '../../constants/DogExpr'
-import { Heart } from 'phosphor-react-native'
 import {
   keyboardAvoidingBehavior,
   keyboardVerticalOffset,
@@ -144,12 +147,6 @@ function PetCard({
           <View style={styles.bubbleTail} />
         </Animated.View>
 
-        {selected ? (
-          <View style={styles.heart}>
-            <Heart size={14} color={Colors.selected} weight="fill" />
-          </View>
-        ) : null}
-
         <Animated.View style={{ transform: [{ scale: bounce }] }}>
           <Image
             source={PET_IMAGES[pet.id]}
@@ -158,14 +155,24 @@ function PetCard({
           />
         </Animated.View>
 
-        <Text style={[styles.speciesName, selected && styles.speciesNameOn]}>
-          {pet.species}
-        </Text>
+        {selected ? (
+          <View style={styles.speciesBadge}>
+            <View style={styles.checkDot}>
+              <Check size={11} color={Colors.surface} weight="bold" />
+            </View>
+            <Text style={styles.speciesNameOn}>{pet.species}</Text>
+          </View>
+        ) : (
+          <Text style={styles.speciesName}>{pet.species}</Text>
+        )}
       </View>
     </Pressable>
   )
 }
 
+/**
+ * 온보딩 — 펫 친구 선택 (종류 필수, 이름 선택)
+ */
 export default function OnboardingPetSelect() {
   const draft = getOnboardingDraft()
   const [petId, setPetId] = useState<PetChoice | null>(draft.petId)
@@ -181,40 +188,38 @@ export default function OnboardingPetSelect() {
     onOpen: scrollNameIntoView,
   })
 
-  const selectedPet = copy.pets.find((p) => p.id === petId)
   const trimmedName = petName.trim()
   const tooShort = trimmedName.length > 0 && trimmedName.length < 2
-  const atMax = trimmedName.length >= PET_NAME_MAX
-  const nameValid = trimmedName.length >= 2 && trimmedName.length <= PET_NAME_MAX
-  const valid = petId != null && nameValid
+  /** 이름 비워도 OK → 하치/나미 */
+  const nameOk = !tooShort && trimmedName.length <= PET_NAME_MAX
+  const valid = petId != null && nameOk
 
   const selectPet = (id: PetChoice) => {
     setPetId(id)
-    const defaults = copy.pets.find((p) => p.id === id)?.name ?? ''
-    // 아직 비어 있거나 기본값(이전 선택 디폴트)만 있을 때 새 디폴트로 채움
-    const otherDefaults = copy.pets.map((p) => p.name)
-    if (!trimmedName || otherDefaults.includes(trimmedName)) {
-      setPetName(defaults)
+    const defaults = copy.pets.map((p) => p.name)
+    if (!trimmedName || defaults.includes(trimmedName)) {
+      setPetName(copy.pets.find((p) => p.id === id)?.name ?? '')
     }
   }
 
   const borderColor = tooShort
     ? Colors.error
-    : nameFocused
+    : nameFocused || trimmedName.length > 0
       ? Colors.primary
-      : trimmedName.length > 0
-        ? Colors.beige
-        : Colors.border
+      : Colors.border
 
   const goNext = () => {
     if (!valid || !petId) return
-    setOnboardingDraft({ petId, petName: trimmedName })
+    const nextName =
+      trimmedName.length >= 2 ? trimmedName : defaultPetName(petId)
+    setOnboardingDraft({ petId, petName: nextName })
+    setPetName(nextName)
     router.push('/onboarding/restore-code')
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader title={copy.header} onBack={() => router.back()} />
+      <ScreenHeader onBack={() => router.back()} />
 
       <KeyboardAvoidingView
         style={[
@@ -254,7 +259,9 @@ export default function OnboardingPetSelect() {
                 {...TextKeyboardProps}
                 value={petName}
                 onChangeText={(t) => setPetName(t.slice(0, PET_NAME_MAX))}
-                placeholder={copy.namePlaceholder}
+                placeholder={
+                  petId ? defaultPetName(petId) : copy.namePlaceholder
+                }
                 placeholderTextColor={Colors.textDisabled}
                 maxLength={PET_NAME_MAX}
                 autoCapitalize="none"
@@ -268,31 +275,26 @@ export default function OnboardingPetSelect() {
                 style={styles.input}
                 returnKeyType="done"
                 onSubmitEditing={goNext}
+                selectionColor={Colors.primary}
               />
-              {atMax || tooShort ? (
-                <Text
-                  style={[
-                    styles.counter,
-                    atMax && styles.counterMax,
-                    tooShort && styles.counterError,
-                  ]}
-                >
-                  {trimmedName.length} / {PET_NAME_MAX}
-                </Text>
-              ) : null}
+              <Text
+                style={[styles.counter, tooShort && styles.counterError]}
+              >
+                {petName.length} / {PET_NAME_MAX}
+              </Text>
             </View>
             {tooShort ? (
               <Text style={styles.hintError}>{copy.nameHintInvalid}</Text>
-            ) : atMax ? (
-              <Text style={styles.hintMax}>{copy.nameMaxHint}</Text>
             ) : (
-              <Text style={styles.nameHint}>{copy.nameHint}</Text>
+              <View style={styles.hintRow}>
+                <Plus size={12} color={Colors.textSecondary} weight="bold" />
+                <Text style={styles.nameHint}>{copy.nameHint}</Text>
+              </View>
             )}
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
-          <ProgressDots total={ONBOARDING_STEPS} index={2} />
           <PrimaryButton
             label={copy.cta}
             disabled={!valid}
@@ -308,7 +310,7 @@ export default function OnboardingPetSelect() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,
@@ -324,35 +326,36 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 8,
     lineHeight: 30,
+    letterSpacing: -0.3,
   },
   sub: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   speciesLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 10,
   },
   fieldBlock: {
-    marginTop: 24,
+    marginTop: 28,
     width: '100%',
   },
   nameLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 8,
   },
   inputShell: {
-    height: 48,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1.5,
     backgroundColor: Colors.surface,
     paddingHorizontal: 14,
@@ -368,18 +371,21 @@ const styles = StyleSheet.create({
   },
   counter: {
     marginLeft: 8,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.textDisabled,
-  },
-  counterMax: {
-    color: Colors.textSecondary,
   },
   counterError: {
     color: Colors.error,
   },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginTop: 10,
+  },
   nameHint: {
-    marginTop: 8,
+    flex: 1,
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textSecondary,
@@ -388,42 +394,33 @@ const styles = StyleSheet.create({
   hintError: {
     marginTop: 8,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.error,
-  },
-  hintMax: {
-    marginTop: 8,
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.textSecondary,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 4,
-    marginHorizontal: -4,
+    gap: 12,
   },
   cardWrap: {
     flex: 1,
-    marginHorizontal: 6,
   },
   card: {
     alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: Layout.blockGap,
+    paddingTop: 24,
+    paddingBottom: 16,
     paddingHorizontal: 10,
     borderRadius: 20,
+    backgroundColor: Colors.surface,
     overflow: 'visible',
   },
   cardOff: {
-    backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.divider,
   },
   cardOn: {
-    backgroundColor: Colors.surface,
     borderWidth: 2,
-    borderColor: Colors.selected,
+    borderColor: Colors.primary,
   },
   bubble: {
     position: 'absolute',
@@ -452,27 +449,34 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.textPrimary,
     transform: [{ rotate: '45deg' }],
   },
-  heart: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    zIndex: 1,
-  },
   petImg: {
     width: 118,
     height: 118,
-    marginBottom: 8,
-    overflow: 'visible',
+    marginBottom: 12,
+  },
+  speciesBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  checkDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   speciesName: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 2,
-    letterSpacing: -0.3,
+    color: Colors.textDisabled,
+    paddingVertical: 2,
   },
   speciesNameOn: {
-    color: Colors.selected,
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.primary,
   },
   footer: {
     ...onboardingFooterStyle,

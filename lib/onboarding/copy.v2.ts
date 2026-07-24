@@ -270,13 +270,14 @@ export const onboardingCopyV2 = {
   },
 
   petSelect: {
-    header: '추가 정보',
-    headline: '나와 함께 할\n펫 친구를 골라주세요',
-    sub: '펫의 종류와 이름은 언제든지 바꿀 수 있어요.',
-    speciesLabel: '펫 친구',
-    nameLabel: '펫 이름',
-    namePlaceholder: '펫 이름을 입력해 주세요',
-    nameHint: '지어준 이름으로 앞으로 펫을 부를 거예요.',
+    header: '',
+    headline: '마음을 함께 나눌 펫 친구를\n골라 주세요',
+    sub: '펫 친구의 종류와 이름은 언제든지 바꿀 수 있어요.',
+    speciesLabel: '함께할 친구(필수)',
+    nameLabel: '친구 이름(선택)',
+    namePlaceholder: '친구 이름을 입력해 주세요',
+    nameHint:
+      '지어준 이름으로 앞으로 친구를 부를 거예요.\n편하게 부를 이름이 아직 없다면, ‘하치’ 또는 ‘나미’로 부를게요.',
     nameHintInvalid: '2자 이상 입력해 주세요',
     nameMaxHint: '최대 8글자까지 입력할 수 있어요',
     cta: '다음',

@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   nextBtnDisabled: {
-    backgroundColor: Colors.buttonDisabledBg,
+    backgroundColor: Colors.inactive,
   },
   nextPressed: {
     opacity: 0.92,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   nextTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
   empty: {
     flex: 1,

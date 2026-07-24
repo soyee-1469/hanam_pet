@@ -121,9 +121,9 @@ const ThemeColors = {
   dark: {
     text: Colors.surface,
     background: Colors.cocoa,
-    tint: Colors.primary,
+    tint: Colors.cocoa,
     tabIconDefault: Colors.textDisabled,
-    tabIconSelected: Colors.primary,
+    tabIconSelected: Colors.cocoa,
   },
 }
 

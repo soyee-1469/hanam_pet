@@ -756,12 +756,21 @@ export default function DiaryWriteScreen() {
               onPress={save}
               style={({ pressed }) => [
                 pressed && moodId && !saved && styles.saveBtnPressed,
-                (!moodId || saved) && styles.saveBtnDisabled,
               ]}
             >
-              <View style={styles.saveBtn} collapsable={false}>
-                <Text style={styles.saveText}>
-                  {saved
+              <View
+                style={[
+                  styles.saveBtn,
+                  (!moodId || saved) && styles.saveBtnDisabled,
+                ]}
+                collapsable={false}
+              >
+                <Text
+                  style={[
+                    styles.saveText,
+                    (!moodId || saved) && styles.saveTextDisabled,
+                  ]}
+                >                  {saved
                     ? isEdit
                       ? '수정되었어요'
                       : '저장되었어요'
@@ -1092,11 +1101,16 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   saveBtnDisabled: {
-    opacity: 0.45,
+    backgroundColor: Colors.inactive,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveText: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.buttonPrimaryText,
+  },
+  saveTextDisabled: {
+    color: Colors.inactiveText,
   },
 })

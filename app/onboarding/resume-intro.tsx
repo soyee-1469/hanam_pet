@@ -117,12 +117,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
     color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.4,
-    lineHeight: 34,
+    lineHeight: 36,
     marginBottom: 12,
   },
   sub: {

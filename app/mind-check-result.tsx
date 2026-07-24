@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   counselFabText: {
     fontSize: 13,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: Colors.surface,
   },
   footer: {
     ...onboardingFooterStyle,

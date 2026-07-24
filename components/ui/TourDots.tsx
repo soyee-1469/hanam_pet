@@ -9,7 +9,7 @@ type TourDotsProps = {
 
 /**
  * 서비스 소개 투어 인디케이터 — 바(Bar) 스타일 통일
- * 비활성: 짧은 회색 막대 / 활성: 길고 굵은 오렌지 막대
+ * 비활성: 짧은 회색 막대 / 활성: 길고 굵은 cocoa 막대
  */
 export function TourDots({ total, index }: TourDotsProps) {
   const active = Math.min(total - 1, Math.max(0, index))

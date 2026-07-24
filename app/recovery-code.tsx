@@ -152,16 +152,25 @@ export default function RecoveryCodeScreen() {
             {saving ? (
               <ActivityIndicator
                 size="small"
-                color={Colors.buttonPrimaryText}
+                color={Colors.inactiveText}
               />
             ) : (
               <Images
                 size={18}
-                color={Colors.buttonPrimaryText}
+                color={
+                  saving ? Colors.inactiveText : Colors.buttonPrimaryText
+                }
                 weight="bold"
               />
             )}
-            <Text style={styles.saveBtnText}>사진첩에 저장하기</Text>
+            <Text
+              style={[
+                styles.saveBtnText,
+                saving && styles.saveBtnTextDisabled,
+              ]}
+            >
+              사진첩에 저장하기
+            </Text>
           </View>
         </Pressable>
       </View>
@@ -334,11 +343,16 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   saveBtnDisabled: {
-    opacity: 0.7,
+    backgroundColor: Colors.inactive,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveBtnText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.buttonPrimaryText,
+  },
+  saveBtnTextDisabled: {
+    color: Colors.inactiveText,
   },
 })

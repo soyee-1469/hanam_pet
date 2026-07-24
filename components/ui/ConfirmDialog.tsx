@@ -13,7 +13,7 @@ type ConfirmDialogProps = {
   body: string
   cancelLabel?: string
   confirmLabel?: string
-  /** danger=삭제(코랄), warning=이탈 경고(노랑+주황 CTA) */
+  /** danger=삭제(error), warning=이탈 경고(악센트+주황 CTA) */
   tone?: ConfirmTone
   Icon?: Icon
   onCancel: () => void
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   confirmText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.buttonPrimaryText,
   },

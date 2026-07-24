@@ -182,7 +182,7 @@ export default function OnboardingRestoreCode() {
         <ProgressDots total={ONBOARDING_STEPS} index={3} />
         {saving ? (
           <View style={styles.savingCta}>
-            <ActivityIndicator color={Colors.primary} />
+            <ActivityIndicator color={Colors.cocoa} />
             <Text style={styles.savingCtaText}>{copy.ctaBusy}</Text>
           </View>
         ) : (

@@ -40,7 +40,7 @@ export default function EntryScreen() {
   if (!ready) {
     return (
       <View style={styles.boot}>
-        <ActivityIndicator color={Colors.primary} />
+        <ActivityIndicator color={Colors.cocoa} />
       </View>
     )
   }

@@ -1,26 +1,32 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Check } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 
+const HERO = require('../assets/images/healing-pet-gate.png')
+
+/**
+ * 회원탈퇴 완료 — 하남이네와 인사하며 다시 만날 수 있음을 안내
+ */
 export default function WithdrawDoneScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
-        <View style={styles.iconWrap}>
-          <Check size={36} color={Colors.selected} weight="bold" />
-        </View>
-        <Text style={styles.title}>탈퇴가 완료되었어요</Text>
-        <Text style={styles.sub}>
-          이용해 주셔서 감사했어요.{'\n'}언제든 다시 시작할 수 있어요.
+        <Image
+          source={HERO}
+          style={styles.hero}
+          resizeMode="contain"
+          accessibilityLabel="하남이네 하치"
+        />
+        <Text style={styles.title}>
+          그동안 마음을{'\n'}나눌 수 있어 좋았어요!
         </Text>
       </View>
       <View style={styles.footer}>
         <PrimaryButton
-          label="처음으로"
+          label="만나러 갈래요"
           emphasized
           onPress={() => router.replace('/onboarding/gate')}
         />
@@ -32,36 +38,28 @@ export default function WithdrawDoneScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   body: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 12,
   },
-  iconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+  hero: {
+    width: '100%',
+    maxWidth: 320,
+    height: 280,
+    marginBottom: 28,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '900',
+    color: Colors.primary,
     textAlign: 'center',
-    marginBottom: 10,
-  },
-  sub: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 23,
+    letterSpacing: -0.4,
+    lineHeight: 34,
   },
   footer: {
     ...onboardingFooterStyle,

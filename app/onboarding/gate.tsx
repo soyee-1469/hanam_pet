@@ -13,16 +13,15 @@ import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { PrimaryButton, SecondaryButton } from '../../components/ui'
 import { getOnboardingCopy } from '../../lib/onboarding'
-import { nextGateMascot } from '../../constants/OnboardingMascot'
 import { useDesignWindow } from '../../components/AppViewport'
 
 const copy = getOnboardingCopy().gate
 const goResume = () => router.push('/onboarding/resume')
+const GATE_HERO = require('../../assets/images/healing-pet-gate.png')
 
 export default function OnboardingGate() {
   const { height: screenH } = useDesignWindow()
-  const coverSize = Math.min(188, Math.round(screenH * 0.22))
-  const coverSource = useRef(nextGateMascot('fun')).current
+  const coverSize = Math.min(220, Math.round(screenH * 0.28))
 
   const breath = useRef(new Animated.Value(0)).current
 
@@ -61,10 +60,10 @@ export default function OnboardingGate() {
           style={[styles.coverGlow, { transform: [{ scale: coverScale }] }]}
         >
           <Image
-            source={coverSource}
+            source={GATE_HERO}
             style={{ width: coverSize, height: coverSize }}
             resizeMode="contain"
-            accessibilityLabel="힐링펫 캐릭터"
+            accessibilityLabel="힐링펫"
           />
         </Animated.View>
 
@@ -89,7 +88,7 @@ export default function OnboardingGate() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   body: {
     flex: 1,
@@ -99,13 +98,13 @@ const styles = StyleSheet.create({
     paddingBottom: Layout.sectionGap,
   },
   coverGlow: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Colors.creamyBeige,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   title: {
     fontSize: 28,

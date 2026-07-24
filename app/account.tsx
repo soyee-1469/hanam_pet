@@ -145,7 +145,7 @@ export default function AccountScreen() {
         >
           {mode === 'view' ? (
             <>
-              <Text style={styles.heading}>내 닉네임</Text>
+              {/* 헤더에 「내 닉네임」이 있으므로 본문 라벨은 반복하지 않음 */}
               <Text style={styles.lead}>
                 닉네임은 언제든 변경할 수 있어요.
               </Text>
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
+    marginTop: 4,
     marginBottom: 28,
   },
   nameRow: {

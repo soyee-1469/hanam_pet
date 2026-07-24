@@ -5,15 +5,13 @@ import { BottomSheet } from './ui/AppOverlay'
 
 type CoachmarkWelcomeSheetProps = {
   visible: boolean
-  petName: string
   onSkip: () => void
   onAccept: () => void
 }
 
-/** cm-01-welcome — 펫 홈 첫 진입 투어 안내 */
+/** cm-01-welcome — 펫 홈 첫 진입 안내 (반투명 딤 + 바텀시트만) */
 export function CoachmarkWelcomeSheet({
   visible,
-  petName,
   onSkip,
   onAccept,
 }: CoachmarkWelcomeSheetProps) {
@@ -32,8 +30,8 @@ export function CoachmarkWelcomeSheet({
         </View>
       </View>
 
-      <Text style={styles.title} numberOfLines={3}>
-        {`${petName}와 함께하는 첫걸음,\n같이 둘러볼까요?`}
+      <Text style={styles.title}>
+        {'함께하는 첫 걸음,\n같이 둘러볼까요?'}
       </Text>
       <Text style={styles.body}>
         쉽고 빠르게 사용 방법을 안내해 드릴게요.
@@ -53,14 +51,14 @@ export function CoachmarkWelcomeSheet({
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="좋아요"
+          accessibilityLabel="바로 볼게요"
           onPress={onAccept}
           style={({ pressed }) => [
             styles.okBtn,
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.okText}>좋아요</Text>
+          <Text style={styles.okText}>바로 볼게요</Text>
         </Pressable>
       </View>
     </BottomSheet>
@@ -80,15 +78,17 @@ const styles = StyleSheet.create({
     left: 4,
     top: 0,
     opacity: 0.9,
+    transform: [{ rotate: '-12deg' }],
   },
   pawFront: {
     position: 'absolute',
     right: 2,
     bottom: 0,
     opacity: 0.75,
+    transform: [{ rotate: '8deg' }],
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',

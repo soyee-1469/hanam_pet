@@ -102,7 +102,6 @@ import {
   getPetTourCompletePending,
   getPetTourStepIndex,
   setPetTourStepIndex,
-  startPetTourFromWelcome,
   subscribePetTour,
 } from '../../lib/coachmarkTourState'
 
@@ -1006,11 +1005,6 @@ function PetHomeScreenBody() {
     await setCoachmarkWelcomeStatus(status)
   }
 
-  const startPetTour = () => {
-    setCoachWelcomeOpen(false)
-    startPetTourFromWelcome()
-  }
-
   const finishPetTour = async () => {
     finishPetTourWithComplete()
     await setCoachmarkWelcomeStatus('accepted')
@@ -1675,11 +1669,12 @@ function PetHomeScreenBody() {
 
       <CoachmarkWelcomeSheet
         visible={coachWelcomeOpen && homeFocused}
-        petName={petName}
         onSkip={() => {
           void dismissCoachWelcome('skipped')
         }}
-        onAccept={startPetTour}
+        onAccept={() => {
+          void dismissCoachWelcome('accepted')
+        }}
       />
 
       <CoachmarkCompleteSheet

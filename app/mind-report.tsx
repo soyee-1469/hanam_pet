@@ -33,13 +33,6 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'stress', label: '스트레스' },
 ]
 
-const SEG_EMPTY = '#F3EEE8'
-
-function bandLevel(band: SeverityBand, bands: SeverityBand[]): number {
-  const i = bands.findIndex((b) => b.id === band.id)
-  return i < 0 ? 1 : i + 1
-}
-
 function cardSummary(band: SeverityBand): string {
   if (band.id === 'normal') {
     return '전반적으로 차분하고 안정적인 상태를 잘 유지하고 있어요.'
@@ -156,28 +149,27 @@ export default function MindReportScreen() {
         ) : (
           list.map((item) => {
             const band = getSeverityBand(item.score, tab)
-            const level = bandLevel(band, bands)
             return (
               <View key={item.id} style={styles.card}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardDate}>
                     {formatResultDate(item.at)}
                   </Text>
-                  <View style={styles.bandChip}>
-                    <View
-                      style={[
-                        styles.bandDot,
-                        {
-                          backgroundColor:
-                            SEVERITY_PILL_TEXT[band.id] ?? band.color,
-                        },
-                      ]}
-                    />
+                  <View
+                    style={[
+                      styles.bandChip,
+                      {
+                        backgroundColor:
+                          SEVERITY_PILL_BG[band.id] ?? Colors.creamyBeige,
+                      },
+                    ]}
+                  >
                     <Text
                       style={[
                         styles.bandChipText,
                         {
-                          color: SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary,
+                          color:
+                            SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary,
                         },
                       ]}
                     >
@@ -194,18 +186,19 @@ export default function MindReportScreen() {
                 </View>
 
                 <View style={styles.segBar}>
-                  {bands.map((b, i) => {
-                    const filled = i < level
+                  {bands.map((b) => {
+                    const mine = b.id === band.id
                     return (
                       <View
                         key={b.id}
                         style={[
                           styles.seg,
                           {
-                            backgroundColor: filled
-                              ? SEVERITY_BAR_COLOR[b.id] ?? b.color
-                              : SEG_EMPTY,
+                            backgroundColor:
+                              SEVERITY_BAR_COLOR[b.id] ?? b.color,
+                            opacity: mine ? 1 : 0.5,
                           },
+                          mine && styles.segActive,
                         ]}
                       />
                     )
@@ -370,16 +363,14 @@ const styles = StyleSheet.create({
   bandChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  bandDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   bandChipText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     color: Colors.textPrimary,
   },
   scoreRow: {
@@ -408,6 +399,10 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 8,
     borderRadius: 4,
+  },
+  segActive: {
+    height: 10,
+    borderRadius: 5,
   },
   cardSummary: {
     fontSize: 13,

@@ -183,28 +183,25 @@ export default function MindCheckResultScreen() {
               const mine = b.id === band.id
               const segColor =
                 SEVERITY_PILL_BG[b.id as SeverityId] ?? b.color
+              const labelColor =
+                SEVERITY_PILL_TEXT[b.id as SeverityId] ?? Colors.textPrimary
               return (
-                <View key={b.id} style={styles.spectrumItem}>
+                <View
+                  key={b.id}
+                  style={[styles.spectrumItem, !mine && styles.spectrumDim]}
+                >
                   <View
                     style={[
                       styles.spectrumSeg,
                       { backgroundColor: segColor },
                       mine && styles.spectrumSegActive,
-                      mine && {
-                        borderColor:
-                          SEVERITY_PILL_TEXT[b.id as SeverityId] ?? b.color,
-                      },
                     ]}
                   />
                   <Text
                     style={[
                       styles.spectrumLabel,
+                      { color: labelColor },
                       mine && styles.spectrumLabelActive,
-                      mine && {
-                        color:
-                          SEVERITY_PILL_TEXT[b.id as SeverityId] ??
-                          Colors.textPrimary,
-                      },
                     ]}
                   >
                     {b.label} {b.min}-{b.max}
@@ -219,8 +216,25 @@ export default function MindCheckResultScreen() {
           <View style={styles.opinionCard}>
             <View style={styles.opinionHead}>
               <Text style={styles.opinionTitle}>전문가 소견</Text>
-              <View style={styles.bandBadge}>
-                <Text style={styles.bandBadgeText}>
+              <View
+                style={[
+                  styles.bandBadge,
+                  {
+                    backgroundColor:
+                      SEVERITY_PILL_BG[band.id as SeverityId] ?? Colors.creamyBeige,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.bandBadgeText,
+                    {
+                      color:
+                        SEVERITY_PILL_TEXT[band.id as SeverityId] ??
+                        Colors.textPrimary,
+                    },
+                  ]}
+                >
                   {band.label} ({score}점)
                 </Text>
               </View>
@@ -384,8 +398,12 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
+  spectrumDim: {
+    opacity: 0.5,
+  },
   spectrumSegActive: {
-    borderWidth: 2,
+    height: 10,
+    borderRadius: 5,
   },
   spectrumLabel: {
     fontSize: 11,

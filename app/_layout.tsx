@@ -58,6 +58,7 @@ export default function RootLayout() {
           <Stack.Screen name="record-reset" />
           <Stack.Screen name="support" />
           <Stack.Screen name="chat-help" />
+          <Stack.Screen name="chat-detail" />
           <Stack.Screen name="withdraw" />
           <Stack.Screen name="withdraw-done" />
           <Stack.Screen name="mind-content" />

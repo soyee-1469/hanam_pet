@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
+import { router, type Href } from 'expo-router'
 import {
   CaretLeft,
   Copy,
@@ -124,16 +124,36 @@ export default function DataManageScreen() {
 
         <Text style={styles.sectionLabel}>데이터 항목</Text>
         <View style={styles.card}>
-          {items.map((item, i) => (
-            <View
-              key={item.id}
-              style={[styles.dataRow, i < items.length - 1 && styles.rowDivider]}
-            >
-              <item.Icon size={20} color={Colors.textPrimary} weight="regular" />
-              <Text style={styles.dataTitle}>{item.title}</Text>
-              <Text style={styles.dataCount}>{item.count}건</Text>
-            </View>
-          ))}
+          {items.map((item, i) => {
+            const openChat = item.id === 'chat' && item.count > 0
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole={openChat ? 'button' : undefined}
+                accessibilityLabel={
+                  openChat ? `${item.title} 보기` : undefined
+                }
+                disabled={!openChat}
+                onPress={
+                  openChat
+                    ? () => router.push('/chat-detail' as Href)
+                    : undefined
+                }
+                style={[
+                  styles.dataRow,
+                  i < items.length - 1 && styles.rowDivider,
+                ]}
+              >
+                <item.Icon
+                  size={20}
+                  color={Colors.textPrimary}
+                  weight="regular"
+                />
+                <Text style={styles.dataTitle}>{item.title}</Text>
+                <Text style={styles.dataCount}>{item.count}건</Text>
+              </Pressable>
+            )
+          })}
         </View>
 
         {!empty ? (

@@ -1,8 +1,7 @@
 # Healing Pet Design System
 
-Family: Pretendard only
-Files: Regular / Medium / SemiBold / Bold
-Path: assets/fonts/
+Family: system default (no custom face)
+Path: — (Pretendard removed)
 
 ---
 
@@ -33,36 +32,36 @@ Color notes
 
 ## 2. 공통 텍스트
 
-역할  Pretendard  weight  size
+역할  face  weight  size
 
-타이틀 / 탭  Pretendard  Bold  22px
-타이틀 / 서브화면  Pretendard  Bold  18px
-타이틀 / 모달  Pretendard  Bold  22px
-타이틀 / 섹션  Pretendard  Bold  16px
-페이지 메인  Pretendard  Bold  20px
-페이지 서브  Pretendard  Medium  20px
-본문 / 기본  Pretendard  Regular  15px
-본문 / Medium  Pretendard  Medium  15px
-본문 / 보조  Pretendard  Regular  14px
-본문 / 보조 Medium  Pretendard  Medium  14px
-메타 / 설명  Pretendard  Regular  13px
-메타 / 설명 Medium  Pretendard  Medium  13px
-메타 / 설명 SemiBold  Pretendard  SemiBold  13px
-메타 / 시간  Pretendard  Medium  12px
-리스트 / 제목  Pretendard  Bold  14px
-리스트 / 링크  Pretendard  Bold  14px
-버튼 / Primary  Pretendard  Bold  16px
-버튼 / 보조  Pretendard  SemiBold  14px
-말풍선 / 본문  Pretendard  SemiBold  16px
-말풍선 / 보조  Pretendard  Medium  13px
-칩 / 라벨  Pretendard  Medium  11px
-칩 / 필터  Pretendard  Bold  13px
-탭 / 기본  Pretendard  SemiBold  15px
-탭 / 선택  Pretendard  Bold  15px
-숫자 / 강조  Pretendard  Bold  18px
-히어로 / 완료  Pretendard  Bold  26px
-히어로 / 스플래시  Pretendard  Bold  28px
-점수 / 대형  Pretendard  Bold  44px
+타이틀 / 탭  system  Bold  22px
+타이틀 / 서브화면  system  Bold  18px
+타이틀 / 모달  system  Bold  22px
+타이틀 / 섹션  system  Bold  16px
+페이지 메인  system  Bold  20px
+페이지 서브  system  Medium  20px
+본문 / 기본  system  Regular  15px
+본문 / Medium  system  Medium  15px
+본문 / 보조  system  Regular  14px
+본문 / 보조 Medium  system  Medium  14px
+메타 / 설명  system  Regular  13px
+메타 / 설명 Medium  system  Medium  13px
+메타 / 설명 SemiBold  system  SemiBold  13px
+메타 / 시간  system  Medium  12px
+리스트 / 제목  system  Bold  14px
+리스트 / 링크  system  Bold  14px
+버튼 / Primary  system  Bold  16px
+버튼 / 보조  system  SemiBold  14px
+말풍선 / 본문  system  SemiBold  16px
+말풍선 / 보조  system  Medium  13px
+칩 / 라벨  system  Medium  11px
+칩 / 필터  system  Bold  13px
+탭 / 기본  system  SemiBold  15px
+탭 / 선택  system  Bold  15px
+숫자 / 강조  system  Bold  18px
+히어로 / 완료  system  Bold  26px
+히어로 / 스플래시  system  Bold  28px
+점수 / 대형  system  Bold  44px
 
 Weight map
 

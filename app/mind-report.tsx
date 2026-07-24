@@ -32,12 +32,12 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'stress', label: '스트레스' },
 ]
 
-/** 카드/분포용 파스텔 세그먼트 */
+/** 카드/분포용 파스텔 세그먼트 — 링·점수색보다 한 톤 더 밝게 */
 const SEG_PASTEL: Record<SeverityId, string> = {
-  normal: '#C8D9B8',
-  mild: '#F5E3A8',
-  moderate: '#F7D7B8',
-  severe: '#F5D0CD',
+  normal: '#D8E6CC',
+  mild: '#F8ECC8',
+  moderate: '#FCE4DA',
+  severe: '#F8E0DE',
 }
 
 const SEG_EMPTY = '#EDE6DE'
@@ -180,7 +180,7 @@ export default function MindReportScreen() {
 
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreLabel}>내 마음 상태</Text>
-                  <Text style={[styles.scoreValue, { color: band.color }]}>
+                  <Text style={styles.scoreValue}>
                     {item.score}점
                   </Text>
                 </View>
@@ -389,6 +389,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     lineHeight: 26,
+    color: Colors.textPrimary,
   },
   segBar: {
     flexDirection: 'row',

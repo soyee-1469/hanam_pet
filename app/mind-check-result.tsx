@@ -77,7 +77,7 @@ function ScoreRing({
         />
       </Svg>
       <View style={styles.ringCenter}>
-        <Text style={[styles.ringScore, { color }]}>{score}</Text>
+        <Text style={styles.ringScore}>{score}</Text>
         <Text style={styles.ringMax}>{max}점</Text>
       </View>
     </View>
@@ -346,6 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 44,
     fontWeight: '900',
     lineHeight: 50,
+    color: Colors.textPrimary,
   },
   ringMax: {
     fontSize: 13,

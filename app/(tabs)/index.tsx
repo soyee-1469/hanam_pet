@@ -1408,7 +1408,16 @@ function PetHomeScreenBody() {
   }
 
   const bubbleText = speech || homeGreetingBubble()
-  const petImage = petId === 'nami' ? CatExpr.soft : DogExpr.soft
+  const petWink =
+    tabWelcome || new Date().getHours() >= 21
+  const petImage =
+    petId === 'nami'
+      ? petWink
+        ? CatExpr.wink
+        : CatExpr.soft
+      : petWink
+        ? DogExpr.wink
+        : DogExpr.soft
 
   return (
     <ImageBackground

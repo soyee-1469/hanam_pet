@@ -64,25 +64,58 @@ async function dial(phone: string, name: string) {
   }
 }
 
-function BrandSlide({
+function PromisesSlide({
   title,
   body,
 }: {
   title: string
   body: string
 }) {
+  const [openKeys, setOpenKeys] = useState<Record<string, boolean>>({})
+
   return (
-    <View style={styles.centerSlide}>
-      <View style={styles.brandGlow}>
-        <Image
-          source={DogExpr.fun}
-          style={styles.brandImage}
-          resizeMode="contain"
-          accessibilityLabel="힐링펫"
-        />
+    <View style={styles.featuresSlide}>
+      <Text style={styles.featuresTitle}>{title}</Text>
+      <Text style={styles.featuresBody}>{body}</Text>
+      <View style={styles.featureList}>
+        {copy.promises.map((item) => {
+          const IconComp = PROMISE_ICONS[item.key] ?? PawPrint
+          const open = openKeys[item.key] === true
+          return (
+            <Pressable
+              key={item.key}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: open }}
+              onPress={() =>
+                setOpenKeys((prev) => ({ ...prev, [item.key]: !open }))
+              }
+              style={({ pressed }) => [
+                styles.featureCard,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.featureIcon}>
+                <IconComp size={22} color={Colors.primary} weight="regular" />
+              </View>
+              <View style={styles.featureCopy}>
+                <Text style={styles.featureName}>{item.title}</Text>
+                {open ? (
+                  <Text style={styles.featureDesc}>{item.body}</Text>
+                ) : null}
+              </View>
+              {open ? (
+                <CaretUp size={16} color={Colors.textDisabled} weight="bold" />
+              ) : (
+                <CaretDown
+                  size={16}
+                  color={Colors.textDisabled}
+                  weight="bold"
+                />
+              )}
+            </Pressable>
+          )
+        })}
       </View>
-      <Text style={styles.centerTitle}>{title}</Text>
-      <Text style={styles.centerBody}>{body}</Text>
     </View>
   )
 }

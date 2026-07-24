@@ -28,17 +28,17 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 7닷 — features → brand → help → privacy → diary → healing → mind */
+    /** 투어 7닷 — promises → features → help → privacy → diary → healing → mind */
     slides: [
+      {
+        key: 'promises' as const,
+        title: '함께하기 전, 미리 알려 드려요',
+        body: '안심하고 이용할 수 있도록, 먼저 약속할게요.',
+      },
       {
         key: 'features' as const,
         title: '매일 펫과 함께 나의 마음을 돌봐요',
         body: '다섯 가지 방법으로 마음을 살펴요!',
-      },
-      {
-        key: 'brand' as const,
-        title: '마음을 돌보는 친구\n힐링펫',
-        body: '매일 스스로를 돌보는 습관을 만들고\n마음을 함께 나누어요.',
       },
       {
         key: 'help' as const,
@@ -49,6 +49,28 @@ export const onboardingCopyV2 = {
         key: 'privacy' as const,
         title: '일기와 대화 내용을\n안전하게 보관해요',
         body: '이름 없이 익명으로 이용할 수 있어요.\n힐링펫은 전문 치료를 대신하지 않아요.',
+      },
+    ],
+    promises: [
+      {
+        key: 'anonymous',
+        title: '익명으로도 이용할 수 있어요',
+        body: '이름 없이 익명으로 이용할 수 있어요.',
+      },
+      {
+        key: 'friend',
+        title: '마음을 돌보는 친구예요',
+        body: '매일 스스로를 돌보는 습관을 만들고 마음을 함께 나누어요.',
+      },
+      {
+        key: 'safe',
+        title: '기록을 안전하게 보관해요',
+        body: '일기와 대화 내용을 안전하게 보관해요.',
+      },
+      {
+        key: 'help',
+        title: '힘들 때 도움받을 수 있어요',
+        body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요. 혼자가 아니에요.',
       },
     ],
     features: [
@@ -65,7 +87,7 @@ export const onboardingCopyV2 = {
       {
         key: 'diary',
         title: '마음 기록하기',
-        body: '하루의 감정을 돌아보고 일기를 남겨보세요. 쌓인 기록으로 내 마음의의 흐름을 돌아볼 수 있어요.',
+        body: '하루의 감정을 돌아보고 일기를 남겨보세요. 쌓인 기록으로 내 마음의 흐름을 돌아볼 수 있어요.',
       },
       {
         key: 'fill',

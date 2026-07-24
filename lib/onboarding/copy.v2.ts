@@ -332,8 +332,8 @@ export const onboardingCopyV2 = {
       lostLink: '번호를 모르겠어요',
       cta: '기록 가져오기',
       ctaBusy: '불러오는 중…',
-      loadingMessage: '기록을 안전하게 불러오는 중이에요',
-      wrongCode: '번호가 맞지 않아요. 다시 확인해 주세요.',
+      loadingMessage: '기록을 확인하고 있어요...',
+      wrongCode: '일치하는 번호가 없어요. 다시 확인해 주세요.',
     },
     lost: {
       headline: '번호를 잊으셨나요?',

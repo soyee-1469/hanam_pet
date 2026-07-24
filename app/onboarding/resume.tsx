@@ -23,11 +23,13 @@ import {
   DeviceMobile,
   Images,
   Lock,
+  Notebook,
   Question,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
 import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
@@ -520,10 +522,12 @@ export default function OnboardingResume() {
 
         {busy ? (
           <View style={styles.footer}>
-            <View style={styles.loadingBlock}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>{copy.code.loadingMessage}</Text>
-            </View>
+            <PrimaryButton
+              label={copy.code.cta}
+              disabled
+              emphasized={false}
+              onPress={() => {}}
+            />
           </View>
         ) : (
           <NumberKeypad
@@ -535,6 +539,24 @@ export default function OnboardingResume() {
           />
         )}
       </View>
+
+      {busy ? (
+        <View style={styles.checkingOverlay} pointerEvents="auto">
+          <View style={styles.checkingCard}>
+            <View style={styles.checkingHero}>
+              <Image
+                source={DogExpr.soft}
+                style={styles.checkingPet}
+                resizeMode="contain"
+              />
+              <View style={styles.checkingBook}>
+                <Notebook size={20} color={Colors.selected} weight="fill" />
+              </View>
+            </View>
+            <Text style={styles.checkingText}>{copy.code.loadingMessage}</Text>
+          </View>
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
@@ -853,11 +875,53 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  checkingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(48, 36, 28, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 40,
+    paddingHorizontal: Layout.screenPaddingH,
+  },
+  checkingCard: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  checkingHero: {
+    width: 140,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkingPet: {
+    width: 120,
+    height: 120,
+  },
+  checkingBook: {
+    position: 'absolute',
+    right: 8,
+    bottom: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.beige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkingText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.accent,
+    textAlign: 'center',
+    letterSpacing: -0.2,
+  },
   footer: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: Layout.blockGap,
     paddingTop: Layout.sectionGap,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   restartLink: {
     alignItems: 'center',

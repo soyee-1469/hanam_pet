@@ -99,7 +99,6 @@ import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
   dismissPetTourComplete,
   finishPetTourDone,
-  finishPetTourWithComplete,
   getPetTourCompletePending,
   getPetTourStepIndex,
   setPetTourStepIndex,

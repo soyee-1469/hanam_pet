@@ -445,7 +445,7 @@ function MenuQuickItem({
         done
           ? `${label}, 완료`
           : ready
-            ? `${label}, 제작 완료`
+            ? `${label}, 완료`
             : cooling
               ? `${label}, 남은 시간 ${cooldownLabel}`
               : label
@@ -1426,26 +1426,34 @@ function PetHomeScreenBody() {
         >
           <View style={tourHighlightMenu ? styles.headerTourMuted : null}>
             <View style={styles.nicknameRow}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
-                accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
-                hitSlop={8}
-                onPress={openNameEdit}
-                style={({ pressed }) => [
-                  styles.petTitleBtn,
-                  pressed && styles.headerIconPressed,
-                ]}
-              >
-                <Text style={styles.nicknameText} numberOfLines={1}>
-                  {`나의 펫 ${petName}`}
-                </Text>
-                <PencilSimple
-                  size={18}
-                  color={Colors.textPrimary}
-                  weight="regular"
-                />
-              </Pressable>
+              {tabWelcome ? (
+                <View style={styles.headerCopy}>
+                  <Text style={styles.nicknameText} numberOfLines={1}>
+                    {TAB_WELCOME.title}
+                  </Text>
+                </View>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
+                  accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
+                  hitSlop={8}
+                  onPress={openNameEdit}
+                  style={({ pressed }) => [
+                    styles.petTitleBtn,
+                    pressed && styles.headerIconPressed,
+                  ]}
+                >
+                  <Text style={styles.nicknameText} numberOfLines={1}>
+                    {`나의 펫 ${petName}`}
+                  </Text>
+                  <PencilSimple
+                    size={18}
+                    color={Colors.textPrimary}
+                    weight="regular"
+                  />
+                </Pressable>
+              )}
               <View style={styles.headerActions}>
                 <Pressable
                   style={styles.bellBtn}
@@ -1962,6 +1970,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 12,
+  },
   petTitleBtn: {
     flex: 1,
     minWidth: 0,
@@ -1988,7 +2001,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 34,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: Colors.creamyBeige,
   },
   stockTipText: {
     textAlign: 'center',
@@ -2198,16 +2211,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   menuCircleReady: {
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: Colors.primary,
     backgroundColor: Colors.background,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.45,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
   },
-  /** 출석 완료 — 띠만 강조, 받기용 글로우와 구분 */
+  /** 출석 완료 — 띠만 강조, 받기용 테두리와 구분 */
   menuCircleDone: {
     borderWidth: 1.5,
     borderColor: Colors.primaryLight,

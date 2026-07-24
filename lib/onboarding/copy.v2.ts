@@ -261,12 +261,11 @@ export const onboardingCopyV2 = {
     cta: '좋아요, 준비할래요',
   },
 
-  /** 온보딩 완료 직후 — 펫과 인사 */
+  /** 온보딩 완료 직후 — 하치·나미 만나기 */
   welcome: {
-    title: (name: string) => `이제 ${name}와\n인사해볼까요?`,
-    body: (_name: string) =>
-      '오늘의 활동이 기다리고 있어요. 편하게 시작해 보세요.',
-    cta: '시작하기',
+    title: (_name?: string) => `하치와 나미가\n기다리고 있어요!`,
+    body: (_name?: string) => '하남이네로 가볼까요?',
+    cta: '만나러 갈래요',
   },
 
   petSelect: {

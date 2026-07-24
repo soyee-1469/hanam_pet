@@ -5,37 +5,32 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { Heart } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
+import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
+import { CatExpr } from '../../constants/OnboardingMascot'
+import { PrimaryButton, onboardingFooterStyle } from '../../components/ui'
 import {
-  PrimaryButton,
-  ProgressDots,
-  onboardingFooterStyle,
-} from '../../components/ui'
-import {
-  ONBOARDING_STEPS,
   getOnboardingDraft,
   resetOnboardingDraft,
 } from '../../lib/onboardingDraft'
-import { completeOnboarding, type PetChoice } from '../../lib/onboardingStorage'
+import { completeOnboarding } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { defaultPetName, setPetName } from '../../lib/petProfile'
 
 const copy = getOnboardingCopy().welcome
 
-const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
-  mongi: DogExpr.fun,
-  nami: require('../../assets/images/cat-character_2.png'),
-}
-
+/**
+ * 온보딩 완료 — 하치·나미가 기다리는 환영 화면
+ */
 export default function OnboardingWelcome() {
   const [busy, setBusy] = useState(false)
   const draft = getOnboardingDraft()
-  const petId: PetChoice = draft.petId ?? 'mongi'
+  const petId = draft.petId ?? 'mongi'
   const petName = draft.petName.trim() || defaultPetName(petId)
 
   const goHome = async () => {
@@ -44,7 +39,7 @@ export default function OnboardingWelcome() {
     try {
       await completeOnboarding({
         nickname: draft.nickname || '친구',
-        petId: draft.petId ?? 'mongi',
+        petId,
       })
       await setPetName(petName)
       resetOnboardingDraft()
@@ -57,23 +52,36 @@ export default function OnboardingWelcome() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.body}>
-        <View style={styles.petGlow}>
-          <Image
-            source={PET_IMAGES[petId]}
-            style={styles.pet}
-            resizeMode="contain"
-          />
+        <View style={styles.hero} accessibilityLabel="하치와 나미">
+          <View style={styles.duo}>
+            <Image
+              source={DogExpr.wink}
+              style={styles.dog}
+              resizeMode="contain"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+            <Image
+              source={CatExpr.fun}
+              style={styles.cat}
+              resizeMode="contain"
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+          </View>
+          <View style={styles.ground}>
+            <View style={styles.groundLine} />
+            <View style={styles.heart}>
+              <Heart size={18} color={Colors.primary} weight="fill" />
+            </View>
+          </View>
         </View>
-        <Text style={styles.title} numberOfLines={3}>
-          {copy.title(petName)}
-        </Text>
-        <Text style={styles.bodyText} numberOfLines={4}>
-          {copy.body(petName)}
-        </Text>
+
+        <Text style={styles.title}>{copy.title()}</Text>
+        <Text style={styles.sub}>{copy.body()}</Text>
       </View>
 
       <View style={styles.footer}>
-        <ProgressDots total={ONBOARDING_STEPS} index={4} />
         {busy ? (
           <ActivityIndicator color={Colors.primary} style={styles.loader} />
         ) : (
@@ -93,43 +101,68 @@ export default function OnboardingWelcome() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   body: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 28,
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 24,
   },
-  petGlow: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: Colors.creamyBeige,
+  hero: {
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
   },
-  pet: {
-    width: 140,
-    height: 140,
+  duo: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  dog: {
+    width: 168,
+    height: 168,
+    marginRight: -28,
+    zIndex: 1,
+  },
+  cat: {
+    width: 132,
+    height: 132,
+    marginBottom: 4,
+    zIndex: 2,
+  },
+  ground: {
+    marginTop: -6,
+    width: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groundLine: {
+    alignSelf: 'stretch',
+    height: StyleSheet.hairlineWidth * 2,
+    backgroundColor: Colors.beige,
+  },
+  heart: {
+    position: 'absolute',
+    right: 18,
+    top: -10,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '900',
-    color: Colors.textPrimary,
+    color: Colors.primary,
     textAlign: 'center',
-    letterSpacing: -0.4,
-    lineHeight: 34,
+    letterSpacing: -0.5,
+    lineHeight: 36,
     marginBottom: 12,
   },
-  bodyText: {
+  sub: {
     fontSize: 15,
-    fontWeight: '500',
-    color: Colors.textSecondary,
+    fontWeight: '600',
+    color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 300,
   },
   footer: {
     ...onboardingFooterStyle,

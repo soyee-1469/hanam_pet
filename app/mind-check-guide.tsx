@@ -21,13 +21,10 @@ import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import {
   getAssessment,
   getSeverityBands,
-  SEVERITY_CHART_COLOR,
+  SEVERITY_PILL_BG,
+  SEVERITY_PILL_TEXT,
   type AssessmentId,
 } from '../constants/MindAssessments'
-
-/** 결과 해석 pill 면색 — SEVERITY_CHART_COLOR와 동일 톤 */
-const BAND_PILL_BG = SEVERITY_CHART_COLOR
-
 export default function MindCheckGuideScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
   const assessmentId = (typeof id === 'string'
@@ -140,17 +137,19 @@ export default function MindCheckGuideScreen() {
                         styles.bandPill,
                         {
                           backgroundColor:
-                            BAND_PILL_BG[band.id] ?? Colors.creamyBeige,
+                            SEVERITY_PILL_BG[band.id] ?? Colors.creamyBeige,
                         },
                       ]}
                     >
-                      <View
+                      <Text
                         style={[
-                          styles.bandDot,
-                          { backgroundColor: band.color },
+                          styles.bandPillText,
+                          {
+                            color:
+                              SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary,
+                          },
                         ]}
-                      />
-                      <Text style={styles.bandPillText}>
+                      >
                         {band.min}~{band.max}
                       </Text>
                     </View>
@@ -344,22 +343,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   bandPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  bandDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
   bandPillText: {
     fontSize: 11,
     fontWeight: '800',
-    color: Colors.textPrimary,
   },
   bandTitle: {
     flex: 1,

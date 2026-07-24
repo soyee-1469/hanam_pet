@@ -23,7 +23,8 @@ import {
   getAssessment,
   getSeverityBand,
   getSeverityBands,
-  SEVERITY_CHART_COLOR,
+  SEVERITY_PILL_BG,
+  SEVERITY_PILL_TEXT,
   type AssessmentId,
 } from '../constants/MindAssessments'
 import {
@@ -31,9 +32,6 @@ import {
   getLatestMindCheckResult,
   type MindCheckResultRecord,
 } from '../lib/mindCheckResults'
-
-/** 결과 해석 pill 면색 — SEVERITY_CHART_COLOR와 동일 톤 */
-const BAND_PILL_BG = SEVERITY_CHART_COLOR
 
 export default function MindCheckIntroScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
@@ -168,10 +166,18 @@ export default function MindCheckIntroScreen() {
               <View
                 style={[
                   styles.bandPill,
-                  { backgroundColor: BAND_PILL_BG[band.id] ?? Colors.creamyBeige },
+                  {
+                    backgroundColor:
+                      SEVERITY_PILL_BG[band.id] ?? Colors.creamyBeige,
+                  },
                 ]}
               >
-                <Text style={styles.bandPillText}>
+                <Text
+                  style={[
+                    styles.bandPillText,
+                    { color: SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary },
+                  ]}
+                >
                   {band.min} ~ {band.max}점
                 </Text>
               </View>
@@ -215,11 +221,21 @@ export default function MindCheckIntroScreen() {
                 styles.scoreCircle,
                 {
                   backgroundColor:
-                    BAND_PILL_BG[latestBand.id] ?? '#F7D7B8',
+                    SEVERITY_PILL_BG[latestBand.id] ?? '#F7D7B8',
                 },
               ]}
             >
-              <Text style={styles.scoreCircleText}>{latest.score}점</Text>
+              <Text
+                style={[
+                  styles.scoreCircleText,
+                  {
+                    color:
+                      SEVERITY_PILL_TEXT[latestBand.id] ?? Colors.textPrimary,
+                  },
+                ]}
+              >
+                {latest.score}점
+              </Text>
             </View>
             <View style={styles.recentCopy}>
               <Text style={styles.recentDate}>
@@ -366,7 +382,6 @@ const styles = StyleSheet.create({
   bandPillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.textPrimary,
   },
   bandCopy: {
     flex: 1,

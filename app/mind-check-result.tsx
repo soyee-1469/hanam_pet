@@ -22,7 +22,8 @@ import { HelpContactsSheet } from '../components/HelpContactsSheet'
 import {
   getSeverityBand,
   getSeverityBands,
-  SEVERITY_CHART_COLOR,
+  SEVERITY_PILL_BG,
+  SEVERITY_PILL_TEXT,
   statusLabel,
   type AssessmentId,
   type SeverityId,
@@ -118,7 +119,7 @@ export default function MindCheckResultScreen() {
   const [leaveOpen, setLeaveOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const accent =
-    SEVERITY_CHART_COLOR[band.id as SeverityId] ?? band.color
+    SEVERITY_PILL_TEXT[band.id as SeverityId] ?? band.color
 
   const persistAndGoHome = async () => {
     await saveMindCheckResult({
@@ -181,14 +182,20 @@ export default function MindCheckResultScreen() {
             {bands.map((b) => {
               const mine = b.id === band.id
               const segColor =
-                SEVERITY_CHART_COLOR[b.id as SeverityId] ?? b.color
+                SEVERITY_PILL_BG[b.id as SeverityId] ?? b.color
               return (
                 <View key={b.id} style={styles.spectrumItem}>
                   <View
                     style={[
                       styles.spectrumSeg,
                       { backgroundColor: segColor },
-                      mine && styles.spectrumSegActive,
+                      mine && [
+                        styles.spectrumSegActive,
+                        {
+                          backgroundColor:
+                            SEVERITY_PILL_TEXT[b.id as SeverityId] ?? b.color,
+                        },
+                      ],
                     ]}
                   />
                   <Text

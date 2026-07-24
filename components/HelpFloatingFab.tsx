@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { SEVERITY_PILL_BG, SEVERITY_PILL_TEXT } from '../constants/MindAssessments'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
 type HelpFloatingFabProps = {
@@ -22,7 +23,7 @@ type HelpFloatingFabProps = {
 
 /**
  * 대화 — 우측 가장자리 「109 / 마음 상담」 스티커.
- * Accent 옐로 면 + Primary 코랄 번호 + 흰 테두리·기울기·그림자로 스티커감.
+ * 시안 점수 필(연한 노랑 면 + 머스타드 글자) 톤온톤 + 흰 테두리·기울기.
  */
 export function HelpFloatingFab({
   visible = true,
@@ -102,7 +103,11 @@ export function HelpFloatingFab({
           >
             <View style={styles.fabInner}>
               <View style={styles.chevron}>
-                <CaretLeft size={12} color={Colors.selected} weight="bold" />
+                <CaretLeft
+                  size={12}
+                  color={SEVERITY_PILL_TEXT.mild}
+                  weight="bold"
+                />
               </View>
               <View style={styles.copy}>
                 <Text style={styles.num}>109</Text>
@@ -132,12 +137,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 14,
     paddingVertical: 11,
-    /** 화면 오른쪽 가장자리에 붙는 스티커 */
     borderTopLeftRadius: 18,
     borderBottomLeftRadius: 18,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
-    backgroundColor: Colors.accent,
+    backgroundColor: SEVERITY_PILL_BG.mild,
     borderWidth: 3,
     borderColor: Colors.surface,
     shadowColor: Colors.cocoa,
@@ -166,12 +170,12 @@ const styles = StyleSheet.create({
   num: {
     fontSize: 17,
     fontWeight: '900',
-    color: Colors.primary,
+    color: SEVERITY_PILL_TEXT.mild,
     letterSpacing: -0.3,
   },
   label: {
     fontSize: 11,
     fontWeight: '800',
-    color: Colors.cocoa,
+    color: SEVERITY_PILL_TEXT.mild,
   },
 })

@@ -15,6 +15,7 @@ import {
   getSeverityBand,
   getSeverityBands,
   SEVERITY_BAR_COLOR,
+  SEVERITY_PILL_TEXT,
   type AssessmentId,
   type SeverityBand,
 } from '../constants/MindAssessments'
@@ -164,9 +165,24 @@ export default function MindReportScreen() {
                   </Text>
                   <View style={styles.bandChip}>
                     <View
-                      style={[styles.bandDot, { backgroundColor: band.color }]}
+                      style={[
+                        styles.bandDot,
+                        {
+                          backgroundColor:
+                            SEVERITY_PILL_TEXT[band.id] ?? band.color,
+                        },
+                      ]}
                     />
-                    <Text style={styles.bandChipText}>{band.label}</Text>
+                    <Text
+                      style={[
+                        styles.bandChipText,
+                        {
+                          color: SEVERITY_PILL_TEXT[band.id] ?? Colors.textPrimary,
+                        },
+                      ]}
+                    >
+                      {band.label}
+                    </Text>
                   </View>
                 </View>
 

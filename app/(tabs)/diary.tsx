@@ -359,11 +359,7 @@ function DiaryScreenBody() {
             {WEEKDAYS.map((w, i) => (
               <Text
                 key={w}
-                style={[
-                  styles.weekday,
-                  i === 0 && styles.weekdaySun,
-                  i === 6 && styles.weekdaySat,
-                ]}
+                style={[styles.weekday, i === 0 && styles.weekdaySun]}
               >
                 {w}
               </Text>
@@ -542,14 +538,12 @@ function DiaryScreenBody() {
                   style={styles.legendItem}
                   accessibilityLabel={`${item.label} ${item.count}`}
                 >
-                  <View style={styles.legendMark}>
-                    <MoodEmoji
-                      index={item.emojiIndex}
-                      size={18}
-                      colorDot={item.color}
-                      dotSize={5}
-                    />
-                  </View>
+                  <MoodEmoji
+                    index={item.emojiIndex}
+                    size={22}
+                    colorDot={item.color}
+                    dotSize={5}
+                  />
                   <Text style={styles.legendCount}>{item.count}</Text>
                 </View>
               ))}
@@ -712,10 +706,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   belowCalendar: {
-    marginTop: 20,
+    marginTop: 24,
   },
   belowDayPanel: {
-    marginTop: 16,
+    marginTop: 20,
   },
   dayPanel: {
     gap: 10,
@@ -746,9 +740,6 @@ const styles = StyleSheet.create({
   },
   weekdaySun: {
     color: Colors.primary,
-  },
-  weekdaySat: {
-    color: Colors.cocoa,
   },
   daysGrid: {
     width: '100%',
@@ -864,24 +855,18 @@ const styles = StyleSheet.create({
     marginTop: 14,
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 4,
   },
   legendItem: {
-    flexDirection: 'row',
+    flex: 1,
     alignItems: 'center',
-    gap: 4,
-    flexShrink: 1,
+    gap: 6,
     minWidth: 0,
   },
-  legendMark: {
-    alignItems: 'center',
-    gap: 2,
-    flexShrink: 0,
-  },
   legendCount: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: Colors.textSecondary,
   },

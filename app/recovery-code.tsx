@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { Images } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
@@ -103,9 +104,25 @@ export default function RecoveryCodeScreen() {
           기록을 안전하게 불러올 수 있어요.
         </Text>
 
-        {/* 시안: 세로 멤버십 카드 — 번호 위 / 브랜드 / 펫 우하단 */}
+        {/* 멤버십 카드 — 크림 그라데이션 · 스트라이프 · 칩 · 번호 · 브랜드 · 펫 */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
+            <LinearGradient
+              colors={['#FFF9F3', '#F3E6DA', '#E8D5C6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+
+            <View style={styles.stripe} />
+
+            <View style={styles.chipRow}>
+              <View style={styles.chip}>
+                <View style={styles.chipInner} />
+              </View>
+              <Text style={styles.chipLabel}>HEALING PET</Text>
+            </View>
+
             <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             <Text style={styles.brandName}>하남이네 힐링펫</Text>
             <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
@@ -177,6 +194,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 8,
     paddingBottom: Layout.contentPaddingBottom,
+    alignItems: 'stretch',
   },
   sectionRow: {
     flexDirection: 'row',
@@ -202,34 +220,76 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 28,
   },
   cardShell: {
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 300,
-    aspectRatio: 0.72,
-    borderRadius: 28,
+    maxWidth: 320,
+    aspectRatio: 0.68,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: Colors.accent,
-    ...Shadows.elevation,
+    borderWidth: 1,
+    borderColor: Colors.sand,
+    backgroundColor: Colors.creamyBeige,
+    shadowColor: Colors.cocoa,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 12,
   },
   cardCapture: {
     flex: 1,
-    backgroundColor: Colors.accent,
-    paddingTop: 36,
-    paddingHorizontal: 24,
-    paddingBottom: 12,
+    paddingTop: 0,
+    paddingHorizontal: 22,
+    paddingBottom: 10,
+    overflow: 'hidden',
+  },
+  stripe: {
+    height: 36,
+    marginHorizontal: -22,
+    marginBottom: 18,
+    backgroundColor: Colors.selected,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
+  chip: {
+    width: 42,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: '#E2C98A',
+    borderWidth: 1,
+    borderColor: '#C9B06E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  chipInner: {
+    flex: 1,
+    alignSelf: 'stretch',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(122, 91, 69, 0.28)',
+  },
+  chipLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    color: Colors.textSecondary,
   },
   codeValue: {
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: '800',
     color: Colors.cocoa,
-    letterSpacing: 2,
-    marginBottom: 18,
+    letterSpacing: 3,
+    marginBottom: 14,
   },
   brandName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: Colors.cocoa,
     marginBottom: 4,
@@ -237,8 +297,7 @@ const styles = StyleSheet.create({
   cardSub: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.cocoa,
-    opacity: 0.9,
+    color: Colors.textSecondary,
   },
   petRow: {
     flex: 1,
@@ -251,17 +310,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dog: {
-    width: 148,
-    height: 148,
-    marginRight: -8,
-    marginBottom: -4,
+    width: 150,
+    height: 150,
+    marginRight: -10,
+    marginBottom: -6,
   },
   tip: {
-    marginTop: 16,
+    marginTop: 20,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 20,
+    textAlign: 'center',
   },
   footer: {
     ...onboardingFooterStyle,

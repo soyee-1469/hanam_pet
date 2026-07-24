@@ -13,12 +13,15 @@ export const onboardingCopyV1 = {
 
   gate: {
     bubble: '안녕! 기다리고 있었어.\n오늘도 천천히 함께하자.',
-    title: '몽이 & 나미',
-    sub: '마음을 돌보는 나의 펫',
+    title: '우리 전에 만난 적이 있나요?',
+    sub: '하남이네 힐링펫',
     valueLine: '오늘부터 작은 습관으로 마음을 돌봐요',
-    primary: '처음 방문했어요',
-    secondary: '기존 기록 불러오기',
-    hint: '가입 없이 이어보기 번호로 기록을 불러올 수 있어요',
+    primary: '오늘 첫 만남이에요',
+    primarySub: '처음 이용하거나 새로 시작해요.',
+    secondary: '이미 함께 하고 있어요',
+    secondarySub: '기록 가져오기 번호로 이전 기록을 불러와요.',
+    hint:
+      '기록 가져오기 번호는 2.0에서 발급한 번호예요.\n번호가 없다면 먼저 처음 시작하기로 이용할 수 있어요.',
   },
 
   intro: {

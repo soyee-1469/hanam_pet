@@ -20,8 +20,7 @@ type HelpFloatingFabProps = {
 
 /**
  * 대화 — 우측 「109 / 마음 상담」 플로팅.
- * 등장 시 스프링 「뿅」, 탭하면 상담 기관 시트.
- * 위기·도움용 → Accent 옐로 (Primary 코랄 금지).
+ * 노란(Accent) 면 + 코랄(Primary) 번호 — 위기·상담용, CTA와 역할 분리.
  */
 export function HelpFloatingFab({
   visible = true,
@@ -137,7 +136,7 @@ const styles = StyleSheet.create({
   num: {
     fontSize: 15,
     fontWeight: '800',
-    color: Colors.cocoa,
+    color: Colors.primary,
     letterSpacing: -0.2,
   },
   label: {

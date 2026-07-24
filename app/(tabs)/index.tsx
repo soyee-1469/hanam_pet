@@ -261,12 +261,12 @@ type CareStockCardProps = {
   anchorRef?: RefObject<View | null>
 }
 
-/** 케어 CTA — creamyBeige 면 + selected 테두리 (오렌지 절제) */
+/** 케어 CTA — 돌주기 라벨 고정, 0개여도 받기 라벨로 바꾸지 않음 */
 function CareStockCard({
   count,
   icon,
   useLabel,
-  acquireLabel,
+  acquireLabel: _acquireLabel,
   onUse,
   onAcquire,
   grayIconWhenEmpty = false,
@@ -300,8 +300,10 @@ function CareStockCard({
       <Animated.View style={{ flex: 1, transform: [{ scale }] }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={enabled ? useLabel : acquireLabel}
-          // Nudge: disabled 금지 — 카드 전체가 CTA
+          accessibilityLabel={
+            enabled ? useLabel : `${useLabel}, 보관 없음. 위에서 받아 주세요`
+          }
+          // Nudge: disabled 금지 — 0개면 상단 받기로 유도
           onPress={enabled ? onUse : onAcquire}
           onHoverIn={() => setHovered(true)}
           onHoverOut={() => setHovered(false)}
@@ -315,7 +317,7 @@ function CareStockCard({
           ]}
         >
           <Text style={styles.stockActionLabel} numberOfLines={1}>
-            {enabled ? useLabel : acquireLabel}
+            {useLabel}
           </Text>
           <View style={styles.stockIconCountRow}>
             <Image
@@ -2531,7 +2533,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: Layout.headerPaddingH,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: 'rgba(94, 64, 51, 0.1)',
     ...Shadows.elevation,

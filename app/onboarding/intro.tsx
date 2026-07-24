@@ -16,14 +16,19 @@ import {
   CaretDown,
   CaretUp,
   ChatCircle,
+  ChatTeardropDots,
+  Check,
+  CloudRain,
   HandHeart,
   Heart,
   LockKey,
   MagnifyingGlass,
+  Moon,
   PawPrint,
   Phone,
   Shield,
   ShieldCheck,
+  Waves,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -35,10 +40,14 @@ import {
   onboardingFooterStyle,
 } from '../../components/ui'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import {
+  getOnboardingDraft,
+  setOnboardingDraft,
+} from '../../lib/onboardingDraft'
 
 const copy = getOnboardingCopy().intro
 const SLIDES = copy.slides
-/** promises → features → help → privacy → diary → healing → mind */
+/** promises → reasons → features → help → diary → healing → mind */
 const TOUR_TOTAL = 7
 const SWIPE_THRESHOLD = 56
 
@@ -57,6 +66,13 @@ const PROMISE_ICONS: Record<string, Icon> = {
   help: ShieldCheck,
 }
 
+const REASON_ICONS: Record<string, Icon> = {
+  rain: CloudRain,
+  moon: Moon,
+  wave: Waves,
+  chat: ChatTeardropDots,
+}
+
 async function dial(phone: string, name: string) {
   const url = `tel:${phone}`
   try {
@@ -69,6 +85,76 @@ async function dial(phone: string, name: string) {
   } catch {
     Alert.alert('연결 실패', `${name}로 연결하지 못했어요.`)
   }
+}
+
+function ReasonsSlide({
+  title,
+  body,
+}: {
+  title: string
+  body: string
+}) {
+  const [selected, setSelected] = useState<string[]>(
+    () => getOnboardingDraft().visitReasons,
+  )
+
+  const toggle = (key: string) => {
+    setSelected((prev) => {
+      const next = prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key]
+      setOnboardingDraft({ visitReasons: next })
+      return next
+    })
+  }
+
+  return (
+    <View style={styles.featuresSlide}>
+      <Text style={styles.featuresTitle}>{title}</Text>
+      <Text style={styles.featuresBody}>{body}</Text>
+      <View style={styles.featureList}>
+        {copy.reasons.map((item) => {
+          const on = selected.includes(item.key)
+          const IconComp = REASON_ICONS[item.icon] ?? ChatTeardropDots
+          return (
+            <Pressable
+              key={item.key}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+              accessibilityLabel={item.title}
+              onPress={() => toggle(item.key)}
+              style={({ pressed }) => [
+                styles.reasonCard,
+                on && styles.reasonCardOn,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View
+                style={[styles.reasonIcon, on && styles.reasonIconOn]}
+              >
+                <IconComp
+                  size={22}
+                  color={on ? Colors.primary : Colors.selected}
+                  weight={on ? 'fill' : 'regular'}
+                />
+              </View>
+              <Text
+                style={[styles.reasonTitle, on && styles.reasonTitleOn]}
+                numberOfLines={2}
+              >
+                {item.title}
+              </Text>
+              <View style={[styles.reasonCheck, on && styles.reasonCheckOn]}>
+                {on ? (
+                  <Check size={14} color={Colors.surface} weight="bold" />
+                ) : null}
+              </View>
+            </Pressable>
+          )
+        })}
+      </View>
+    </View>
+  )
 }
 
 function PromisesSlide({
@@ -310,12 +396,14 @@ export default function OnboardingIntro() {
       >
         {item.key === 'promises' ? (
           <PromisesSlide title={item.title} body={item.body} />
+        ) : item.key === 'reasons' ? (
+          <ReasonsSlide title={item.title} body={item.body} />
         ) : item.key === 'features' ? (
           <FeaturesSlide title={item.title} body={item.body} />
-        ) : item.key === 'privacy' ? (
-          <PrivacySlide title={item.title} body={item.body} />
         ) : item.key === 'help' ? (
           <HelpSlide title={item.title} body={item.body} />
+        ) : item.key === 'privacy' ? (
+          <PrivacySlide title={item.title} body={item.body} />
         ) : null}
       </ScrollView>
 
@@ -532,5 +620,53 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 19,
+  },
+  reasonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: Colors.divider,
+  },
+  reasonCardOn: {
+    borderColor: Colors.primary,
+  },
+  reasonIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reasonIconOn: {
+    backgroundColor: Colors.primaryLight,
+  },
+  reasonTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  reasonTitleOn: {
+    fontWeight: '800',
+  },
+  reasonCheck: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reasonCheckOn: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 })

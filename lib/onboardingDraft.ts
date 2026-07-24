@@ -10,6 +10,8 @@ export type OnboardingDraft = {
   gender: GenderChoice | null
   petId: PetChoice | null
   petName: string
+  /** 방문 이유 (멀티 선택) */
+  visitReasons: string[]
 }
 
 let draft: OnboardingDraft = {
@@ -18,14 +20,21 @@ let draft: OnboardingDraft = {
   gender: null,
   petId: null,
   petName: '',
+  visitReasons: [],
 }
 
 export function getOnboardingDraft(): OnboardingDraft {
-  return { ...draft }
+  return { ...draft, visitReasons: [...draft.visitReasons] }
 }
 
 export function setOnboardingDraft(partial: Partial<OnboardingDraft>): void {
-  draft = { ...draft, ...partial }
+  draft = {
+    ...draft,
+    ...partial,
+    visitReasons: partial.visitReasons
+      ? [...partial.visitReasons]
+      : draft.visitReasons,
+  }
 }
 
 export function resetOnboardingDraft(): void {
@@ -35,6 +44,7 @@ export function resetOnboardingDraft(): void {
     gender: null,
     petId: null,
     petName: '',
+    visitReasons: [],
   }
 }
 

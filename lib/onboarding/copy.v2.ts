@@ -28,12 +28,17 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 7닷 — promises → features → help → privacy → diary → healing → mind */
+    /** 투어 7닷 — promises → reasons → features → help → diary → healing → mind */
     slides: [
       {
         key: 'promises' as const,
         title: '함께하기 전, 미리 알려 드려요',
         body: '안심하고 이용할 수 있도록, 먼저 약속할게요.',
+      },
+      {
+        key: 'reasons' as const,
+        title: '어떤 마음 때문에 하남이네를 찾아 오셨나요?',
+        body: '현재 마음을 알려 주시면, 딱 맞는 도움을 준비할게요. (여러 개를 선택해도 돼요.)',
       },
       {
         key: 'features' as const,
@@ -45,10 +50,27 @@ export const onboardingCopyV2 = {
         title: '힘들 땐 언제든\n도움받을 수 있어요',
         body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n혼자가 아니에요.',
       },
+    ],
+    reasons: [
       {
-        key: 'privacy' as const,
-        title: '일기와 대화 내용을\n안전하게 보관해요',
-        body: '이름 없이 익명으로 이용할 수 있어요.\n힐링펫은 전문 치료를 대신하지 않아요.',
+        key: 'hard',
+        title: '요즘 마음이 많이 힘들어요',
+        icon: 'rain' as const,
+      },
+      {
+        key: 'sleep',
+        title: '잠들기가 어려워요',
+        icon: 'moon' as const,
+      },
+      {
+        key: 'anxious',
+        title: '불안하고 걱정이 많아요',
+        icon: 'wave' as const,
+      },
+      {
+        key: 'talk',
+        title: '그냥 이야기 나누고 싶어요',
+        icon: 'chat' as const,
       },
     ],
     promises: [

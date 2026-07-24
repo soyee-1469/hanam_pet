@@ -189,19 +189,22 @@ export default function MindCheckResultScreen() {
                     style={[
                       styles.spectrumSeg,
                       { backgroundColor: segColor },
-                      mine && [
-                        styles.spectrumSegActive,
-                        {
-                          backgroundColor:
-                            SEVERITY_PILL_TEXT[b.id as SeverityId] ?? b.color,
-                        },
-                      ],
+                      mine && styles.spectrumSegActive,
+                      mine && {
+                        borderColor:
+                          SEVERITY_PILL_TEXT[b.id as SeverityId] ?? b.color,
+                      },
                     ]}
                   />
                   <Text
                     style={[
                       styles.spectrumLabel,
                       mine && styles.spectrumLabelActive,
+                      mine && {
+                        color:
+                          SEVERITY_PILL_TEXT[b.id as SeverityId] ??
+                          Colors.textPrimary,
+                      },
                     ]}
                   >
                     {b.label} {b.min}-{b.max}
@@ -384,6 +387,7 @@ const styles = StyleSheet.create({
   spectrumSegActive: {
     height: 12,
     borderRadius: 6,
+    borderWidth: 2,
   },
   spectrumLabel: {
     fontSize: 11,
@@ -393,7 +397,6 @@ const styles = StyleSheet.create({
   },
   spectrumLabelActive: {
     fontWeight: '800',
-    color: Colors.textPrimary,
   },
   opinionWrap: {
     position: 'relative',

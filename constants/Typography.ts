@@ -1,27 +1,19 @@
 /**
- * Font system — Pretendard only (entire UI).
- * OTFs: assets/fonts (from orioncactus/pretendard, OFL).
- *
- * Each weight is a separate face. Prefer Fonts.uiBold / uiSemiBold /
- * uiMedium over fontWeight alone (RN will not fake-bold Regular).
- * applyDefaultFonts also remaps fontWeight → these faces at render time.
+ * Typography scale — system default fonts (no custom face).
+ * Prefer fontWeight on Text styles; platform default handles glyphs.
  */
 export const Fonts = {
-  ui: 'Pretendard-Regular',
-  uiMedium: 'Pretendard-Medium',
-  uiSemiBold: 'Pretendard-SemiBold',
-  uiBold: 'Pretendard-Bold',
+  /** @deprecated system default — do not set fontFamily */
+  ui: undefined as unknown as string,
+  uiMedium: undefined as unknown as string,
+  uiSemiBold: undefined as unknown as string,
+  uiBold: undefined as unknown as string,
 } as const
 
 export type FontKey = keyof typeof Fonts
 
-/** Map for useFonts / loadAsync */
-export const fontAssets = {
-  [Fonts.ui]: require('../assets/fonts/Pretendard-Regular.otf'),
-  [Fonts.uiMedium]: require('../assets/fonts/Pretendard-Medium.otf'),
-  [Fonts.uiSemiBold]: require('../assets/fonts/Pretendard-SemiBold.otf'),
-  [Fonts.uiBold]: require('../assets/fonts/Pretendard-Bold.otf'),
-} as const
+/** No custom fonts to load */
+export const fontAssets = {} as const
 
 /** 앱 전역 텍스트 크기 — 페이지·컴포넌트 공통 기준 */
 export const Type = {

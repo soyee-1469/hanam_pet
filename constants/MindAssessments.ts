@@ -181,7 +181,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '정상',
     min: 0,
     max: 9,
-    color: '#5F8F4A',
+    color: SEVERITY_PILL_TEXT.normal,
     meaning: '일상에 지장이 적은 안정적인 상태',
     opinionTitle: '정상 (0-9점) 전문가 소견',
     opinionBody:
@@ -199,7 +199,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '경도 수준의 우울장애',
     min: 10,
     max: 18,
-    color: '#C49A28',
+    color: SEVERITY_PILL_TEXT.mild,
     meaning: '가벼운 우울감, 셀프케어와 관찰 권장',
     opinionTitle: '경도 (10-18점) 전문가 소견',
     opinionBody:
@@ -217,7 +217,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중등도 수준의 우울장애',
     min: 19,
     max: 27,
-    color: '#D97850',
+    color: SEVERITY_PILL_TEXT.moderate,
     meaning: '일상 기능 저하, 전문 상담 권장',
     opinionTitle: '중등도 (19-27점) 전문가 소견',
     opinionBody:
@@ -235,7 +235,7 @@ export const DEPRESSION_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 우울장애',
     min: 28,
     max: 36,
-    color: '#D06B6B',
+    color: SEVERITY_PILL_TEXT.severe,
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (28-36점) 전문가 소견',
     opinionBody:
@@ -257,7 +257,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '정상',
     min: 0,
     max: 9,
-    color: '#5F8F4A',
+    color: SEVERITY_PILL_TEXT.normal,
     meaning: '일상에 지장이 적은 안정적인 상태',
     opinionTitle: '정상 (0-9점) 전문가 소견',
     opinionBody:
@@ -275,7 +275,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '경증 수준의 불안장애',
     min: 10,
     max: 16,
-    color: '#6B9A4A',
+    color: SEVERITY_PILL_TEXT.mild,
     meaning: '가벼운 불안감, 셀프케어와 관찰 권장',
     opinionTitle: '경증 (10-16점) 전문가 소견',
     opinionBody:
@@ -293,7 +293,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '중등도 수준의 불안장애',
     min: 17,
     max: 24,
-    color: '#D97850',
+    color: SEVERITY_PILL_TEXT.moderate,
     meaning: '일상 기능 저하, 전문 상담 권장',
     opinionTitle: '중등도 (17-24점) 전문가 소견',
     opinionBody:
@@ -311,7 +311,7 @@ export const ANXIETY_BANDS: SeverityBand[] = [
     displayTitle: '중증 수준의 불안장애',
     min: 25,
     max: 33,
-    color: '#D06B6B',
+    color: SEVERITY_PILL_TEXT.severe,
     meaning: '즉각적인 전문 치료와 개입 필요',
     opinionTitle: '중증 (25-33점) 전문가 소견',
     opinionBody:
@@ -333,7 +333,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '낮은 수준의 스트레스',
     min: 0,
     max: 10,
-    color: '#5F8F4A',
+    color: SEVERITY_PILL_TEXT.normal,
     meaning: '대처 능력이 우수하며 안정적인 상태',
     opinionTitle: '낮은 수준 (0-10점) 전문가 소견',
     opinionBody:
@@ -351,7 +351,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '중등도 이상의 스트레스',
     min: 11,
     max: 20,
-    color: '#C49A28',
+    color: SEVERITY_PILL_TEXT.mild,
     meaning: '지속적인 주의와 점진적 해소 방법 필요',
     opinionTitle: '중등도 이상 (11-20점) 전문가 소견',
     opinionBody:
@@ -369,7 +369,7 @@ export const STRESS_BANDS: SeverityBand[] = [
     displayTitle: '매우 높은 중증 스트레스',
     min: 21,
     max: 33,
-    color: '#D06B6B',
+    color: SEVERITY_PILL_TEXT.severe,
     meaning: '적극적인 원인 파악 및 전문적 도움 권장',
     opinionTitle: '매우 높은 중증 (21-33점) 전문가 소견',
     opinionBody:

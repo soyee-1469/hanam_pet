@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router'
-import { useFonts } from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen'
 import { useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar'
@@ -8,8 +7,6 @@ import 'react-native-reanimated'
 import '../global.css'
 import { AppViewport } from '../components/AppViewport'
 import { ToastHost } from '../components/ToastHost'
-import { fontAssets } from '../constants/Typography'
-import { applyDefaultFonts } from '../lib/applyDefaultFonts'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -20,20 +17,9 @@ export const unstable_settings = {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts(fontAssets)
-
-  if (loaded || error) {
-    applyDefaultFonts()
-  }
-
   useEffect(() => {
-    if (!loaded && !error) return
     SplashScreen.hideAsync()
-  }, [loaded, error])
-
-  if (!loaded && !error) {
-    return null
-  }
+  }, [])
 
   return (
     <SafeAreaProvider>

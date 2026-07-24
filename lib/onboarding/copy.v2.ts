@@ -380,7 +380,7 @@ export const onboardingCopyV2 = {
     },
     restored: {
       headline: '이전 기록을 모두 가져왔어요',
-      body: '대화·마음일기·기본정보를 모두 복원했어요.',
+      body: '그동안의 대화와 마음일기를 모두 성공적으로 이어 받았어요!',
       cta: '이어서 시작하기',
       homeBubble: '기다리고 있었어! 다시 만나서 정말 기뻐!',
     },

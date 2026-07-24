@@ -19,6 +19,7 @@ import {
   CaretDown,
   CaretRight,
   CaretUp,
+  Check,
   DeviceMobile,
   Images,
   Lock,
@@ -396,17 +397,15 @@ export default function OnboardingResume() {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.center}>
-          <View style={styles.restoredGlow}>
-            <Image
-              source={onboardingMascot(0, 'wink')}
-              style={styles.pet}
-              resizeMode="contain"
-            />
+          <View style={styles.restoredBadge}>
+            <Check size={36} color={Colors.buttonPrimaryText} weight="bold" />
           </View>
-          <Text style={[styles.headline, styles.centerText]}>
+          <Text style={[styles.restoredTitle, styles.centerText]}>
             {copy.restored.headline}
           </Text>
-          <Text style={[styles.sub, styles.centerText]}>{copy.restored.body}</Text>
+          <Text style={[styles.restoredBody, styles.centerText]}>
+            {copy.restored.body}
+          </Text>
         </View>
         <View style={styles.footer}>
           <PrimaryButton
@@ -603,6 +602,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+  },
+  restoredBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  restoredTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    lineHeight: 32,
+    letterSpacing: -0.3,
+    marginBottom: 12,
+  },
+  restoredBody: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    maxWidth: 300,
   },
   lostPet: {
     width: 88,

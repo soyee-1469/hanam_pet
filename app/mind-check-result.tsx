@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import {
   CaretLeft,
-  CaretUp,
   CheckCircle,
   Phone,
 } from 'phosphor-react-native'
@@ -179,12 +178,17 @@ export default function MindCheckResultScreen() {
               return (
                 <View key={b.id} style={styles.spectrumItem}>
                   <View
-                    style={[styles.spectrumSeg, { backgroundColor: b.color }]}
+                    style={[
+                      styles.spectrumSeg,
+                      { backgroundColor: b.color },
+                      mine && styles.spectrumSegActive,
+                    ]}
                   />
                   <Text
                     style={[
                       styles.spectrumLabel,
-                      mine && { fontWeight: '800', color: accent },
+                      mine && styles.spectrumLabelActive,
+                      mine && { color: accent },
                     ]}
                   >
                     {b.label} {b.min}-{b.max}
@@ -199,8 +203,8 @@ export default function MindCheckResultScreen() {
           <View style={styles.opinionCard}>
             <View style={styles.opinionHead}>
               <Text style={styles.opinionTitle}>전문가 소견</Text>
-              <View style={[styles.bandBadge, { backgroundColor: accent }]}>
-                <Text style={styles.bandBadgeText}>
+              <View style={styles.bandBadge}>
+                <Text style={[styles.bandBadgeText, { color: accent }]}>
                   {band.label} ({score}점)
                 </Text>
               </View>
@@ -214,23 +218,20 @@ export default function MindCheckResultScreen() {
                 </View>
               ))}
             </View>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="도움이 필요하면 전문 상담 연결"
-              onPress={() => setHelpOpen(true)}
-              style={({ pressed }) => [
-                styles.counselBar,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Phone size={18} color={Colors.selected} weight="fill" />
-              <Text style={styles.counselBarText}>
-                도움이 필요하면 전문 상담 연결
-              </Text>
-              <CaretUp size={16} color={Colors.selected} weight="bold" />
-            </Pressable>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="상담 연결"
+            onPress={() => setHelpOpen(true)}
+            style={({ pressed }) => [
+              styles.counselFab,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Phone size={18} color={Colors.textPrimary} weight="fill" />
+            <Text style={styles.counselFabText}>상담 연결</Text>
+          </Pressable>
         </View>
       </ScrollView>
 
@@ -366,14 +367,22 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
+  spectrumSegActive: {
+    height: 12,
+    borderRadius: 6,
+  },
   spectrumLabel: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  spectrumLabelActive: {
+    fontWeight: '800',
+  },
   opinionWrap: {
-    marginBottom: 8,
+    position: 'relative',
+    marginBottom: 20,
   },
   opinionCard: {
     backgroundColor: Colors.surface,
@@ -382,7 +391,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: Layout.blockGap,
-    paddingBottom: Layout.blockGap,
+    paddingBottom: 22,
     ...Shadows.elevation,
   },
   opinionHead: {
@@ -399,13 +408,13 @@ const styles = StyleSheet.create({
   },
   bandBadge: {
     borderRadius: 999,
-    paddingHorizontal: Layout.headerPaddingH,
+    paddingHorizontal: 12,
     paddingVertical: 6,
+    backgroundColor: Colors.creamyBeige,
   },
   bandBadgeText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#FFFFFF',
   },
   opinionBody: {
     fontSize: 14,
@@ -416,7 +425,6 @@ const styles = StyleSheet.create({
   },
   tips: {
     gap: 12,
-    marginBottom: 16,
   },
   tipRow: {
     flexDirection: 'row',
@@ -430,21 +438,22 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 20,
   },
-  counselBar: {
+  counselFab: {
+    position: 'absolute',
+    right: 12,
+    bottom: -18,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    minHeight: 48,
+    gap: 6,
+    backgroundColor: Colors.accent,
+    borderRadius: 999,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: Colors.primaryLight,
+    paddingVertical: 10,
+    ...Shadows.elevation,
   },
-  counselBarText: {
-    flex: 1,
-    minWidth: 0,
+  counselFabText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.textPrimary,
   },
   footer: {

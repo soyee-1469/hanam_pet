@@ -75,6 +75,7 @@ function OtpGroup({
   onChange,
   onKeyPress,
   onFocus,
+  hasError,
 }: {
   start: number
   digits: string[]
@@ -83,6 +84,7 @@ function OtpGroup({
   onChange: (index: number, raw: string) => void
   onKeyPress: (index: number, key: string) => void
   onFocus: (index: number) => void
+  hasError?: boolean
 }) {
   return (
     <View style={styles.otpGroup}>
@@ -96,6 +98,7 @@ function OtpGroup({
               styles.otpCellWrap,
               isActive && styles.otpCellOn,
               digit !== '' && !isActive && styles.otpCellFilled,
+              hasError && styles.otpCellError,
             ]}
           >
             <TextInput
@@ -384,6 +387,7 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
+              hasError={codeError}
               onFocus={(i) => {
                 setFocused(i)
                 scrollOtpIntoView()
@@ -397,6 +401,7 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
+              hasError={codeError}
               onFocus={(i) => {
                 setFocused(i)
                 scrollOtpIntoView()
@@ -472,13 +477,25 @@ export default function OnboardingResume() {
             />
           </View>
         ) : (
-          <NumberKeypad
-            onDigit={pressDigit}
-            onBackspace={pressBackspace}
-            onNext={pressNext}
-            nextLabel="다음"
-            nextDisabled={false}
-          />
+          <View>
+            <View style={styles.footer}>
+              <PrimaryButton
+                label={copy.code.cta}
+                disabled={!codeOk}
+                emphasized={codeOk}
+                onPress={() => {
+                  void submitCode()
+                }}
+              />
+            </View>
+            <NumberKeypad
+              onDigit={pressDigit}
+              onBackspace={pressBackspace}
+              onNext={pressNext}
+              nextLabel="다음"
+              nextDisabled={false}
+            />
+          </View>
         )}
       </View>
 
@@ -785,6 +802,9 @@ const styles = StyleSheet.create({
   otpCellFilled: {
     borderColor: Colors.beige,
     backgroundColor: Colors.surface,
+  },
+  otpCellError: {
+    borderColor: Colors.error,
   },
   tipList: {
     gap: 12,

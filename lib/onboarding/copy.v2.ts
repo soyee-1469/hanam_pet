@@ -333,7 +333,7 @@ export const onboardingCopyV2 = {
       cta: '기록 가져오기',
       ctaBusy: '불러오는 중…',
       loadingMessage: '기록을 확인하고 있어요...',
-      wrongCode: '일치하는 번호가 없어요. 다시 확인해 주세요.',
+      wrongCode: '일치하는 번호가 없어요. 번호를 다시 확인해 주세요.',
     },
     lost: {
       headline: '번호를 잊으셨나요?',

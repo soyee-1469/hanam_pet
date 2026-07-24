@@ -4,12 +4,12 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   Image,
   ScrollView,
   Pressable,
-  ActivityIndicator,
+  LayoutAnimation,
+  UIManager,
   type TextInput as RNTextInput,
   type ImageSourcePropType,
 } from 'react-native'
@@ -19,23 +19,23 @@ import {
   CaretDown,
   CaretRight,
   CaretUp,
+  Check,
   DeviceMobile,
   Images,
   Lock,
+  Notebook,
+  Question,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
+import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
 import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
+import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
-import {
-  keyboardAvoidingBehavior,
-  keyboardVerticalOffset,
-  useKeyboardAvoidInset,
-} from '../../lib/useKeyboardAvoidInset'
 import { NumberKeyboardProps } from '../../lib/inputKeyboard'
 
 const copy = getOnboardingCopy().resume
@@ -43,6 +43,13 @@ const DEMO_RESTORE_CODE = getOnboardingCopy().restoreCode.dummyCode
 const CODE_LEN = 8
 /** 더미 복구에도 로딩이 보이도록 */
 const RESTORE_DELAY_MS = 1400
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
+}
 
 type Step = 'code' | 'lost' | 'giveUp' | 'restored'
 
@@ -68,6 +75,7 @@ function OtpGroup({
   onChange,
   onKeyPress,
   onFocus,
+  hasError,
 }: {
   start: number
   digits: string[]
@@ -76,6 +84,7 @@ function OtpGroup({
   onChange: (index: number, raw: string) => void
   onKeyPress: (index: number, key: string) => void
   onFocus: (index: number) => void
+  hasError?: boolean
 }) {
   return (
     <View style={styles.otpGroup}>
@@ -89,6 +98,7 @@ function OtpGroup({
               styles.otpCellWrap,
               isActive && styles.otpCellOn,
               digit !== '' && !isActive && styles.otpCellFilled,
+              hasError && styles.otpCellError,
             ]}
           >
             <TextInput
@@ -96,6 +106,8 @@ function OtpGroup({
                 inputs.current[i] = el
               }}
               {...NumberKeyboardProps}
+              showSoftInputOnFocus={false}
+              caretHidden={false}
               value={digit}
               onChangeText={(t) => onChange(i, t)}
               onKeyPress={({ nativeEvent }) => onKeyPress(i, nativeEvent.key)}
@@ -126,11 +138,6 @@ export default function OnboardingResume() {
   const scrollOtpIntoView = useCallback(() => {
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
   }, [])
-
-  const { webKeyboardInset } = useKeyboardAvoidInset({
-    onOpen: scrollOtpIntoView,
-    enabled: step === 'code',
-  })
 
   const code = digits.join('')
   const codeOk = /^\d{8}$/.test(code)
@@ -201,6 +208,19 @@ export default function OnboardingResume() {
     }
   }
 
+  const pressDigit = (digit: string) => {
+    if (busy) return
+    let index = focused
+    if (digits[index] !== '' && index < CODE_LEN - 1) {
+      index = Math.min(CODE_LEN - 1, index + 1)
+    }
+    setDigitAt(index, digit)
+  }
+
+  const pressBackspace = () => {
+    onKeyPress(focused, 'Backspace')
+  }
+
   const submitCode = async () => {
     if (!codeOk || busy) return
     setBusy(true)
@@ -219,8 +239,16 @@ export default function OnboardingResume() {
     }
   }
 
-  if (step === 'lost' || step === 'giveUp') {
-    const g = copy.lost.giveUp
+  const pressNext = () => {
+    if (codeOk) {
+      void submitCode()
+      return
+    }
+    const empty = digits.findIndex((d) => d === '')
+    focusAt(empty >= 0 ? empty : CODE_LEN - 1)
+  }
+
+  if (step === 'lost') {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScreenHeader title={copy.header} onBack={() => setStep('code')} />
@@ -308,61 +336,6 @@ export default function OnboardingResume() {
             <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
           </Pressable>
         </View>
-
-        <BottomSheet
-          visible={step === 'giveUp'}
-          onRequestClose={() => setStep('lost')}
-        >
-          <Text style={styles.giveUpTitle}>{g.title}</Text>
-
-          <View style={styles.giveUpCard}>
-            <View style={styles.giveUpPrivacyRow}>
-              <Lock size={18} color={Colors.cocoa} weight="regular" />
-              <Text style={styles.giveUpPrivacyTitle}>{g.privacyTitle}</Text>
-            </View>
-            {g.privacyParagraphs.map((parts, i) => (
-              <Text
-                key={i}
-                style={[
-                  styles.giveUpPrivacyBody,
-                  i < g.privacyParagraphs.length - 1 &&
-                    styles.giveUpPrivacyGap,
-                ]}
-              >
-                {parts.map((part, j) => (
-                  <Text
-                    key={j}
-                    style={
-                      'bold' in part && part.bold
-                        ? styles.giveUpPrivacyBold
-                        : undefined
-                    }
-                  >
-                    {part.text}
-                  </Text>
-                ))}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.giveUpActions}>
-            <PrimaryButton
-              label={g.restart}
-              emphasized
-              onPress={() => router.replace('/onboarding/intro')}
-            />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setStep('code')}
-              style={({ pressed }) => [
-                styles.giveUpLookAgain,
-                pressed && styles.giveUpLookAgainPressed,
-              ]}
-            >
-              <Text style={styles.giveUpLookAgainText}>{g.lookAgain}</Text>
-            </Pressable>
-          </View>
-        </BottomSheet>
       </SafeAreaView>
     )
   }
@@ -371,17 +344,15 @@ export default function OnboardingResume() {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.center}>
-          <View style={styles.restoredGlow}>
-            <Image
-              source={onboardingMascot(0, 'wink')}
-              style={styles.pet}
-              resizeMode="contain"
-            />
+          <View style={styles.restoredBadge}>
+            <Check size={36} color={Colors.buttonPrimaryText} weight="bold" />
           </View>
-          <Text style={[styles.headline, styles.centerText]}>
+          <Text style={[styles.restoredTitle, styles.centerText]}>
             {copy.restored.headline}
           </Text>
-          <Text style={[styles.sub, styles.centerText]}>{copy.restored.body}</Text>
+          <Text style={[styles.restoredBody, styles.centerText]}>
+            {copy.restored.body}
+          </Text>
         </View>
         <View style={styles.footer}>
           <PrimaryButton
@@ -397,15 +368,7 @@ export default function OnboardingResume() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
-      <KeyboardAvoidingView
-        style={[
-          styles.flex,
-          Platform.OS === 'web' &&
-            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
-        ]}
-        behavior={keyboardAvoidingBehavior()}
-        keyboardVerticalOffset={keyboardVerticalOffset}
-      >
+      <View style={styles.flex}>
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
@@ -424,12 +387,13 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
+              hasError={codeError}
               onFocus={(i) => {
                 setFocused(i)
                 scrollOtpIntoView()
               }}
             />
-            <Text style={styles.otpSep}>·</Text>
+            <View style={styles.otpGap} />
             <OtpGroup
               start={4}
               digits={digits}
@@ -437,6 +401,7 @@ export default function OnboardingResume() {
               inputs={inputs}
               onChange={setDigitAt}
               onKeyPress={onKeyPress}
+              hasError={codeError}
               onFocus={(i) => {
                 setFocused(i)
                 scrollOtpIntoView()
@@ -451,7 +416,7 @@ export default function OnboardingResume() {
           <Pressable
             accessibilityRole="button"
             disabled={busy}
-            onPress={() => setStep('lost')}
+            onPress={() => setStep('giveUp')}
             style={({ pressed }) => [
               styles.helpBtn,
               pressed && styles.helpBtnPressed,
@@ -467,12 +432,20 @@ export default function OnboardingResume() {
               accessibilityState={{ expanded: tipOpen }}
               accessibilityLabel={copy.code.tipTitle}
               disabled={busy}
-              onPress={() => setTipOpen((v) => !v)}
+              onPress={() => {
+                LayoutAnimation.configureNext(
+                  LayoutAnimation.Presets.easeInEaseOut,
+                )
+                setTipOpen((v) => !v)
+              }}
               style={({ pressed }) => [
                 styles.codeTipHeader,
                 pressed && styles.codeTipHeaderPressed,
               ]}
             >
+              <View style={styles.codeTipIcon}>
+                <Question size={16} color={Colors.selected} weight="bold" />
+              </View>
               <Text style={styles.codeTipTitle}>{copy.code.tipTitle}</Text>
               {tipOpen ? (
                 <CaretUp size={16} color={Colors.textPrimary} weight="bold" />
@@ -481,29 +454,106 @@ export default function OnboardingResume() {
               )}
             </Pressable>
             {tipOpen ? (
-              <Text style={styles.codeTipBody}>{copy.code.tipBody}</Text>
+              <View style={styles.codeTipBodyWrap}>
+                <Text style={styles.codeTipIntro}>{copy.code.tipIntro}</Text>
+                {copy.code.tipItems.map((item) => (
+                  <View key={item} style={styles.codeTipItemRow}>
+                    <Text style={styles.codeTipBullet}>·</Text>
+                    <Text style={styles.codeTipItem}>{item}</Text>
+                  </View>
+                ))}
+              </View>
             ) : null}
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
-          {busy ? (
-            <View style={styles.loadingBlock}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>{copy.code.loadingMessage}</Text>
-            </View>
-          ) : (
+        {busy ? (
+          <View style={styles.footer}>
             <PrimaryButton
               label={copy.code.cta}
-              disabled={!codeOk}
-              emphasized={codeOk}
-              onPress={() => {
-                void submitCode()
-              }}
+              disabled
+              emphasized={false}
+              onPress={() => {}}
             />
-          )}
+          </View>
+        ) : (
+          <View>
+            <View style={styles.footer}>
+              <PrimaryButton
+                label={copy.code.cta}
+                disabled={!codeOk}
+                emphasized={codeOk}
+                onPress={() => {
+                  void submitCode()
+                }}
+              />
+            </View>
+            <NumberKeypad
+              onDigit={pressDigit}
+              onBackspace={pressBackspace}
+              onNext={pressNext}
+              nextLabel="다음"
+              nextDisabled={false}
+            />
+          </View>
+        )}
+      </View>
+
+      {busy ? (
+        <View style={styles.checkingOverlay} pointerEvents="auto">
+          <View style={styles.checkingCard}>
+            <View style={styles.checkingHero}>
+              <Image
+                source={DogExpr.soft}
+                style={styles.checkingPet}
+                resizeMode="contain"
+              />
+              <View style={styles.checkingBook}>
+                <Notebook size={20} color={Colors.selected} weight="fill" />
+              </View>
+            </View>
+            <Text style={styles.checkingText}>{copy.code.loadingMessage}</Text>
+          </View>
         </View>
-      </KeyboardAvoidingView>
+      ) : null}
+
+      <BottomSheet
+        visible={step === 'giveUp'}
+        onRequestClose={() => setStep('code')}
+      >
+        <Text style={styles.giveUpTitle}>{copy.lost.giveUp.title}</Text>
+        <View style={styles.giveUpCard}>
+          <Text style={styles.giveUpBody}>{copy.lost.giveUp.body}</Text>
+          <View style={styles.giveUpPrivacyRow}>
+            <Lock size={18} color={Colors.cocoa} weight="regular" />
+            <Text style={styles.giveUpPrivacyTitle}>
+              {copy.lost.giveUp.privacyTitle}
+            </Text>
+          </View>
+          <Text style={styles.giveUpPrivacyBody}>
+            {copy.lost.giveUp.privacyBody}
+          </Text>
+        </View>
+        <View style={styles.giveUpActions}>
+          <PrimaryButton
+            label={copy.lost.giveUp.lookAgain}
+            emphasized
+            onPress={() => setStep('code')}
+          />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.replace('/onboarding/intro')}
+            style={({ pressed }) => [
+              styles.giveUpLookAgain,
+              pressed && styles.giveUpLookAgainPressed,
+            ]}
+          >
+            <Text style={styles.giveUpRestartText}>
+              {copy.lost.giveUp.restart}
+            </Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   )
 }
@@ -511,7 +561,7 @@ export default function OnboardingResume() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
     overflow: 'hidden',
   },
   flex: {
@@ -552,6 +602,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
+  restoredBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  restoredTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    lineHeight: 32,
+    letterSpacing: -0.3,
+    marginBottom: 12,
+  },
+  restoredBody: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    maxWidth: 300,
+  },
   lostPet: {
     width: 88,
     height: 88,
@@ -559,15 +638,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headline: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
     marginBottom: 10,
-    lineHeight: 28,
+    lineHeight: 32,
+    letterSpacing: -0.3,
   },
   sub: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 14,
+    lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
     marginBottom: 22,
@@ -578,6 +658,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     gap: 10,
+  },
+  otpGap: {
+    width: 8,
   },
   otpGroup: {
     flex: 1,
@@ -604,10 +687,10 @@ const styles = StyleSheet.create({
   helpBtn: {
     marginTop: 20,
     alignSelf: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
+    borderRadius: 999,
+    backgroundColor: Colors.surfaceSecondary,
   },
   helpBtnPressed: {
     opacity: 0.85,
@@ -617,33 +700,70 @@ const styles = StyleSheet.create({
   },
   helpBtnText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textSecondary,
   },
-  /** 기록 가져오기 — 맨 아래 「확인해 주세요」 */
+  /** 기록 가져오기 — 번호 확인 아코디언 */
   codeTipCard: {
     marginTop: 'auto' as const,
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 14,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: 24,
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
   codeTipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 8,
+    paddingVertical: 10,
   },
   codeTipHeaderPressed: {
     opacity: 0.85,
   },
+  codeTipIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.beige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   codeTipTitle: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: Colors.textPrimary,
-    lineHeight: 22,
+    lineHeight: 20,
+  },
+  codeTipBodyWrap: {
+    paddingLeft: 4,
+    paddingBottom: 4,
+    gap: 6,
+  },
+  codeTipIntro: {
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  codeTipItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  codeTipBullet: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  codeTipItem: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
   },
   codeTipBody: {
     marginTop: 10,
@@ -682,6 +802,9 @@ const styles = StyleSheet.create({
   otpCellFilled: {
     borderColor: Colors.beige,
     backgroundColor: Colors.surface,
+  },
+  otpCellError: {
+    borderColor: Colors.error,
   },
   tipList: {
     gap: 12,
@@ -781,11 +904,53 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
   },
+  checkingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(48, 36, 28, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 40,
+    paddingHorizontal: Layout.screenPaddingH,
+  },
+  checkingCard: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  checkingHero: {
+    width: 140,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkingPet: {
+    width: 120,
+    height: 120,
+  },
+  checkingBook: {
+    position: 'absolute',
+    right: 8,
+    bottom: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.beige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkingText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.accent,
+    textAlign: 'center',
+    letterSpacing: -0.2,
+  },
   footer: {
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: Layout.blockGap,
     paddingTop: Layout.sectionGap,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   restartLink: {
     alignItems: 'center',
@@ -818,11 +983,18 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
     marginBottom: 20,
   },
+  giveUpBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+  },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   giveUpPrivacyTitle: {
     flex: 1,
@@ -858,6 +1030,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textSecondary,
+    textDecorationLine: 'underline',
+  },
+  giveUpRestartText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.cocoa,
     textDecorationLine: 'underline',
   },
 })

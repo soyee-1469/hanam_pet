@@ -15,6 +15,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="restore-code" />
       <Stack.Screen name="welcome" />
       <Stack.Screen name="pet-select" />
+      <Stack.Screen name="resume-intro" />
       <Stack.Screen name="resume" />
     </Stack>
   )

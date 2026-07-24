@@ -8,7 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 import { Phone } from 'phosphor-react-native'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
 type HelpFloatingFabProps = {

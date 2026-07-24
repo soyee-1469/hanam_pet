@@ -10,6 +10,8 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  LayoutAnimation,
+  UIManager,
   type TextInput as RNTextInput,
   type ImageSourcePropType,
 } from 'react-native'
@@ -22,6 +24,7 @@ import {
   DeviceMobile,
   Images,
   Lock,
+  Question,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
@@ -43,6 +46,13 @@ const DEMO_RESTORE_CODE = getOnboardingCopy().restoreCode.dummyCode
 const CODE_LEN = 8
 /** 더미 복구에도 로딩이 보이도록 */
 const RESTORE_DELAY_MS = 1400
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
+}
 
 type Step = 'code' | 'lost' | 'giveUp' | 'restored'
 
@@ -429,7 +439,7 @@ export default function OnboardingResume() {
                 scrollOtpIntoView()
               }}
             />
-            <Text style={styles.otpSep}>·</Text>
+            <View style={styles.otpGap} />
             <OtpGroup
               start={4}
               digits={digits}
@@ -467,12 +477,20 @@ export default function OnboardingResume() {
               accessibilityState={{ expanded: tipOpen }}
               accessibilityLabel={copy.code.tipTitle}
               disabled={busy}
-              onPress={() => setTipOpen((v) => !v)}
+              onPress={() => {
+                LayoutAnimation.configureNext(
+                  LayoutAnimation.Presets.easeInEaseOut,
+                )
+                setTipOpen((v) => !v)
+              }}
               style={({ pressed }) => [
                 styles.codeTipHeader,
                 pressed && styles.codeTipHeaderPressed,
               ]}
             >
+              <View style={styles.codeTipIcon}>
+                <Question size={16} color={Colors.selected} weight="bold" />
+              </View>
               <Text style={styles.codeTipTitle}>{copy.code.tipTitle}</Text>
               {tipOpen ? (
                 <CaretUp size={16} color={Colors.textPrimary} weight="bold" />
@@ -481,7 +499,15 @@ export default function OnboardingResume() {
               )}
             </Pressable>
             {tipOpen ? (
-              <Text style={styles.codeTipBody}>{copy.code.tipBody}</Text>
+              <View style={styles.codeTipBodyWrap}>
+                <Text style={styles.codeTipIntro}>{copy.code.tipIntro}</Text>
+                {copy.code.tipItems.map((item) => (
+                  <View key={item} style={styles.codeTipItemRow}>
+                    <Text style={styles.codeTipBullet}>·</Text>
+                    <Text style={styles.codeTipItem}>{item}</Text>
+                  </View>
+                ))}
+              </View>
             ) : null}
           </View>
         </ScrollView>
@@ -511,7 +537,7 @@ export default function OnboardingResume() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
     overflow: 'hidden',
   },
   flex: {
@@ -559,15 +585,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headline: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
     marginBottom: 10,
-    lineHeight: 28,
+    lineHeight: 32,
+    letterSpacing: -0.3,
   },
   sub: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 14,
+    lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
     marginBottom: 22,
@@ -578,6 +605,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     gap: 10,
+  },
+  otpGap: {
+    width: 8,
   },
   otpGroup: {
     flex: 1,
@@ -604,10 +634,10 @@ const styles = StyleSheet.create({
   helpBtn: {
     marginTop: 20,
     alignSelf: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
+    borderRadius: 999,
+    backgroundColor: Colors.surfaceSecondary,
   },
   helpBtnPressed: {
     opacity: 0.85,
@@ -617,33 +647,70 @@ const styles = StyleSheet.create({
   },
   helpBtnText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.textSecondary,
   },
-  /** 기록 가져오기 — 맨 아래 「확인해 주세요」 */
+  /** 기록 가져오기 — 번호 확인 아코디언 */
   codeTipCard: {
     marginTop: 'auto' as const,
-    backgroundColor: Colors.creamyBeige,
-    borderRadius: 14,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: 24,
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
   codeTipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 8,
+    paddingVertical: 10,
   },
   codeTipHeaderPressed: {
     opacity: 0.85,
   },
+  codeTipIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.beige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   codeTipTitle: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     color: Colors.textPrimary,
-    lineHeight: 22,
+    lineHeight: 20,
+  },
+  codeTipBodyWrap: {
+    paddingLeft: 4,
+    paddingBottom: 4,
+    gap: 6,
+  },
+  codeTipIntro: {
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  codeTipItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  codeTipBullet: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  codeTipItem: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 20,
+    color: Colors.textSecondary,
   },
   codeTipBody: {
     marginTop: 10,

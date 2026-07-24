@@ -348,6 +348,12 @@ export const onboardingCopyV2 = {
       loadingMessage: '기록을 확인하고 있어요...',
       wrongCode: '일치하는 번호가 없어요. 번호를 다시 확인해 주세요.',
     },
+    notFound: {
+      headline: '번호를 여러 번 확인했지만\n찾지 못했어요.',
+      body: '사진첩에 저장한 번호나\n이전 기기 [설정 > 내 기록 가져오기 번호]를\n확인해 보세요.',
+      ctaLost: '번호를 모르겠어요',
+      ctaRetry: '다시 입력할게요',
+    },
     lost: {
       headline: '번호를 잊으셨나요?',
       body: '괜찮아요. 아래를 천천히 확인해 보세요. 이름·연락처는 묻지 않는 익명 서비스예요.',

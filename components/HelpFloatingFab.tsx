@@ -9,9 +9,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
-import { CaretLeft } from 'phosphor-react-native'
+import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
-import { SEVERITY_PILL_BG, SEVERITY_PILL_TEXT } from '../constants/MindAssessments'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
 type HelpFloatingFabProps = {
@@ -22,49 +21,63 @@ type HelpFloatingFabProps = {
 }
 
 /**
- * 대화 — 우측 가장자리 「109 / 마음 상담」 스티커.
- * 시안 점수 필(연한 노랑 면 + 머스타드 글자) 톤온톤 + 흰 테두리·기울기.
+ * 대화 — 우측 가장자리 「마음 상담」 스티커.
+ * 1차 탭: 긴급 안내 문구로 가로 확장 / 2차 탭: 상담 연락처 시트.
+ * 스크롤과 무관하게 입력창 위 우측에 고정.
  */
 export function HelpFloatingFab({
   visible = true,
   bottom = 120,
   style,
 }: HelpFloatingFabProps) {
+  const [expanded, setExpanded] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const scale = useRef(new Animated.Value(0)).current
-  const opacity = useRef(new Animated.Value(0)).current
+  const appearScale = useRef(new Animated.Value(0)).current
+  const appearOpacity = useRef(new Animated.Value(0)).current
+  const expandProgress = useRef(new Animated.Value(0)).current
   const pressScale = useRef(new Animated.Value(1)).current
 
   useEffect(() => {
     if (!visible) {
-      scale.setValue(0)
-      opacity.setValue(0)
+      appearScale.setValue(0)
+      appearOpacity.setValue(0)
+      expandProgress.setValue(0)
+      setExpanded(false)
       return
     }
-    scale.setValue(0.55)
-    opacity.setValue(0)
+    appearScale.setValue(0.55)
+    appearOpacity.setValue(0)
     Animated.parallel([
-      Animated.spring(scale, {
+      Animated.spring(appearScale, {
         toValue: 1,
         friction: 5,
         tension: 140,
         useNativeDriver: true,
       }),
-      Animated.timing(opacity, {
+      Animated.timing(appearOpacity, {
         toValue: 1,
         duration: 180,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start()
-  }, [visible, scale, opacity])
+  }, [visible, appearScale, appearOpacity, expandProgress])
+
+  useEffect(() => {
+    Animated.spring(expandProgress, {
+      toValue: expanded ? 1 : 0,
+      friction: 7,
+      tension: 120,
+      useNativeDriver: false,
+    }).start()
+  }, [expanded, expandProgress])
 
   if (!visible) return null
 
-  const openSheet = () => {
+  const bumpPress = () => {
     Animated.sequence([
       Animated.timing(pressScale, {
-        toValue: 0.92,
+        toValue: 0.94,
         duration: 70,
         useNativeDriver: true,
       }),
@@ -75,8 +88,34 @@ export function HelpFloatingFab({
         useNativeDriver: true,
       }),
     ]).start()
+  }
+
+  const onPress = () => {
+    bumpPress()
+    if (!expanded) {
+      setExpanded(true)
+      return
+    }
     setSheetOpen(true)
   }
+
+  const onCloseSheet = () => {
+    setSheetOpen(false)
+    setExpanded(false)
+  }
+
+  const stickerWidth = expandProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [72, 268],
+  })
+  const collapsedOpacity = expandProgress.interpolate({
+    inputRange: [0, 0.35, 1],
+    outputRange: [1, 0, 0],
+  })
+  const expandedOpacity = expandProgress.interpolate({
+    inputRange: [0, 0.45, 1],
+    outputRange: [0, 0, 1],
+  })
 
   return (
     <>
@@ -86,8 +125,8 @@ export function HelpFloatingFab({
           styles.wrap,
           {
             bottom,
-            opacity,
-            transform: [{ scale }, { rotate: '-5deg' }],
+            opacity: appearOpacity,
+            transform: [{ scale: appearScale }],
           },
           style,
         ]}
@@ -95,33 +134,47 @@ export function HelpFloatingFab({
         <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="마음 상담, 109"
-            accessibilityHint="전문 상담 기관 연락처가 열려요"
-            onPress={openSheet}
+            accessibilityLabel={
+              expanded
+                ? '도움 받을 곳을 알려 드릴게요'
+                : '마음 상담, 혼자 견디지 않아도 괜찮아요'
+            }
+            accessibilityHint={
+              expanded
+                ? '전문 상담 기관 연락처가 열려요'
+                : '안내 문구가 펼쳐져요'
+            }
+            onPress={onPress}
             hitSlop={8}
-            style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
+            style={({ pressed }) => [pressed && styles.pressed]}
           >
-            <View style={styles.fabInner}>
-              <View style={styles.chevron}>
-                <CaretLeft
-                  size={12}
-                  color={SEVERITY_PILL_TEXT.mild}
-                  weight="bold"
-                />
+            <Animated.View style={[styles.sticker, { width: stickerWidth }]}>
+              <View style={styles.phoneBadge}>
+                <Phone size={22} color={Colors.primary} weight="fill" />
               </View>
-              <View style={styles.copy}>
-                <Text style={styles.num}>109</Text>
-                <Text style={styles.label}>마음 상담</Text>
+
+              <View style={styles.copySlot} pointerEvents="none">
+                <Animated.View
+                  style={[styles.collapsedCopy, { opacity: collapsedOpacity }]}
+                >
+                  <Text style={styles.collapsedLabel}>마음</Text>
+                  <Text style={styles.collapsedLabel}>상담</Text>
+                </Animated.View>
+                <Animated.View
+                  style={[styles.expandedCopy, { opacity: expandedOpacity }]}
+                >
+                  <Text style={styles.lineSoft}>혼자 견디지 않아도 괜찮아요</Text>
+                  <Text style={styles.lineStrong}>
+                    도움 받을 곳을 알려 드릴게요
+                  </Text>
+                </Animated.View>
               </View>
-            </View>
+            </Animated.View>
           </Pressable>
         </Animated.View>
       </Animated.View>
 
-      <HelpContactsSheet
-        visible={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-      />
+      <HelpContactsSheet visible={sheetOpen} onClose={onCloseSheet} />
     </>
   )
 }
@@ -129,53 +182,76 @@ export function HelpFloatingFab({
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    right: -2,
+    right: 0,
     zIndex: 24,
     elevation: 14,
   },
-  fab: {
-    paddingLeft: 10,
-    paddingRight: 14,
-    paddingVertical: 11,
-    borderTopLeftRadius: 18,
-    borderBottomLeftRadius: 18,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-    backgroundColor: SEVERITY_PILL_BG.mild,
-    borderWidth: 3,
-    borderColor: Colors.surface,
-    shadowColor: Colors.cocoa,
-    shadowOffset: { width: -2, height: 5 },
-    shadowOpacity: 0.28,
-    shadowRadius: 6,
-    elevation: 10,
-  },
-  fabInner: {
+  sticker: {
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    paddingLeft: 12,
+    paddingRight: 14,
+    paddingVertical: 10,
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    backgroundColor: Colors.accentSoft,
+    borderWidth: 2,
+    borderRightWidth: 0,
+    borderColor: Colors.surface,
+    shadowColor: Colors.cocoa,
+    shadowOffset: { width: -2, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 6,
+    elevation: 10,
+    overflow: 'hidden',
   },
-  chevron: {
-    width: 14,
+  phoneBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    marginRight: 8,
   },
-  copy: {
-    alignItems: 'center',
+  copySlot: {
+    flex: 1,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  collapsedCopy: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
     gap: 1,
+  },
+  expandedCopy: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    gap: 2,
+    paddingRight: 4,
+  },
+  collapsedLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: -0.2,
+  },
+  lineSoft: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.cocoa,
+    letterSpacing: -0.2,
+  },
+  lineStrong: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: -0.3,
   },
   pressed: {
     opacity: 0.94,
-  },
-  num: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: SEVERITY_PILL_TEXT.mild,
-    letterSpacing: -0.3,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: SEVERITY_PILL_TEXT.mild,
   },
 })

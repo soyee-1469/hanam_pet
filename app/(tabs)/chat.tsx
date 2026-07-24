@@ -246,9 +246,8 @@ function ChatScreenBody() {
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
-  /** 채팅 입력창 바로 위 — 대화 시작 전에도 노출 */
-  const showHelpFab =
-    !keyboardOpen && !typing && !depleted && !showChatTour && noticeDone
+  /** 입력창 위 우측 고정 — 긴박 시 바로 누를 수 있게 키보드·타이핑 중에도 노출 */
+  const showHelpFab = !depleted && !showChatTour && noticeDone
 
   const sendMessage = async () => {
     const trimmed = message.trim()

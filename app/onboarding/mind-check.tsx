@@ -48,7 +48,7 @@ export default function OnboardingMindCheck() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   body: {
     flex: 1,

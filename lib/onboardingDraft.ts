@@ -48,5 +48,5 @@ export function resetOnboardingDraft(): void {
   }
 }
 
-/** Setup flow progress after gate (terms → pet → profile → [restore] → welcome) */
+/** Setup flow progress after terms (terms → profile → pet → restore → welcome) */
 export const ONBOARDING_STEPS = ONBOARDING_VERSION === 'v2' ? 5 : 4

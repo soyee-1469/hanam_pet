@@ -234,7 +234,7 @@ export default function OnboardingProfile() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,
@@ -387,5 +387,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 10,
   },
 })

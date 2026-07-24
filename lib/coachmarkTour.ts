@@ -67,7 +67,7 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
     badge: '마음챙김',
     title: () => '내 마음을 살펴봐요',
     body: () =>
-      '간단한 자가진단으로 지금 내 마음 상태를 객관적으로 확인할 수 있어요.',
+      '간단한 설문으로 내 마음 상태를 알 수 있어요. 나조차 몰랐던 마음을 객관적으로 확인해요.',
     highlight: 'checkTool',
     route: 'mind',
     tail: 'up',

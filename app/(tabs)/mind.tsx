@@ -110,6 +110,13 @@ function MindScreenBody() {
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
   )
+  const checkListRef = useRef<View>(null)
+  const [checkSpot, setCheckSpot] = useState<{
+    x: number
+    y: number
+    w: number
+    h: number
+  } | null>(null)
   const [playing, setPlaying] = useState<MindContent | null>(null)
   const [menuContent, setMenuContent] = useState<MindContent | null>(null)
 
@@ -145,6 +152,19 @@ function MindScreenBody() {
   useEffect(() => {
     if (showMindTour) setTab('check')
   }, [showMindTour])
+
+  useEffect(() => {
+    if (!tourHighlightCheck) {
+      setCheckSpot(null)
+      return
+    }
+    const t = requestAnimationFrame(() => {
+      checkListRef.current?.measureInWindow((x, y, w, h) => {
+        if (w > 0 && h > 0) setCheckSpot({ x, y, w, h })
+      })
+    })
+    return () => cancelAnimationFrame(t)
+  }, [tourHighlightCheck, tab, results])
 
   const finishPetTour = async () => {
     finishPetTourWithComplete()
@@ -363,12 +383,17 @@ function MindScreenBody() {
               </Text>
             </View>
 
-            <View style={styles.checkList}>
+            <View
+              ref={checkListRef}
+              collapsable={false}
+              style={[
+                styles.checkList,
+                tourHighlightCheck && styles.checkListTourHidden,
+              ]}
+            >
               {MIND_CHECKS.map((check) => {
                 const IconComp = CHECK_ICON[check.icon]
                 const latest = latestForCheck(results, check.id)
-                const highlight =
-                  tourHighlightCheck && check.id === MIND_CHECKS[0]?.id
                 return (
                   <Pressable
                     key={check.id}
@@ -382,7 +407,6 @@ function MindScreenBody() {
                     }
                     style={({ pressed }) => [
                       styles.checkCard,
-                      highlight && styles.checkCardTour,
                       pressed && styles.pressed,
                     ]}
                   >
@@ -424,44 +448,79 @@ function MindScreenBody() {
       </ScrollView>
 
       {showMindTour && tourStep ? (
-        <View style={styles.coachOverlay} pointerEvents="box-none">
-          <View style={styles.coachScrim} />
-          {tourHighlightCheck ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={MIND_CHECKS[0]?.title ?? '우울 평가도구'}
-              onPress={() =>
-                router.push({
-                  pathname: '/mind-check-intro',
-                  params: { id: MIND_CHECKS[0]?.id ?? 'phq' },
-                })
-              }
-              style={styles.tourSpotlight}
+        <>
+          <View style={styles.coachScrimLayer} pointerEvents="auto">
+            <View style={styles.coachScrim} />
+          </View>
+          {checkSpot ? (
+            <View
+              pointerEvents="box-none"
+              style={[
+                styles.checkTourSpot,
+                {
+                  left: checkSpot.x - 4,
+                  top: checkSpot.y - 4,
+                  width: checkSpot.w + 8,
+                },
+              ]}
             >
-              <View style={styles.checkIconWrap}>
-                <Moon size={22} color={Colors.cocoa} weight="regular" />
-              </View>
-              <View style={styles.rowCopy}>
-                <Text style={styles.rowTitle}>
-                  {MIND_CHECKS[0]?.title ?? '우울 평가도구'}
-                </Text>
-                <Text style={styles.rowMeta}>
-                  {MIND_CHECKS[0]
-                    ? `${MIND_CHECKS[0].code} · ${MIND_CHECKS[0].questions}문항 · 약 ${MIND_CHECKS[0].minutes}분`
-                    : ''}
-                </Text>
-              </View>
-              <CaretRight size={18} color={Colors.taupe} weight="bold" />
-            </Pressable>
+              {MIND_CHECKS.map((check) => {
+                const IconComp = CHECK_ICON[check.icon]
+                const latest = latestForCheck(results, check.id)
+                return (
+                  <Pressable
+                    key={`tour-${check.id}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={check.title}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/mind-check-intro',
+                        params: { id: check.id },
+                      })
+                    }
+                    style={({ pressed }) => [
+                      styles.checkCard,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.checkIconWrap}>
+                      <IconComp
+                        size={22}
+                        color={Colors.cocoa}
+                        weight="regular"
+                      />
+                    </View>
+                    <View style={styles.rowCopy}>
+                      <Text style={styles.rowTitle}>{check.title}</Text>
+                      <Text style={styles.rowMeta}>
+                        {check.code} · {check.questions}문항 · 약{' '}
+                        {check.minutes}분
+                      </Text>
+                      <Text
+                        style={[
+                          styles.checkHistory,
+                          !latest && styles.checkHistoryEmpty,
+                        ]}
+                      >
+                        {latest
+                          ? `최근 평가 ${formatResultDateYmd(latest.at)}`
+                          : '검사 이력 없음'}
+                      </Text>
+                    </View>
+                    <CaretRight size={18} color={Colors.taupe} weight="bold" />
+                  </Pressable>
+                )
+              })}
+            </View>
           ) : null}
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={Math.max(insets.bottom, 12) + 24}
+            bottom={tabBarSpace + 16}
           />
-        </View>
+        </>
       ) : null}
 
       <YouTubeVideoModal
@@ -697,10 +756,6 @@ const styles = StyleSheet.create({
     paddingVertical: Layout.blockGap,
     ...Shadows.elevation,
   },
-  checkCardTour: {
-    borderWidth: 2.5,
-    borderColor: Colors.primary,
-  },
   checkIconWrap: {
     width: 48,
     height: 48,
@@ -857,30 +912,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
   },
-  coachOverlay: {
+  coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 28,
+    zIndex: 20,
+    elevation: 20,
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
-  tourSpotlight: {
+  checkListTourHidden: {
+    opacity: 0,
+  },
+  checkTourSpot: {
     position: 'absolute',
-    top: 168,
-    left: Layout.screenPaddingH,
-    right: Layout.screenPaddingH,
     zIndex: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    minHeight: 84,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingVertical: Layout.blockGap,
-    borderRadius: 18,
+    elevation: 30,
+    borderRadius: 20,
     borderWidth: 2.5,
     borderColor: Colors.primary,
     backgroundColor: Colors.surface,
+    padding: 6,
+    gap: 10,
     ...Shadows.elevation,
   },
   pressed: {

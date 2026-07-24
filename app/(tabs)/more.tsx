@@ -64,7 +64,7 @@ const SECTIONS: SettingsSection[] = [
         id: 'version',
         title: `앱 버전 ${APP_VERSION}`,
         kind: 'version',
-        trailing: '업데이트',
+        trailing: '최신 버전',
       },
     ],
   },
@@ -88,31 +88,18 @@ function SettingsRow({
 
   if (isVersion) {
     return (
-      <Pressable
-        accessibilityRole="button"
+      <View
+        style={[styles.row, !isLast && styles.rowDivider]}
+        accessibilityRole="text"
         accessibilityLabel={`${item.title}, ${item.trailing ?? ''}`}
-        android_ripple={{ color: 'transparent' }}
-        onPress={onPress}
-        onHoverIn={() => setHovered(true)}
-        onHoverOut={() => setHovered(false)}
-        style={({ pressed }) => [pressed && styles.rowPressed]}
       >
-        <View
-          style={[
-            styles.row,
-            !isLast && styles.rowDivider,
-            hovered && styles.rowHover,
-          ]}
-        >
-          <Text style={styles.rowTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          {item.trailing ? (
-            <Text style={styles.rowTrailingUpdate}>{item.trailing}</Text>
-          ) : null}
-          <CaretRight size={16} color={Colors.textDisabled} weight="bold" />
-        </View>
-      </Pressable>
+        <Text style={styles.rowTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        {item.trailing ? (
+          <Text style={styles.rowTrailing}>{item.trailing}</Text>
+        ) : null}
+      </View>
     )
   }
 
@@ -183,9 +170,6 @@ function MoreScreenBody() {
       case 'oss':
         router.push({ pathname: '/guide-doc', params: { id: 'oss' } })
         return
-      case 'version':
-        // 스토어 연결 전 — 안내만
-        return
       case 'support':
         router.push('/support')
         return
@@ -218,7 +202,11 @@ function MoreScreenBody() {
                   key={row.id}
                   item={row}
                   isLast={i === section.rows.length - 1}
-                  onPress={() => onRowPress(row.id)}
+                  onPress={
+                    row.kind === 'version'
+                      ? undefined
+                      : () => onRowPress(row.id)
+                  }
                 />
               ))}
             </View>

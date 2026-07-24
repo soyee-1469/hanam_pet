@@ -13,8 +13,8 @@ import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().mindCheck
-const TALK_TOTAL = 3
-const TALK_INDEX = 2
+const TOUR_TOTAL = 6
+const TOUR_INDEX = 5
 
 export default function OnboardingMindCheck() {
   const goNext = () => router.push('/onboarding/terms')
@@ -38,7 +38,7 @@ export default function OnboardingMindCheck() {
       </View>
 
       <View style={styles.footer}>
-        <TourDots total={TALK_TOTAL} index={TALK_INDEX} />
+        <TourDots total={TOUR_TOTAL} index={TOUR_INDEX} />
         <PrimaryButton label={copy.cta} emphasized onPress={goNext} />
       </View>
     </SafeAreaView>

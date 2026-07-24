@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -14,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import {
   CalendarHeart,
+  CaretDown,
+  CaretUp,
   ChatCircle,
   HandHeart,
   Heart,
@@ -23,9 +24,8 @@ import {
   Phone,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Colors } from '../../constants/Colors'
+import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
-import { DogExpr } from '../../constants/DogExpr'
 import {
   PrimaryButton,
   ScreenHeader,
@@ -36,7 +36,8 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().intro
 const SLIDES = copy.slides
-const PAGER_TOTAL = SLIDES.length
+/** features → help → privacy → diary → healing → mind */
+const TOUR_TOTAL = 6
 const SWIPE_THRESHOLD = 56
 
 const FEATURE_ICONS: Record<string, Icon> = {
@@ -61,25 +62,56 @@ async function dial(phone: string, name: string) {
   }
 }
 
-function BrandSlide({
+function FeaturesSlide({
   title,
   body,
 }: {
   title: string
   body: string
 }) {
+  const [openKey, setOpenKey] = useState<string | null>(null)
+
   return (
-    <View style={styles.centerSlide}>
-      <View style={styles.brandGlow}>
-        <Image
-          source={DogExpr.fun}
-          style={styles.brandImage}
-          resizeMode="contain"
-          accessibilityLabel="힐링펫"
-        />
+    <View style={styles.featuresSlide}>
+      <Text style={styles.featuresTitle}>{title}</Text>
+      <Text style={styles.featuresBody}>{body}</Text>
+      <View style={styles.featureList}>
+        {copy.features.map((f) => {
+          const IconComp = FEATURE_ICONS[f.key] ?? PawPrint
+          const open = openKey === f.key
+          return (
+            <Pressable
+              key={f.key}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: open }}
+              onPress={() => setOpenKey(open ? null : f.key)}
+              style={({ pressed }) => [
+                styles.featureCard,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.featureIcon}>
+                <IconComp size={22} color={Colors.selected} weight="fill" />
+              </View>
+              <View style={styles.featureCopy}>
+                <Text style={styles.featureName}>{f.title}</Text>
+                {open ? (
+                  <Text style={styles.featureDesc}>{f.body}</Text>
+                ) : null}
+              </View>
+              {open ? (
+                <CaretUp size={16} color={Colors.textDisabled} weight="bold" />
+              ) : (
+                <CaretDown
+                  size={16}
+                  color={Colors.textDisabled}
+                  weight="bold"
+                />
+              )}
+            </Pressable>
+          )
+        })}
       </View>
-      <Text style={styles.centerTitle}>{title}</Text>
-      <Text style={styles.centerBody}>{body}</Text>
     </View>
   )
 }
@@ -131,37 +163,6 @@ function HelpSlide({
   )
 }
 
-function FeaturesSlide({
-  title,
-  body,
-}: {
-  title: string
-  body: string
-}) {
-  return (
-    <View style={styles.featuresSlide}>
-      <Text style={styles.featuresTitle}>{title}</Text>
-      <Text style={styles.featuresBody}>{body}</Text>
-      <View style={styles.featureList}>
-        {copy.features.map((f) => {
-          const IconComp = FEATURE_ICONS[f.key] ?? PawPrint
-          return (
-            <View key={f.key} style={styles.featureCard}>
-              <View style={styles.featureIcon}>
-                <IconComp size={22} color={Colors.selected} weight="fill" />
-              </View>
-              <View style={styles.featureCopy}>
-                <Text style={styles.featureName}>{f.title}</Text>
-                <Text style={styles.featureDesc}>{f.body}</Text>
-              </View>
-            </View>
-          )
-        })}
-      </View>
-    </View>
-  )
-}
-
 function PrivacySlide({
   title,
   body,
@@ -190,8 +191,7 @@ export default function OnboardingIntro() {
     setIndex(Math.max(0, Math.min(SLIDES.length - 1, next)))
   }
 
-  /** 투어 끝 = 약관 (피그마: 온보딩 → 약관) */
-  const finishTour = () => router.push('/onboarding/terms')
+  const finishIntro = () => router.push('/onboarding/diary-record')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   const goNext = () => {
@@ -199,7 +199,15 @@ export default function OnboardingIntro() {
       goTo(index + 1)
       return
     }
-    finishTour()
+    finishIntro()
+  }
+
+  const goBack = () => {
+    if (canSwipePrev) {
+      goTo(index - 1)
+      return
+    }
+    router.back()
   }
 
   const panResponder = useMemo(
@@ -218,7 +226,7 @@ export default function OnboardingIntro() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader
-        onBack={canSwipePrev ? () => goTo(index - 1) : undefined}
+        onBack={goBack}
         onSkip={skipToTerms}
         skipLabel={copy.skip}
       />
@@ -229,9 +237,7 @@ export default function OnboardingIntro() {
         showsVerticalScrollIndicator={false}
         {...panResponder.panHandlers}
       >
-        {item.key === 'brand' ? (
-          <BrandSlide title={item.title} body={item.body} />
-        ) : item.key === 'features' ? (
+        {item.key === 'features' ? (
           <FeaturesSlide title={item.title} body={item.body} />
         ) : item.key === 'privacy' ? (
           <PrivacySlide title={item.title} body={item.body} />
@@ -241,8 +247,12 @@ export default function OnboardingIntro() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TourDots total={PAGER_TOTAL} index={index} />
-        <PrimaryButton label={copy.ctaNext} onPress={goNext} />
+        <TourDots total={TOUR_TOTAL} index={index} />
+        <PrimaryButton
+          label={copy.ctaNext}
+          emphasized
+          onPress={goNext}
+        />
       </View>
     </SafeAreaView>
   )
@@ -251,7 +261,7 @@ export default function OnboardingIntro() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   flex: {
     flex: 1,
@@ -272,19 +282,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 24,
-  },
-  brandGlow: {
-    width: 168,
-    height: 168,
-    borderRadius: 84,
-    backgroundColor: Colors.creamyBeige,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-  },
-  brandImage: {
-    width: 120,
-    height: 120,
   },
   lockGlow: {
     width: 120,
@@ -414,6 +411,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.textPrimary,
     lineHeight: 32,
+    letterSpacing: -0.3,
     marginBottom: 8,
   },
   featuresBody: {
@@ -421,27 +419,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   featureList: {
-    gap: 8,
+    gap: 10,
   },
   featureCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: Colors.divider,
+    ...Shadows.elevation,
   },
   featureIcon: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -453,9 +452,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 3,
   },
   featureDesc: {
+    marginTop: 6,
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,

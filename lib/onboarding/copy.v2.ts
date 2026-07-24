@@ -28,22 +28,17 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 4장 — brand → help → features → privacy (피그마 좌→우 순서) */
+    /** 투어 — features → help → privacy 후 diary/healing/mind (닷 6) */
     slides: [
       {
-        key: 'brand' as const,
-        title: '마음을 돌보는 친구\n힐링펫',
-        body: '매일 스스로를 돌보는 습관을 만들고\n마음을 함께 나누어요.',
+        key: 'features' as const,
+        title: '매일 펫과 함께 나의 마음을 돌봐요',
+        body: '다섯 가지 방법으로 마음을 살펴요!',
       },
       {
         key: 'help' as const,
         title: '힘들 땐 언제든\n도움받을 수 있어요',
         body: '마음이 무거운 날엔 아래로 바로 연결할 수 있어요.\n혼자가 아니에요.',
-      },
-      {
-        key: 'features' as const,
-        title: '펫과 함께\n매일 나의 마음을 돌봐요',
-        body: '다섯 가지로 마음을 살펴요.',
       },
       {
         key: 'privacy' as const,
@@ -54,27 +49,27 @@ export const onboardingCopyV2 = {
     features: [
       {
         key: 'pet',
-        title: '나만의 펫 키우기',
+        title: '나만의 펫을 키워 보세요',
         body: '매일 사료를 주고 놀아주며 펫을 성장시켜요',
       },
       {
         key: 'chat',
-        title: '나의 펫과 대화하기',
+        title: '펫과 대화하며 마음을 나눠요',
         body: '공감형 펫과 대화하며 위로와 공감을 받아요',
       },
       {
         key: 'diary',
-        title: '마음 기록하기',
+        title: '오늘의 마음을 기록해요',
         body: '하루의 감정을 돌아보고 일기에 마음을 남겨요',
       },
       {
         key: 'fill',
-        title: '마음 채우기',
+        title: '마음을 채워 주는 콘텐츠를 만나요',
         body: '나를 다독여 주는 영상 콘텐츠를 만나요',
       },
       {
         key: 'check',
-        title: '마음 살피기',
+        title: '내 마음 상태를 살펴요',
         body: '감정 상태를 스스로 체크하며 마음을 들여다봐요',
       },
     ],

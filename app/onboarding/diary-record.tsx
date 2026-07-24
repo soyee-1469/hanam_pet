@@ -13,9 +13,9 @@ import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().diaryRecord
-/** 토크 3단계 전용 인디케이터 (인트로 닷과 분리) */
-const TALK_TOTAL = 3
-const TALK_INDEX = 0
+/** features·help·privacy 다음 — 닷 6개 중 4번째 */
+const TOUR_TOTAL = 6
+const TOUR_INDEX = 3
 
 export default function OnboardingDiaryRecord() {
   const goNext = () => router.push('/onboarding/healing-content')
@@ -39,7 +39,7 @@ export default function OnboardingDiaryRecord() {
       </View>
 
       <View style={styles.footer}>
-        <TourDots total={TALK_TOTAL} index={TALK_INDEX} />
+        <TourDots total={TOUR_TOTAL} index={TOUR_INDEX} />
         <PrimaryButton label={copy.cta} emphasized onPress={goNext} />
       </View>
     </SafeAreaView>

@@ -236,7 +236,7 @@ function homeStatusLine(now = new Date()): string {
 function homeGreetingBubble(now = new Date()): string {
   const h = now.getHours()
   if (h < 11) return '오늘 하루도 같이 시작해요.'
-  if (h < 17) return '잠깐 기지개도 켜봐요'
+  if (h < 17) return '기지개 한 번 켜봐요.'
   if (h < 21) return '이제 나랑 편하게 쉬어요'
   return '오늘도 화이팅해요'
 }

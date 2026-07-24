@@ -22,8 +22,9 @@ button {
   -webkit-appearance: none;
   border: none;
   margin: 0;
-  /* UA padding이 원형 버튼 뒤에 사각으로 남는 것 방지 */
+  /* UA padding·기본 면색이 원형/텍스트 버튼 뒤에 사각으로 남는 것 방지 */
   padding: 0;
+  background: transparent !important;
 }
 
 input:focus,

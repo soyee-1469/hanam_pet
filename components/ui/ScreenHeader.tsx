@@ -52,6 +52,7 @@ export function ScreenHeader({
           accessibilityLabel={skipLabel}
           hitSlop={8}
           onPress={onSkip}
+          android_ripple={{ color: 'transparent' }}
           style={({ pressed }) => [styles.skipBtn, pressed && styles.pressed]}
         >
           <Text style={styles.skipText}>{skipLabel}</Text>
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     paddingTop: Layout.headerPaddingTop,
     paddingBottom: Layout.headerContentGap,
     minHeight: 56,
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
     zIndex: 10,
     flexShrink: 0,
   },
@@ -93,6 +94,7 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'flex-end',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   skipText: {
     ...TypeStyle.bodySecondary,

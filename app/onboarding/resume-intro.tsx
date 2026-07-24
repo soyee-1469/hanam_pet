@@ -69,7 +69,7 @@ export default function OnboardingResumeIntro() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.background,
   },
   body: {
     flex: 1,

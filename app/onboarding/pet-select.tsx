@@ -326,7 +326,7 @@ export default function OnboardingPetSelect() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.background,
   },
   flex: {
     flex: 1,

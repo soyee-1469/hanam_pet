@@ -131,11 +131,6 @@ const styles = StyleSheet.create({
   primaryEmphasized: {
     height: 56,
     backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    elevation: 6,
   },
   primaryDisabled: {
     backgroundColor: Colors.inactive,
@@ -158,12 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.buttonSecondaryBg,
     borderWidth: 1.5,
     borderColor: Colors.cocoa,
-    shadowColor: Colors.cocoa,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
+    },
   secondaryDisabled: {
     backgroundColor: Colors.inactive,
     borderColor: Colors.inactive,

@@ -7,6 +7,7 @@ import 'react-native-reanimated'
 import '../global.css'
 import { AppViewport } from '../components/AppViewport'
 import { ToastHost } from '../components/ToastHost'
+import { Colors } from '../constants/Colors'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -25,7 +26,16 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <AppViewport>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack
+          detachInactiveScreens
+          screenOptions={{
+            headerShown: false,
+            freezeOnBlur: true,
+            contentStyle: { backgroundColor: Colors.background, flex: 1 },
+            // 웹에서 이전 라우트·회색 기본면이 비치지 않게
+            animation: 'slide_from_right',
+          }}
+        >
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="(tabs)" />

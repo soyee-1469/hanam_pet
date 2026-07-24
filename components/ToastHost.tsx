@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 9999,
-    elevation: 9999,
+    elevation: 0,
   },
   toast: {
     backgroundColor: 'rgba(70, 55, 45, 0.78)',

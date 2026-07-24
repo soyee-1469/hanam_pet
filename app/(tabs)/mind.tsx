@@ -915,7 +915,7 @@ const styles = StyleSheet.create({
   coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20,
-    elevation: 20,
+    elevation: 0,
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
   checkTourSpot: {
     position: 'absolute',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
     borderRadius: 20,
     borderWidth: 2.5,
     borderColor: Colors.selected,

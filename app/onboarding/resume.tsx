@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
   Image,
   ScrollView,
@@ -32,13 +31,9 @@ import { Layout } from '../../constants/Layout'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
 import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
+import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
-import {
-  keyboardAvoidingBehavior,
-  keyboardVerticalOffset,
-  useKeyboardAvoidInset,
-} from '../../lib/useKeyboardAvoidInset'
 import { NumberKeyboardProps } from '../../lib/inputKeyboard'
 
 const copy = getOnboardingCopy().resume
@@ -106,6 +101,8 @@ function OtpGroup({
                 inputs.current[i] = el
               }}
               {...NumberKeyboardProps}
+              showSoftInputOnFocus={false}
+              caretHidden={false}
               value={digit}
               onChangeText={(t) => onChange(i, t)}
               onKeyPress={({ nativeEvent }) => onKeyPress(i, nativeEvent.key)}
@@ -136,11 +133,6 @@ export default function OnboardingResume() {
   const scrollOtpIntoView = useCallback(() => {
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
   }, [])
-
-  const { webKeyboardInset } = useKeyboardAvoidInset({
-    onOpen: scrollOtpIntoView,
-    enabled: step === 'code',
-  })
 
   const code = digits.join('')
   const codeOk = /^\d{8}$/.test(code)
@@ -211,6 +203,19 @@ export default function OnboardingResume() {
     }
   }
 
+  const pressDigit = (digit: string) => {
+    if (busy) return
+    let index = focused
+    if (digits[index] !== '' && index < CODE_LEN - 1) {
+      index = Math.min(CODE_LEN - 1, index + 1)
+    }
+    setDigitAt(index, digit)
+  }
+
+  const pressBackspace = () => {
+    onKeyPress(focused, 'Backspace')
+  }
+
   const submitCode = async () => {
     if (!codeOk || busy) return
     setBusy(true)
@@ -227,6 +232,15 @@ export default function OnboardingResume() {
     } finally {
       setBusy(false)
     }
+  }
+
+  const pressNext = () => {
+    if (codeOk) {
+      void submitCode()
+      return
+    }
+    const empty = digits.findIndex((d) => d === '')
+    focusAt(empty >= 0 ? empty : CODE_LEN - 1)
   }
 
   if (step === 'lost' || step === 'giveUp') {
@@ -407,15 +421,7 @@ export default function OnboardingResume() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader title={copy.header} onBack={() => router.back()} />
-      <KeyboardAvoidingView
-        style={[
-          styles.flex,
-          Platform.OS === 'web' &&
-            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
-        ]}
-        behavior={keyboardAvoidingBehavior()}
-        keyboardVerticalOffset={keyboardVerticalOffset}
-      >
+      <View style={styles.flex}>
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
@@ -512,24 +518,23 @@ export default function OnboardingResume() {
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
-          {busy ? (
+        {busy ? (
+          <View style={styles.footer}>
             <View style={styles.loadingBlock}>
               <ActivityIndicator size="large" color={Colors.primary} />
               <Text style={styles.loadingText}>{copy.code.loadingMessage}</Text>
             </View>
-          ) : (
-            <PrimaryButton
-              label={copy.code.cta}
-              disabled={!codeOk}
-              emphasized={codeOk}
-              onPress={() => {
-                void submitCode()
-              }}
-            />
-          )}
-        </View>
-      </KeyboardAvoidingView>
+          </View>
+        ) : (
+          <NumberKeypad
+            onDigit={pressDigit}
+            onBackspace={pressBackspace}
+            onNext={pressNext}
+            nextLabel="다음"
+            nextDisabled={false}
+          />
+        )}
+      </View>
     </SafeAreaView>
   )
 }

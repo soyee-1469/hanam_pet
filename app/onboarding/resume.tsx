@@ -25,6 +25,7 @@ import {
   Lock,
   Notebook,
   Question,
+  Warning,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -51,7 +52,7 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true)
 }
 
-type Step = 'code' | 'lost' | 'giveUp' | 'restored'
+type Step = 'code' | 'notFound' | 'lost' | 'giveUp' | 'restored'
 
 const TIP_META: Record<
   string,
@@ -132,6 +133,7 @@ export default function OnboardingResume() {
   const [focused, setFocused] = useState(0)
   const [busy, setBusy] = useState(false)
   const [codeError, setCodeError] = useState(false)
+  const [failCount, setFailCount] = useState(0)
   const [tipOpen, setTipOpen] = useState(true)
   const inputs = useRef<(RNTextInput | null)[]>([])
   const scrollRef = useRef<ScrollView>(null)
@@ -230,7 +232,13 @@ export default function OnboardingResume() {
     try {
       await new Promise((r) => setTimeout(r, RESTORE_DELAY_MS))
       if (code !== DEMO_RESTORE_CODE) {
-        setCodeError(true)
+        const nextFails = failCount + 1
+        setFailCount(nextFails)
+        if (nextFails >= 2) {
+          setStep('notFound')
+        } else {
+          setCodeError(true)
+        }
         return
       }
       await markOnboardingCompleted()
@@ -247,6 +255,49 @@ export default function OnboardingResume() {
     }
     const empty = digits.findIndex((d) => d === '')
     focusAt(empty >= 0 ? empty : CODE_LEN - 1)
+  }
+
+  if (step === 'notFound') {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <ScreenHeader title={copy.header} onBack={() => setStep('code')} />
+        <View style={styles.notFoundBody}>
+          <View style={styles.notFoundCenter}>
+            <Warning
+              size={72}
+              color={Colors.textPrimary}
+              weight="regular"
+            />
+            <Text style={styles.notFoundHeadline}>
+              {copy.notFound.headline}
+            </Text>
+            <Text style={styles.notFoundBodyText}>{copy.notFound.body}</Text>
+          </View>
+        </View>
+        <View style={styles.footer}>
+          <PrimaryButton
+            label={copy.notFound.ctaLost}
+            emphasized
+            onPress={() => setStep('lost')}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={copy.notFound.ctaRetry}
+            onPress={() => {
+              setCodeError(false)
+              setDigits(Array(CODE_LEN).fill(''))
+              setStep('code')
+            }}
+            style={({ pressed }) => [
+              styles.restartLink,
+              pressed && styles.restartLinkPressed,
+            ]}
+          >
+            <Text style={styles.restartLinkText}>{copy.notFound.ctaRetry}</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    )
   }
 
   if (step === 'lost') {
@@ -576,6 +627,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: Layout.sectionGapLg,
     flexGrow: 1,
+  },
+  notFoundBody: {
+    flex: 1,
+    paddingHorizontal: Layout.screenPaddingH,
+  },
+  notFoundCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  notFoundHeadline: {
+    marginTop: 28,
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 32,
+    letterSpacing: -0.3,
+  },
+  notFoundBodyText: {
+    marginTop: 14,
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   lostBody: {
     paddingHorizontal: Layout.screenPaddingH,

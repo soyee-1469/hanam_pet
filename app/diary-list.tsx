@@ -32,8 +32,6 @@ import {
 import {
   formatDateFromYmdWithWeekday,
   formatDateTime,
-  formatMonthDayTimeWithWeekday,
-  formatTime,
   formatYearMonth,
 } from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
@@ -140,9 +138,7 @@ export default function DiaryListScreen() {
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
-        <Text style={styles.headerTitle}>
-          {isDayMode ? '이날의 마음' : '마음일기장'}
-        </Text>
+        <Text style={styles.headerTitle}>마음일기장</Text>
         <View style={styles.sideBtn} />
       </View>
 
@@ -154,24 +150,19 @@ export default function DiaryListScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.list,
-          { paddingBottom: isDayMode ? 100 : 32 },
+          { paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
       >
         {list.length === 0 ? (
-          <EmptyRecordsCard
-            title="아직 마음을 기록하기 전이에요!"
-            ctaLabel={isDayMode ? '마음을 기록할게요' : '달력으로 가기'}
-            onPressCta={
-              isDayMode ? openWrite : () => router.replace('/(tabs)/diary')
-            }
-          />
+          <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
         ) : (
           list.map((entry) => {
             const mood = moodMeta(entry.moodId)
-            const timeLabel = isDayMode
-              ? formatTime(entry.createdAt)
-              : formatMonthDayTimeWithWeekday(entry.createdAt)
+            const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
+            const timeLabel = formatDateTime(entry.createdAt)
+            const visibleTags = entry.tags.slice(0, 3)
+            const extraTagCount = Math.max(0, entry.tags.length - 3)
             return (
               <View key={entry.id} style={styles.card}>
                 <Pressable
@@ -188,35 +179,41 @@ export default function DiaryListScreen() {
                     pressed && styles.pressed,
                   ]}
                 >
-                  <Text style={styles.cardDate}>{timeLabel}</Text>
-                  <View style={styles.moodRow}>
+                  <View style={styles.moodCol}>
                     <MoodEmoji
                       index={mood.emojiIndex}
-                      size={28}
-                      colorDot={DIARY_MOOD_LABEL_COLOR[entry.moodId]}
-                      dotSize={5}
+                      size={40}
+                      colorDot={moodColor}
+                      dotSize={6}
                     />
-                    <Text
-                      style={[
-                        styles.cardMood,
-                        { color: DIARY_MOOD_LABEL_COLOR[entry.moodId] },
-                      ]}
-                    >
+                    <Text style={[styles.cardMood, { color: moodColor }]}>
                       {mood.label}
                     </Text>
                   </View>
-                  {entry.tags.length > 0 ? (
-                    <View style={styles.tagRow}>
-                      {entry.tags.map((tag) => (
-                        <View key={tag} style={styles.tag}>
-                          <Text style={styles.tagText}>{tag}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  ) : null}
-                  <Text style={styles.cardPreview} numberOfLines={2}>
-                    {entry.preview}
-                  </Text>
+                  <View style={styles.cardBody}>
+                    <Text style={styles.cardDate} numberOfLines={1}>
+                      {timeLabel}
+                    </Text>
+                    {entry.tags.length > 0 ? (
+                      <View style={styles.tagRow}>
+                        {visibleTags.map((tag, i) => (
+                          <View key={`${tag}-${i}`} style={styles.tag}>
+                            <Text style={styles.tagText}>{tag}</Text>
+                          </View>
+                        ))}
+                        {extraTagCount > 0 ? (
+                          <View style={styles.tag}>
+                            <Text style={styles.tagText}>
+                              +{extraTagCount}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+                    <Text style={styles.cardPreview} numberOfLines={1}>
+                      {entry.preview}
+                    </Text>
+                  </View>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -237,20 +234,18 @@ export default function DiaryListScreen() {
         )}
       </ScrollView>
 
-      {isDayMode ? (
-        <View
-          style={[
-            styles.writeBar,
-            { paddingBottom: Math.max(insets.bottom, 12) },
-          ]}
-        >
-          <PrimaryButton
-            label="마음을 기록할게요"
-            emphasized
-            onPress={openWrite}
-          />
-        </View>
-      ) : null}
+      <View
+        style={[
+          styles.writeBar,
+          { paddingBottom: Math.max(insets.bottom, 12) },
+        ]}
+      >
+        <PrimaryButton
+          label="+ 마음을 기록할게요"
+          emphasized
+          onPress={openWrite}
+        />
+      </View>
 
       <BottomSheet
         visible={menuEntry != null}
@@ -390,34 +385,45 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: Colors.surface,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: Layout.headerPaddingH,
+    paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
-    gap: 4,
+    paddingRight: 36,
   },
   cardMain: {
     flex: 1,
     minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  moodCol: {
+    width: 56,
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardMood: {
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  cardBody: {
+    flex: 1,
+    minWidth: 0,
     gap: 8,
+    paddingRight: 4,
   },
   cardDate: {
     fontSize: 13,
     fontWeight: '700',
     color: Colors.textPrimary,
-  },
-  moodRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cardMood: {
-    fontSize: 13,
-    fontWeight: '800',
+    paddingRight: 8,
   },
   cardPreview: {
     fontSize: 14,
@@ -431,7 +437,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tag: {
-    backgroundColor: '#FCE8DC',
+    backgroundColor: Colors.creamyBeige,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -442,11 +448,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   moreBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 8,
     width: 28,
     height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -2,
   },
   writeBar: {
     position: 'absolute',

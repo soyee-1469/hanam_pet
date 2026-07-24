@@ -7,13 +7,10 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import {
-  HELP_CONTACTS,
-  dialHelpContact,
-} from '../lib/helpContacts'
+import { HelpContactRow } from '../components/HelpContactRow'
+import { HELP_CONTACTS } from '../lib/helpContacts'
 
 /** 대화 중 도움 배너 → 긴급·상담 연락처 (전체 화면) */
 export default function ChatHelpScreen() {
@@ -31,33 +28,7 @@ export default function ChatHelpScreen() {
 
         <View style={styles.list}>
           {HELP_CONTACTS.map((c) => (
-            <View key={c.id} style={styles.card}>
-              <View style={styles.copy}>
-                <View style={styles.nameRow}>
-                  <View style={styles.dot} />
-                  <Text style={styles.name}>{c.name}</Text>
-                </View>
-                <View style={styles.phoneRow}>
-                  <Phone size={16} color={Colors.primary} weight="fill" />
-                  <Text style={styles.phone}>{c.phoneDisplay}</Text>
-                </View>
-                <Text style={styles.note}>{c.note}</Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${c.name} 연결`}
-                onPress={() => {
-                  void dialHelpContact(c.phone, c.name)
-                }}
-                style={({ pressed }) => [
-                  styles.connectBtn,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Phone size={14} color={Colors.surface} weight="fill" />
-                <Text style={styles.connectText}>연결</Text>
-              </Pressable>
-            </View>
+            <HelpContactRow key={c.id} contact={c} />
           ))}
         </View>
       </ScrollView>
@@ -100,72 +71,6 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 12,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingVertical: 16,
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
-  },
-  name: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  phone: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.primary,
-    letterSpacing: -0.2,
-  },
-  note: {
-    fontSize: 12,
-    fontWeight: '500',
-    lineHeight: 18,
-    color: Colors.textSecondary,
-  },
-  connectBtn: {
-    height: 40,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: Colors.selected,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-  },
-  connectText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.surface,
   },
   pressed: {
     opacity: 0.88,

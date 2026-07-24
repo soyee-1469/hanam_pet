@@ -22,7 +22,7 @@ export const HELP_CONTACTS: HelpContact[] = [
     name: '생명의 전화',
     phone: '15889191',
     phoneDisplay: '1588-9191',
-    note: '24시간 마음을 다독이는 위기 극복 상담',
+    note: '24시간 자살예방 및 위기상황 전문 상담',
   },
   {
     id: 'mental',

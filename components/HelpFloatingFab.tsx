@@ -3,11 +3,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  View,
   Animated,
   Easing,
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
+import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
@@ -19,8 +21,8 @@ type HelpFloatingFabProps = {
 }
 
 /**
- * 대화 — 우측 「109 / 마음 상담」 플로팅.
- * 노란(Accent) 면 + 코랄(Primary) 번호 — 위기·상담용, CTA와 역할 분리.
+ * 대화 — 우측 가장자리 「109 / 마음 상담」 스티커.
+ * Accent 옐로 면 + Primary 코랄 번호 + 흰 테두리·기울기·그림자로 스티커감.
  */
 export function HelpFloatingFab({
   visible = true,
@@ -61,7 +63,7 @@ export function HelpFloatingFab({
   const openSheet = () => {
     Animated.sequence([
       Animated.timing(pressScale, {
-        toValue: 0.9,
+        toValue: 0.92,
         duration: 70,
         useNativeDriver: true,
       }),
@@ -81,7 +83,11 @@ export function HelpFloatingFab({
         pointerEvents="box-none"
         style={[
           styles.wrap,
-          { bottom, opacity, transform: [{ scale }] },
+          {
+            bottom,
+            opacity,
+            transform: [{ scale }, { rotate: '-5deg' }],
+          },
           style,
         ]}
       >
@@ -94,8 +100,15 @@ export function HelpFloatingFab({
             hitSlop={8}
             style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
           >
-            <Text style={styles.num}>109</Text>
-            <Text style={styles.label}>마음 상담</Text>
+            <View style={styles.fabInner}>
+              <View style={styles.chevron}>
+                <CaretLeft size={12} color={Colors.selected} weight="bold" />
+              </View>
+              <View style={styles.copy}>
+                <Text style={styles.num}>109</Text>
+                <Text style={styles.label}>마음 상담</Text>
+              </View>
+            </View>
           </Pressable>
         </Animated.View>
       </Animated.View>
@@ -111,37 +124,52 @@ export function HelpFloatingFab({
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    right: 16,
+    right: -2,
     zIndex: 24,
-    elevation: 12,
+    elevation: 14,
   },
   fab: {
-    minWidth: 72,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
+    paddingLeft: 10,
+    paddingRight: 14,
+    paddingVertical: 11,
+    /** 화면 오른쪽 가장자리에 붙는 스티커 */
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
     backgroundColor: Colors.accent,
+    borderWidth: 3,
+    borderColor: Colors.surface,
     shadowColor: Colors.cocoa,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: -2, height: 5 },
+    shadowOpacity: 0.28,
+    shadowRadius: 6,
+    elevation: 10,
+  },
+  fabInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  chevron: {
+    marginRight: 0,
+  },
+  copy: {
+    alignItems: 'center',
+    gap: 1,
   },
   pressed: {
-    opacity: 0.92,
+    opacity: 0.94,
   },
   num: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
     color: Colors.primary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   label: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     color: Colors.cocoa,
   },
 })

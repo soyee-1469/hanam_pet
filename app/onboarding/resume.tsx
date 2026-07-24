@@ -245,8 +245,7 @@ export default function OnboardingResume() {
     focusAt(empty >= 0 ? empty : CODE_LEN - 1)
   }
 
-  if (step === 'lost' || step === 'giveUp') {
-    const g = copy.lost.giveUp
+  if (step === 'lost') {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScreenHeader title={copy.header} onBack={() => setStep('code')} />
@@ -334,61 +333,6 @@ export default function OnboardingResume() {
             <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
           </Pressable>
         </View>
-
-        <BottomSheet
-          visible={step === 'giveUp'}
-          onRequestClose={() => setStep('lost')}
-        >
-          <Text style={styles.giveUpTitle}>{g.title}</Text>
-
-          <View style={styles.giveUpCard}>
-            <View style={styles.giveUpPrivacyRow}>
-              <Lock size={18} color={Colors.cocoa} weight="regular" />
-              <Text style={styles.giveUpPrivacyTitle}>{g.privacyTitle}</Text>
-            </View>
-            {g.privacyParagraphs.map((parts, i) => (
-              <Text
-                key={i}
-                style={[
-                  styles.giveUpPrivacyBody,
-                  i < g.privacyParagraphs.length - 1 &&
-                    styles.giveUpPrivacyGap,
-                ]}
-              >
-                {parts.map((part, j) => (
-                  <Text
-                    key={j}
-                    style={
-                      'bold' in part && part.bold
-                        ? styles.giveUpPrivacyBold
-                        : undefined
-                    }
-                  >
-                    {part.text}
-                  </Text>
-                ))}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.giveUpActions}>
-            <PrimaryButton
-              label={g.restart}
-              emphasized
-              onPress={() => router.replace('/onboarding/intro')}
-            />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setStep('code')}
-              style={({ pressed }) => [
-                styles.giveUpLookAgain,
-                pressed && styles.giveUpLookAgainPressed,
-              ]}
-            >
-              <Text style={styles.giveUpLookAgainText}>{g.lookAgain}</Text>
-            </Pressable>
-          </View>
-        </BottomSheet>
       </SafeAreaView>
     )
   }
@@ -467,7 +411,7 @@ export default function OnboardingResume() {
           <Pressable
             accessibilityRole="button"
             disabled={busy}
-            onPress={() => setStep('lost')}
+            onPress={() => setStep('giveUp')}
             style={({ pressed }) => [
               styles.helpBtn,
               pressed && styles.helpBtnPressed,
@@ -555,6 +499,44 @@ export default function OnboardingResume() {
           </View>
         </View>
       ) : null}
+
+      <BottomSheet
+        visible={step === 'giveUp'}
+        onRequestClose={() => setStep('code')}
+      >
+        <Text style={styles.giveUpTitle}>{copy.lost.giveUp.title}</Text>
+        <View style={styles.giveUpCard}>
+          <Text style={styles.giveUpBody}>{copy.lost.giveUp.body}</Text>
+          <View style={styles.giveUpPrivacyRow}>
+            <Lock size={18} color={Colors.cocoa} weight="regular" />
+            <Text style={styles.giveUpPrivacyTitle}>
+              {copy.lost.giveUp.privacyTitle}
+            </Text>
+          </View>
+          <Text style={styles.giveUpPrivacyBody}>
+            {copy.lost.giveUp.privacyBody}
+          </Text>
+        </View>
+        <View style={styles.giveUpActions}>
+          <PrimaryButton
+            label={copy.lost.giveUp.lookAgain}
+            emphasized
+            onPress={() => setStep('code')}
+          />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.replace('/onboarding/intro')}
+            style={({ pressed }) => [
+              styles.giveUpLookAgain,
+              pressed && styles.giveUpLookAgainPressed,
+            ]}
+          >
+            <Text style={styles.giveUpRestartText}>
+              {copy.lost.giveUp.restart}
+            </Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   )
 }

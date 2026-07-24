@@ -41,13 +41,14 @@ const SECTIONS: SettingsSection[] = [
     rows: [
       { id: 'recovery', title: '내 기록 가져오기 번호' },
       { id: 'nickname', title: '내 닉네임' },
-      { id: 'pet', title: '함께 하는 펫 친구' },
+      { id: 'pet', title: '내 펫 관리' },
     ],
   },
   {
     id: 'records',
     title: '기록 관리',
     rows: [
+      { id: 'new-chat', title: '새로운 대화 시작하기' },
       { id: 'new-diary', title: '새로운 마음일기 쓰기' },
       { id: 'new-mind', title: '새로운 마음 살피기' },
     ],
@@ -150,6 +151,9 @@ function MoreScreenBody() {
         return
       case 'pet':
         router.push('/pet-manage')
+        return
+      case 'new-chat':
+        router.push({ pathname: '/record-reset', params: { kind: 'chat' } })
         return
       case 'new-diary':
         router.push({ pathname: '/record-reset', params: { kind: 'diary' } })

@@ -126,7 +126,7 @@ export default function PetManageScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader onBack={() => router.back()} />
+      <ScreenHeader title="내 펫 관리" onBack={() => router.back()} />
 
       <KeyboardAvoidingView
         style={[

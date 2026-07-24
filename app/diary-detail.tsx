@@ -8,12 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
-import {
-  CaretLeft,
-  DotsThreeVertical,
-  PencilSimple,
-  TrashSimple,
-} from 'phosphor-react-native'
+import { CaretLeft } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { Layout, HeaderTitleStyle } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
@@ -23,13 +18,7 @@ import {
 } from '../constants/diaryDemo'
 import { MoodEmoji } from '../components/MoodEmoji'
 import { formatDateTime } from '../lib/dateFormat'
-import {
-  BottomSheet,
-  ConfirmDialog,
-  GhostButton,
-  PrimaryButton,
-  onboardingFooterStyle,
-} from '../components/ui'
+import { ConfirmDialog, PrimaryButton } from '../components/ui'
 import { findDiaryEntry, hydrateDiaryRecords } from '../lib/diaryRecords'
 import { showToast } from '../lib/toast'
 
@@ -40,7 +29,6 @@ function moodMeta(id: DiaryEntry['moodId']) {
 export default function DiaryDetailScreen() {
   const insets = useSafeAreaInsets()
   const { id } = useLocalSearchParams<{ id?: string }>()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [epoch, setEpoch] = useState(0)
 
@@ -66,7 +54,7 @@ export default function DiaryDetailScreen() {
           >
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
-          <Text style={styles.headerTitle}>마음일기</Text>
+          <Text style={styles.headerTitle}>마음 기록</Text>
           <View style={styles.sideBtn} />
         </View>
         <View style={styles.missing}>
@@ -87,19 +75,11 @@ export default function DiaryDetailScreen() {
   const mood = moodMeta(entry.moodId)
   const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
 
-  const closeMenu = () => setMenuOpen(false)
-
   const onRewrite = () => {
-    closeMenu()
     router.push({
       pathname: '/diary-write',
       params: { id: entry.id },
     })
-  }
-
-  const onDelete = () => {
-    closeMenu()
-    setDeleteOpen(true)
   }
 
   const confirmDelete = () => {
@@ -120,137 +100,72 @@ export default function DiaryDetailScreen() {
         >
           <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
         </Pressable>
-        <Text style={styles.headerTitle}>마음일기</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="더보기"
-          hitSlop={8}
-          onPress={() => setMenuOpen(true)}
-          style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
-        >
-          <DotsThreeVertical
-            size={22}
-            color={Colors.textPrimary}
-            weight="bold"
-          />
-        </Pressable>
+        <Text style={styles.headerTitle}>마음 기록</Text>
+        <View style={styles.sideBtn} />
       </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.date}>
-          {formatDateTime(entry.createdAt)}
-        </Text>
-
-        <View style={styles.moodBlock}>
-          <MoodEmoji
-            index={mood.emojiIndex}
-            size={64}
-            colorDot={moodColor}
-            dotSize={8}
-          />
-          <Text style={[styles.moodLabel, { color: moodColor }]}>
-            {mood.label}
-          </Text>
-        </View>
-
-        {entry.tags.length > 0 ? (
-          <View style={styles.tagRow}>
-            {entry.tags.map((tag) => (
-              <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
+        <View style={styles.card}>
+          <View style={styles.cardTop}>
+            <View style={styles.moodCol}>
+              <MoodEmoji
+                index={mood.emojiIndex}
+                size={52}
+                colorDot={moodColor}
+                dotSize={7}
+              />
+              <Text style={[styles.moodLabel, { color: moodColor }]}>
+                {mood.label}
+              </Text>
+            </View>
+            <Text style={styles.date}>{formatDateTime(entry.createdAt)}</Text>
           </View>
-        ) : null}
 
-        <View style={styles.bodyCard}>
+          {entry.tags.length > 0 ? (
+            <View style={styles.tagRow}>
+              {entry.tags.map((tag, i) => (
+                <View key={`${tag}-${i}`} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
           <Text style={styles.bodyText}>{entry.body}</Text>
         </View>
       </ScrollView>
 
       <View
-        style={[
-          onboardingFooterStyle,
-          styles.footer,
-          { paddingBottom: Math.max(insets.bottom, 16) },
-        ]}
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}
       >
-        <PrimaryButton label="다시 쓸게요" emphasized onPress={onRewrite} />
-        <GhostButton
-          label="목록으로 돌아가기"
-          onPress={() =>
-            router.replace({
-              pathname: '/diary-list',
-              params: {
-                year: String(entry.year),
-                month: String(entry.month),
-                day: String(entry.day),
-              },
-            })
-          }
-        />
-      </View>
-
-      <BottomSheet visible={menuOpen} onRequestClose={closeMenu}>
-        <Text style={styles.sheetTitle}>이 날의 마음을 어떻게 할까요?</Text>
-        <View style={styles.sheetDivider} />
-        <View style={styles.sheetSummary}>
-          <View style={styles.sheetMoodLeft}>
-            <MoodEmoji
-              index={mood.emojiIndex}
-              size={28}
-              colorDot={moodColor}
-              dotSize={5}
-            />
-            <Text style={[styles.sheetMoodLabel, { color: moodColor }]}>
-              {mood.label}
-            </Text>
-          </View>
-          <Text style={styles.sheetSummaryDate}>
-            {formatDateTime(entry.createdAt)}
-          </Text>
-        </View>
-        <View style={styles.sheetDivider} />
-
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="지울래요"
+          onPress={() => setDeleteOpen(true)}
+          style={({ pressed }) => [
+            styles.footerBtn,
+            styles.deleteBtn,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.deleteBtnText}>지울래요</Text>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="다시 쓸게요"
           onPress={onRewrite}
-          style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.footerBtn,
+            styles.rewriteBtn,
+            pressed && styles.pressed,
+          ]}
         >
-          <View style={styles.actionIcon}>
-            <PencilSimple
-              size={22}
-              color={Colors.textPrimary}
-              weight="regular"
-            />
-          </View>
-          <View style={styles.actionCopy}>
-            <Text style={styles.actionTitle}>다시 쓸게요</Text>
-            <Text style={styles.actionDesc}>일기 내용을 고쳐요</Text>
-          </View>
+          <Text style={styles.rewriteBtnText}>다시 쓸게요</Text>
         </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="지울래요"
-          onPress={onDelete}
-          style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
-        >
-          <View style={[styles.actionIcon, styles.actionIconDelete]}>
-            <TrashSimple size={22} color={Colors.error} weight="regular" />
-          </View>
-          <View style={styles.actionCopy}>
-            <Text style={[styles.actionTitle, styles.actionTitleDelete]}>
-              지울래요
-            </Text>
-            <Text style={styles.actionDesc}>일기 내용이 사라져요</Text>
-          </View>
-        </Pressable>
-      </BottomSheet>
+      </View>
 
       <ConfirmDialog
         visible={deleteOpen}
@@ -321,30 +236,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingBottom: 28,
   },
-  date: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    letterSpacing: -0.1,
-    marginBottom: 24,
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingTop: 20,
+    paddingBottom: 22,
   },
-  moodBlock: {
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 16,
+  },
+  moodCol: {
     alignItems: 'center',
-    marginBottom: 22,
-    gap: 14,
+    gap: 8,
   },
   moodLabel: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
+  },
+  date: {
+    flexShrink: 1,
+    paddingTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    letterSpacing: -0.1,
+    textAlign: 'right',
   },
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'center',
-    marginBottom: 22,
+    marginBottom: 16,
   },
   tag: {
     backgroundColor: Colors.creamyBeige,
@@ -357,96 +287,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
   },
-  bodyCard: {
-    backgroundColor: Colors.cardRecessed,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Layout.screenPaddingH,
-    paddingVertical: 22,
-    minHeight: 160,
-  },
   bodyText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: Colors.textPrimary,
-    lineHeight: 28,
+    lineHeight: 26,
     letterSpacing: -0.1,
   },
   footer: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 10,
-    gap: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.divider,
     backgroundColor: Colors.background,
   },
-  sheetTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    letterSpacing: -0.2,
-    marginBottom: 14,
-  },
-  sheetDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.divider,
-  },
-  sheetSummary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingVertical: 14,
-  },
-  sheetMoodLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexShrink: 1,
-  },
-  sheetMoodLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.1,
-  },
-  sheetSummaryDate: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 14,
-  },
-  actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: Colors.surfaceSecondary,
+  footerBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionIconDelete: {
-    backgroundColor: '#F8EBE8',
+  deleteBtn: {
+    backgroundColor: Colors.creamyBeige,
   },
-  actionCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  actionTitle: {
+  deleteBtnText: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
-  actionTitleDelete: {
-    color: Colors.error,
+  rewriteBtn: {
+    backgroundColor: Colors.primary,
   },
-  actionDesc: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
+  rewriteBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.surface,
   },
 })

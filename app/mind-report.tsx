@@ -8,10 +8,9 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { CaretLeft, CaretRight, Info } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, FileMagnifyingGlass, Info } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
-import { EmptyRecordsCard } from '../components/EmptyRecordsCard'
 import {
   getSeverityBand,
   getSeverityBands,
@@ -141,32 +140,26 @@ export default function MindReportScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.infoBanner}>
-          <Info size={18} color={Colors.accent} weight="fill" />
+          <Info size={18} color={Colors.selected} weight="fill" />
           <Text style={styles.infoText}>
-            이제까지 알아본 자가진단 결과 기록을 볼 수 있어요. 정기적인 상태
+            이제까지 알아본 마음 건강 상태 결과를 볼 수 있어요. 정기적인 상태
             확인이 마음 건강의 첫걸음이에요.
           </Text>
         </View>
 
-        <Text style={styles.sectionLabel}>
-          과거 검사 히스토리 ({list.length}건)
-        </Text>
+        <Text style={styles.sectionLabel}>나의 기록({list.length}건)</Text>
 
         {list.length === 0 ? (
-          <EmptyRecordsCard
-            icon={require('../assets/images/아이콘/메모장.png')}
-            title="아직 마음을 깊이 살펴보기 전이에요!"
-            body={
-              '첫 점검을 남겨 두면,\n지나온 마음을 여기서 모아 볼 수 있어요.'
-            }
-            ctaLabel="검사하러 가기"
-            onPressCta={() =>
-              router.push({
-                pathname: '/mind-check-intro',
-                params: { id: tab },
-              })
-            }
-          />
+          <View style={styles.emptyCard}>
+            <FileMagnifyingGlass
+              size={40}
+              color={Colors.textDisabled}
+              weight="regular"
+            />
+            <Text style={styles.emptyTitle}>
+              아직 마음을 깊이 살펴보기 전이에요!
+            </Text>
+          </View>
         ) : (
           list.map((item) => {
             const band = getSeverityBand(item.score, tab)

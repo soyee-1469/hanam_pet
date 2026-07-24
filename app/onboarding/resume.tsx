@@ -963,11 +963,18 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
     marginBottom: 20,
   },
+  giveUpBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+  },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   giveUpPrivacyTitle: {
     flex: 1,
@@ -1003,6 +1010,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textSecondary,
+    textDecorationLine: 'underline',
+  },
+  giveUpRestartText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.cocoa,
     textDecorationLine: 'underline',
   },
 })

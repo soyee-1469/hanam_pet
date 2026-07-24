@@ -104,7 +104,7 @@ export default function RecoveryCodeScreen() {
           기록을 안전하게 불러올 수 있어요.
         </Text>
 
-        {/* 멤버십 카드 — 크림 그라데이션 · 스트라이프 · 칩 · 번호 · 브랜드 · 펫 */}
+        {/* 멤버십 카드 — 크림 그라데이션 · 스트라이프 · 번호 · 브랜드 · 펫 */}
         <View style={styles.cardShell}>
           <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
             <LinearGradient
@@ -115,13 +115,6 @@ export default function RecoveryCodeScreen() {
             />
 
             <View style={styles.stripe} />
-
-            <View style={styles.chipRow}>
-              <View style={styles.chip}>
-                <View style={styles.chipInner} />
-              </View>
-              <Text style={styles.chipLabel}>HEALING PET</Text>
-            </View>
 
             <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             <Text style={styles.brandName}>하남이네 힐링펫</Text>
@@ -248,38 +241,8 @@ const styles = StyleSheet.create({
   stripe: {
     height: 36,
     marginHorizontal: -22,
-    marginBottom: 18,
+    marginBottom: 28,
     backgroundColor: Colors.selected,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
-  },
-  chip: {
-    width: 42,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: '#E2C98A',
-    borderWidth: 1,
-    borderColor: '#C9B06E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 4,
-  },
-  chipInner: {
-    flex: 1,
-    alignSelf: 'stretch',
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(122, 91, 69, 0.28)',
-  },
-  chipLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    color: Colors.textSecondary,
   },
   codeValue: {
     fontSize: 36,

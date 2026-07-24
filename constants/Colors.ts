@@ -19,6 +19,8 @@
  * 1) Primary 버튼  2) 선택 탭/네비  3) 기분 좋음
  * 에너지(번개·바·칩)는 전부 Accent 옐로 — Primary 코랄 금지
  * 칩·필터 선택 상태는 Selected(브라운) — 오렌지 금지
+ * 입력 포커스도 Selected — Primary는 CTA만
+ * 입력 오류는 error / errorSoft
  *
  * 감정 색
  * - 좋음 → moodGood (Primary 오렌지)

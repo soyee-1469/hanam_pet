@@ -134,6 +134,7 @@ export default function OnboardingResume() {
   const [busy, setBusy] = useState(false)
   const [codeError, setCodeError] = useState(false)
   const [failCount, setFailCount] = useState(0)
+  const [restartOpen, setRestartOpen] = useState(false)
   const [tipOpen, setTipOpen] = useState(true)
   const inputs = useRef<(RNTextInput | null)[]>([])
   const scrollRef = useRef<ScrollView>(null)
@@ -247,6 +248,44 @@ export default function OnboardingResume() {
       setBusy(false)
     }
   }
+
+  const openRestartConfirm = () => setRestartOpen(true)
+  const closeRestartConfirm = () => setRestartOpen(false)
+  const confirmRestartFresh = () => {
+    setRestartOpen(false)
+    router.replace('/onboarding/intro')
+  }
+
+  const restartConfirmSheet = (
+    <BottomSheet visible={restartOpen} onRequestClose={closeRestartConfirm}>
+      <Text style={styles.restartConfirmTitle}>
+        {copy.lost.restartConfirm.title}
+      </Text>
+      <Text style={styles.restartConfirmBody}>
+        {copy.lost.restartConfirm.body}
+      </Text>
+      <View style={styles.restartConfirmActions}>
+        <PrimaryButton
+          label={copy.lost.restartConfirm.cta}
+          emphasized
+          onPress={confirmRestartFresh}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copy.lost.restartConfirm.back}
+          onPress={closeRestartConfirm}
+          style={({ pressed }) => [
+            styles.restartLink,
+            pressed && styles.restartLinkPressed,
+          ]}
+        >
+          <Text style={styles.restartLinkText}>
+            {copy.lost.restartConfirm.back}
+          </Text>
+        </Pressable>
+      </View>
+    </BottomSheet>
+  )
 
   const pressNext = () => {
     if (codeOk) {
@@ -379,7 +418,7 @@ export default function OnboardingResume() {
           />
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.replace('/onboarding/intro')}
+            onPress={openRestartConfirm}
             style={({ pressed }) => [
               styles.restartLink,
               pressed && styles.restartLinkPressed,
@@ -388,6 +427,7 @@ export default function OnboardingResume() {
             <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
           </Pressable>
         </View>
+        {restartConfirmSheet}
       </SafeAreaView>
     )
   }
@@ -594,7 +634,7 @@ export default function OnboardingResume() {
           />
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.replace('/onboarding/intro')}
+            onPress={openRestartConfirm}
             style={({ pressed }) => [
               styles.giveUpLookAgain,
               pressed && styles.giveUpLookAgainPressed,
@@ -606,6 +646,7 @@ export default function OnboardingResume() {
           </Pressable>
         </View>
       </BottomSheet>
+      {restartConfirmSheet}
     </SafeAreaView>
   )
 }

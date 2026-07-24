@@ -134,7 +134,7 @@ function ReasonsSlide({
               >
                 <IconComp
                   size={22}
-                  color={Colors.selected}
+                  color={Colors.cocoa}
                   weight={on ? 'fill' : 'regular'}
                 />
               </View>
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
   },
   reasonCardOn: {
-    borderColor: Colors.selected,
+    borderColor: Colors.cocoa,
     backgroundColor: Colors.surfaceSecondary,
   },
   reasonIcon: {
@@ -662,12 +662,12 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
     alignItems: 'center',
     justifyContent: 'center',
   },
   reasonCheckOn: {
-    backgroundColor: Colors.selected,
-    borderColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
+    borderColor: Colors.cocoa,
   },
 })

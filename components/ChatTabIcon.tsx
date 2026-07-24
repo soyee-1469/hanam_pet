@@ -16,7 +16,7 @@ function tintChatXml(xml: string, color: string) {
 export function ChatTabIcon({
   focused,
   size = 26,
-  color = focused ? Colors.primary : Colors.textDisabled,
+  color = focused ? Colors.cocoa : Colors.textDisabled,
 }: ChatTabIconProps) {
   const xml = tintChatXml(focused ? CHAT_ICON_ACTIVE_XML : CHAT_ICON_XML, color)
   return (

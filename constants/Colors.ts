@@ -1,45 +1,28 @@
 /**
- * Hanam Healing Pet Color System v3.1
- * 힐링 중심 팔레트 — 브라운·크림 베이스, 오렌지는 CTA·감정 포인트만
+ * Hanam Healing Pet Color System v3.2
+ * 시안 변수표 기준 — 브라운·크림 베이스, 코랄은 CTA 버튼만
  *
- * 권장 비율
- * - 브라운 45% · 크림/베이지 35% · 오렌지 15% · 옐로 5%
- *
- * Core
- * - Cocoa        #7A5B45  제목·본문 (textPrimary)
- * - Selected     #8A5B44  칩·선택 상태
- * - Accent       #F4C85B  따뜻한 포인트 옐로 (소량)
- * - AccentSoft   #FBECC4  Accent 연한 면
- * - CreamyBeige  #F6EFE5  연한 배경·카드 분위기 (Accent와 분리)
- * - Secondary    #FF8F7A  CTA 보조 오렌지
- * - Primary      #FF8F7A  메인 CTA / 긍정 감정
- * - MoodOk       #D4E08A  감정「보통」
- *
- * Primary·Secondary(오렌지) 사용처
- * 1) Primary 버튼  2) 선택 탭/네비  3) 기분 좋음
- * 에너지(번개·바·칩)는 전부 Accent 옐로 — Primary 코랄 금지
- * 칩·필터 선택 상태는 Selected(브라운) — 오렌지 금지
- * 입력 포커스도 Selected — Primary는 CTA만
- * 입력 오류는 error / errorSoft
- *
- * 감정 색
- * - 좋음 → moodGood (Primary 오렌지)
- * - 보통 → moodOk
- * - 힘듦 → moodHard (스카이 블루)
+ * 옵션 선택 = cocoa / selected(=cocoa)
+ * CTA 활성 = primary 코랄
+ * CTA 비활성 = inactive + inactiveText
+ * 에너지 = accent 옐로
  */
 
 export const Colors = {
-  // —— Core brown / cream (힐링 베이스) ——
-  /** 제목·본문 코코아 */
+  // —— Core brown / cream ——
+  /** 제목·본문·옵션 선택 */
   cocoa: '#7A5B45',
   textPrimary: '#7A5B45',
   textSecondary: '#8E6F5C',
   textDisabled: '#B79A8A',
 
-  /** 연령·성별·필터 칩 선택 상태 */
-  selected: '#8A5B44',
+  /**
+   * 칩·필터·옵션 선택 상태 (= cocoa)
+   * 코랄(primary) 사용 금지
+   */
+  selected: '#7A5B45',
   /** @deprecated Colors.selected 사용 */
-  chipSelected: '#8A5B44',
+  chipSelected: '#7A5B45',
 
   creamyBeige: '#F6EFE5',
   background: '#F8F4EF',
@@ -49,11 +32,11 @@ export const Colors = {
   sand: '#E9DCCF',
   beige: '#D9C7BA',
 
-  // —— Accent yellow (소량) ——
-  accent: '#F4C85B',
+  // —— Accent yellow ——
+  accent: '#FFD78A',
   accentSoft: '#FBECC4',
 
-  // —— CTA / brand orange ——
+  // —— CTA coral (버튼만) ——
   primary: '#FF8F7A',
   primaryPressed: '#F07864',
   primaryLight: '#FFD0C6',
@@ -66,15 +49,20 @@ export const Colors = {
   sage: '#A9B69A',
   sageSoft: '#E8EEE4',
 
-  // Border / Divider
+  // Border / Divider / option unselected
   border: '#E9DCCF',
+  /** 옵션 미선택 면·테두리 (= border) */
+  unselected: '#E9DCCF',
   divider: '#F1E9E0',
+
+  // Inactive (CTA 비활성)
+  inactive: '#ECECEB',
+  inactiveText: '#B8B8B8',
 
   // Status
   success: '#A9B69A',
-  warning: '#FF8F7A',
+  warning: '#C41000',
   error: '#C4847E',
-  /** 삭제·위험 아이콘 연한 면 (Primary 계열) */
   errorSoft: '#FFF0EE',
 
   // Emotion diary
@@ -87,14 +75,12 @@ export const Colors = {
   buttonPrimaryText: '#FFFFFF',
   buttonSecondaryBg: '#FFFFFF',
   buttonSecondaryText: '#7A5B45',
-  buttonDisabledBg: '#E9DCCF',
-  buttonDisabledText: '#B79A8A',
+  buttonDisabledBg: '#ECECEB',
+  buttonDisabledText: '#B8B8B8',
 
-  // Energy / Progress — 전부 Accent 옐로 (번개 = yellow lightning)
-  /** 에너지 바·아이콘 채움 */
-  energyFill: '#F4C85B',
-  /** 중간·완충 — Accent 계열 (동일 옐로 유지) */
-  energyFillMid: '#F4C85B',
+  // Energy — Accent 옐로
+  energyFill: '#FFD78A',
+  energyFillMid: '#FFD78A',
   energyTrack: '#E9DCCF',
 
   // Soft recessed card
@@ -128,9 +114,9 @@ const ThemeColors = {
   light: {
     text: Colors.textPrimary,
     background: Colors.background,
-    tint: Colors.primary,
+    tint: Colors.cocoa,
     tabIconDefault: Colors.textDisabled,
-    tabIconSelected: Colors.primary,
+    tabIconSelected: Colors.cocoa,
   },
   dark: {
     text: Colors.surface,

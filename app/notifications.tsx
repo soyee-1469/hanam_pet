@@ -293,11 +293,11 @@ const styles = StyleSheet.create({
   },
   filterOff: {
     backgroundColor: Colors.surface,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
   },
   filterOn: {
-    backgroundColor: Colors.selected,
-    borderColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
+    borderColor: Colors.cocoa,
   },
   filterText: {
     fontSize: 13,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   filterTextOn: {
-    color: Colors.buttonPrimaryText,
+    color: Colors.surface,
   },
   list: {
     paddingHorizontal: Layout.screenPaddingH,

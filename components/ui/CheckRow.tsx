@@ -144,14 +144,14 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: Colors.taupe,
+    borderColor: Colors.unselected,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   boxOn: {
-    borderColor: Colors.selected,
-    backgroundColor: Colors.selected,
+    borderColor: Colors.cocoa,
+    backgroundColor: Colors.cocoa,
   },
   labelBlock: {
     flex: 1,

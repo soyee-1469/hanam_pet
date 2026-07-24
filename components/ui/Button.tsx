@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   primaryDisabled: {
-    backgroundColor: Colors.buttonDisabledBg,
+    backgroundColor: Colors.inactive,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     color: Colors.buttonPrimaryText,
   },
   primaryTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
   secondaryInner: {
     height: 54,
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Colors.buttonSecondaryBg,
     borderWidth: 1.5,
-    borderColor: Colors.selected,
+    borderColor: Colors.cocoa,
     shadowColor: Colors.cocoa,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -165,15 +165,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   secondaryDisabled: {
-    backgroundColor: Colors.sand,
-    borderColor: Colors.border,
+    backgroundColor: Colors.inactive,
+    borderColor: Colors.inactive,
   },
   secondaryText: {
     ...TypeStyle.button,
     color: Colors.buttonSecondaryText,
   },
   secondaryTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
   ghostInner: {
     height: 48,
@@ -183,10 +183,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
   },
   ghostDisabled: {
-    borderColor: Colors.sand,
+    borderColor: Colors.inactive,
   },
   ghostText: {
     fontSize: Type.body,
@@ -194,6 +194,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   ghostTextDisabled: {
-    color: Colors.buttonDisabledText,
+    color: Colors.inactiveText,
   },
 })

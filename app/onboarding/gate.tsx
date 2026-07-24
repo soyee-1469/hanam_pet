@@ -14,6 +14,9 @@ const goResume = () => router.push('/onboarding/resume-intro')
 /**
  * 게이트 — 「우리 전에 만난 적이 있나요?」
  * 첫 만남 / 이미 함께 선택.
+ *
+ * 웹: Pressable은 <button>으로 렌더되므로 배경색은 안쪽 View에 둔다.
+ * (global.css / Tailwind preflight가 button 배경을 지울 수 있음)
  */
 export default function OnboardingGate() {
   return (
@@ -55,30 +58,28 @@ export default function OnboardingGate() {
             accessibilityRole="button"
             accessibilityLabel={`${copy.primary}. ${copy.primarySub ?? ''}`}
             onPress={() => router.push('/onboarding/welcome-prep')}
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              pressed && styles.pressed,
-            ]}
+            style={({ pressed }) => [pressed && styles.pressed]}
           >
-            <Text style={styles.primaryTitle}>{copy.primary}</Text>
-            {copy.primarySub ? (
-              <Text style={styles.primarySub}>{copy.primarySub}</Text>
-            ) : null}
+            <View style={styles.primaryBtn} collapsable={false}>
+              <Text style={styles.primaryTitle}>{copy.primary}</Text>
+              {copy.primarySub ? (
+                <Text style={styles.primarySub}>{copy.primarySub}</Text>
+              ) : null}
+            </View>
           </Pressable>
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${copy.secondary}. ${copy.secondarySub ?? ''}`}
             onPress={goResume}
-            style={({ pressed }) => [
-              styles.secondaryBtn,
-              pressed && styles.pressed,
-            ]}
+            style={({ pressed }) => [pressed && styles.pressed]}
           >
-            <Text style={styles.secondaryTitle}>{copy.secondary}</Text>
-            {copy.secondarySub ? (
-              <Text style={styles.secondarySub}>{copy.secondarySub}</Text>
-            ) : null}
+            <View style={styles.secondaryBtn} collapsable={false}>
+              <Text style={styles.secondaryTitle}>{copy.secondary}</Text>
+              {copy.secondarySub ? (
+                <Text style={styles.secondarySub}>{copy.secondarySub}</Text>
+              ) : null}
+            </View>
           </Pressable>
         </View>
       </View>

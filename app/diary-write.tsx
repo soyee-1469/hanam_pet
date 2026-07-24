@@ -142,20 +142,45 @@ export default function DiaryWriteScreen() {
   const noteInputRef = useRef<TextInput>(null)
   const noteBlurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const noteSectionY = useRef(0)
+  const tagSectionY = useRef(0)
+  const tagSectionH = useRef(0)
+  const scrollViewportH = useRef(0)
   const visibleTags = tagsExpanded ? TAGS : TAGS.slice(0, TAGS_COLLAPSED)
   const showMockKeyboard = USE_MOCK_SOFT_KEYBOARD && noteFocused
 
+  const scrollToY = useCallback((y: number) => {
+    const target = Math.max(0, y)
+    scrollRef.current?.scrollTo({ y: target, animated: true })
+  }, [])
+
+  /** 노트 제목+입력칸이 화면 안에 들어오도록 스크롤 (네비/독으로 가리지 않음) */
   const scrollNoteIntoView = useCallback(() => {
     const run = () => {
-      const y = Math.max(0, noteSectionY.current - 8)
-      scrollRef.current?.scrollTo({ y, animated: true })
+      // 제목이 보이도록 섹션 상단을 살짝 여유 두고 올림
+      scrollToY(noteSectionY.current - 12)
     }
-    // 키보드 레이아웃이 잡히기 전·후로 여러 번 올려 키패드 위에 맞춤
     run()
     setTimeout(run, 80)
     setTimeout(run, 220)
     setTimeout(run, 400)
-  }, [])
+  }, [scrollToY])
+
+  /** 태그 펼침 후 잘리지 않게 섹션 하단까지 스크롤 */
+  const scrollTagsExpandedIntoView = useCallback(() => {
+    const run = () => {
+      const bottom = tagSectionY.current + tagSectionH.current
+      const viewH = scrollViewportH.current || 0
+      if (viewH <= 0) {
+        scrollToY(tagSectionY.current - 8)
+        return
+      }
+      // 펼친 태그 하단이 뷰포트 안에 오도록
+      scrollToY(Math.max(0, bottom - viewH + 24))
+    }
+    // 레이아웃 반영 후
+    setTimeout(run, 32)
+    setTimeout(run, 120)
+  }, [scrollToY])
 
   const { webKeyboardInset, keyboardOpen } = useKeyboardAvoidInset({
     onOpen: scrollNoteIntoView,
@@ -174,6 +199,14 @@ export default function DiaryWriteScreen() {
     }
   }, [])
 
+  const toggleTagsExpanded = () => {
+    setTagsExpanded((prev) => !prev)
+  }
+
+  useEffect(() => {
+    if (!tagsExpanded) return
+    scrollTagsExpandedIntoView()
+  }, [tagsExpanded, scrollTagsExpandedIntoView])
   const insertNote = useCallback((ch: string) => {
     setNote((prev) => {
       if (prev.length >= NOTE_MAX_LEN) return prev
@@ -450,6 +483,9 @@ export default function DiaryWriteScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           showsVerticalScrollIndicator={false}
+          onLayout={(e) => {
+            scrollViewportH.current = e.nativeEvent.layout.height
+          }}
         >
           <Text style={styles.dateText}>{dateLabel}</Text>
 
@@ -566,7 +602,13 @@ export default function DiaryWriteScreen() {
           <EojeolText style={styles.sectionTitle}>
             무엇 때문에 그런 마음이 들었나요?
           </EojeolText>
-          <View style={styles.tagSection}>
+          <View
+            style={styles.tagSection}
+            onLayout={(e) => {
+              tagSectionY.current = e.nativeEvent.layout.y
+              tagSectionH.current = e.nativeEvent.layout.height
+            }}
+          >
             <View style={styles.tagRow}>
               <View
                 style={[
@@ -612,7 +654,7 @@ export default function DiaryWriteScreen() {
                 accessibilityLabel={
                   tagsExpanded ? '태그 접기' : '태그 더보기'
                 }
-                onPress={() => setTagsExpanded((v) => !v)}
+                onPress={toggleTagsExpanded}
                 style={({ pressed }) => [
                   styles.tagExpand,
                   pressed && styles.pressedSoft,
@@ -634,17 +676,13 @@ export default function DiaryWriteScreen() {
               </Pressable>
             </View>
           </View>
-        </ScrollView>
 
-        {/* 입력창 → 버튼 → 키패드 순으로 바로 붙임 */}
-        <View
-          style={[
-            styles.composeDock,
-            liftForKeyboard && styles.composeDockKeyboard,
-          ]}
-          collapsable={false}
-        >
-          <View style={styles.noteSection}>
+          <View
+            style={styles.noteSection}
+            onLayout={(e) => {
+              noteSectionY.current = e.nativeEvent.layout.y
+            }}
+          >
             <EojeolText style={styles.sectionTitle}>
               오늘의 마음을 적어 보세요.
             </EojeolText>
@@ -686,17 +724,18 @@ export default function DiaryWriteScreen() {
               </Text>
             </View>
           </View>
+        </ScrollView>
 
+        <View style={styles.footerDock} collapsable={false}>
           <View
             style={[
               styles.footer,
               {
                 paddingBottom:
                   showMockKeyboard || keyboardOpen
-                    ? 0
+                    ? 8
                     : Math.max(insets.bottom, 12) + 12,
               },
-              (showMockKeyboard || keyboardOpen) && styles.footerFlush,
             ]}
             collapsable={false}
           >
@@ -797,10 +836,10 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 12,
+    paddingBottom: 28,
   },
   contentKeyboard: {
-    paddingBottom: 8,
+    paddingBottom: 20,
   },
   dateText: {
     fontSize: 13,
@@ -917,7 +956,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   tagSection: {
-    marginBottom: 20,
+    marginBottom: 28,
+    overflow: 'visible',
   },
   tagRow: {
     flexDirection: 'row',
@@ -927,6 +967,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    overflow: 'visible',
   },
   tagWrapCollapsed: {
     flexWrap: 'nowrap',
@@ -980,31 +1021,24 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   noteSection: {
-    paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 4,
-    flexShrink: 0,
+    marginBottom: 8,
   },
   noteWrap: {
     position: 'relative',
     marginBottom: 0,
     minHeight: NOTE_MIN_H,
-    maxHeight: 240,
     borderRadius: 16,
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.beige,
   },
   noteWrapKeyboard: {
-    minHeight: 112,
-    maxHeight: 140,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderBottomWidth: 0,
+    minHeight: 140,
   },
   note: {
     width: '100%',
     minHeight: NOTE_MIN_H,
-    maxHeight: 240,
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 14,
     paddingBottom: 28,
@@ -1014,9 +1048,8 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   noteKeyboard: {
-    minHeight: 112,
-    maxHeight: 140,
-    paddingBottom: 24,
+    minHeight: 140,
+    paddingBottom: 28,
   },
   noteCount: {
     position: 'absolute',
@@ -1026,23 +1059,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textDisabled,
   },
-  composeDock: {
+  footerDock: {
     flexShrink: 0,
     backgroundColor: Colors.background,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
-  },
-  composeDockKeyboard: {
-    borderTopWidth: 0,
   },
   footer: {
     flexShrink: 0,
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 10,
     backgroundColor: Colors.background,
-  },
-  footerFlush: {
-    paddingTop: 8,
   },
   saveBtn: {
     height: 54,

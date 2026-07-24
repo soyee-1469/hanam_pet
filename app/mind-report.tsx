@@ -27,6 +27,8 @@ import {
 
 type TabId = AssessmentId
 
+const SEG_EMPTY = '#F3EEE8'
+
 const TABS: { id: TabId; label: string }[] = [
   { id: 'phq', label: '우울' },
   { id: 'gad', label: '불안' },

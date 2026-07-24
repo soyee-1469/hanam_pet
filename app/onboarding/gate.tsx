@@ -9,7 +9,7 @@ import { CatExpr } from '../../constants/OnboardingMascot'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().gate
-const goResume = () => router.push('/onboarding/resume')
+const goResume = () => router.push('/onboarding/resume-intro')
 
 /**
  * 게이트 — 「우리 전에 만난 적이 있나요?」

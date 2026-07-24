@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Pressable,
   StyleSheet,
+  Text,
   Animated,
   Easing,
   type StyleProp,
@@ -19,9 +20,9 @@ type HelpFloatingFabProps = {
 }
 
 /**
- * 대화 — 우측 전화기 플로팅.
- * 등장 시 스프링 「뿅」, 탭하면 상담 기관 시트.
- * 위기·도움용이라 Primary 코랄 금지 → cocoa/selected.
+ * 대화 — 우측 「마음상담」 플로팅.
+ * Accent 옐로 면 + 전화기 아이콘, 탭 시 상담 기관 시트.
+ * 위기·도움용이라 Primary 코랄 금지.
  */
 export function HelpFloatingFab({
   visible = true,
@@ -89,13 +90,14 @@ export function HelpFloatingFab({
         <Animated.View style={{ transform: [{ scale: pressScale }] }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="도움 받을 곳 보기"
+            accessibilityLabel="마음상담"
             accessibilityHint="전문 상담 기관 연락처가 열려요"
             onPress={openSheet}
             hitSlop={8}
             style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
           >
-            <Phone size={22} color={Colors.selected} weight="fill" />
+            <Phone size={20} color={Colors.cocoa} weight="fill" />
+            <Text style={styles.label}>마음상담</Text>
           </Pressable>
         </Animated.View>
       </Animated.View>
@@ -114,21 +116,29 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 24,
     elevation: 12,
+    alignItems: 'flex-end',
   },
   fab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    minWidth: 56,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 8,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.selected,
+    gap: 4,
+    backgroundColor: Colors.accent,
     shadowColor: Colors.cocoa,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.16,
     shadowRadius: 12,
     elevation: 8,
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: -0.2,
   },
   pressed: {
     opacity: 0.92,

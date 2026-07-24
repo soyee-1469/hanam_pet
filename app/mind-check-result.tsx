@@ -385,8 +385,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   spectrumSegActive: {
-    height: 12,
-    borderRadius: 6,
     borderWidth: 2,
   },
   spectrumLabel: {

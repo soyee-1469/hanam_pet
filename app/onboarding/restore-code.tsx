@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -6,184 +6,204 @@ import {
   StyleSheet,
   Pressable,
   ActivityIndicator,
+  ScrollView,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  Alert,
   type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import * as Clipboard from 'expo-clipboard'
-import { Copy } from 'phosphor-react-native'
+import { CaretDown, CaretUp, Info } from 'phosphor-react-native'
 import { Layout } from '../../constants/Layout'
-import { Colors, Shadows } from '../../constants/Colors'
+import { Colors } from '../../constants/Colors'
 import { DogExpr } from '../../constants/DogExpr'
 import {
   PrimaryButton,
-  ProgressDots,
   ScreenHeader,
   onboardingFooterStyle,
 } from '../../components/ui'
-import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
-import { ONBOARDING_STEPS, getOnboardingDraft } from '../../lib/onboardingDraft'
+import { PhotoPermissionDeniedDialog } from '../../components/PhotoPermissionDeniedDialog'
+import { getOnboardingDraft } from '../../lib/onboardingDraft'
 import type { PetChoice } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
+import { saveRecoveryCodeImage } from '../../lib/saveRecoveryCodeImage'
 import { showToast } from '../../lib/toast'
 
 const copy = getOnboardingCopy().restoreCode
 
 const PET_IMAGES: Record<PetChoice, ImageSourcePropType> = {
-  mongi: DogExpr.wink,
+  mongi: DogExpr.soft,
   nami: require('../../assets/images/cat-character_1.png'),
 }
 
-const SAVE_NAV_DELAY_MS = 900
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true)
+}
 
 export default function OnboardingRestoreCode() {
   const draft = getOnboardingDraft()
   const petId: PetChoice = draft.petId ?? 'mongi'
+  const cardRef = useRef<View>(null)
 
   const [saving, setSaving] = useState(false)
-  const [permSheetOpen, setPermSheetOpen] = useState(false)
-  /** 4/5 → 저장 직후 5번째 하트까지 채운 뒤 팝 */
-  const [progressIndex, setProgressIndex] = useState(3)
-  const [popLast, setPopLast] = useState(false)
-
-  const navTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [deniedOpen, setDeniedOpen] = useState(false)
+  const [methodsOpen, setMethodsOpen] = useState(false)
   const didNavigate = useRef(false)
 
-  useEffect(() => {
-    return () => {
-      if (navTimer.current) clearTimeout(navTimer.current)
-    }
+  const codeDisplay = `${copy.dummyCode.slice(0, 4)} ${copy.dummyCode.slice(4)}`
+
+  const goWelcome = useCallback(() => {
+    if (didNavigate.current) return
+    didNavigate.current = true
+    router.push('/onboarding/welcome')
   }, [])
 
   const copyCode = async () => {
     try {
       await Clipboard.setStringAsync(copy.dummyCode)
+      showToast(copy.copiedToast)
     } catch {
-      // ignore clipboard failures
+      Alert.alert('복사 실패', '잠시 후 다시 시도해 주세요.')
     }
-    showToast(copy.copiedToast)
   }
 
-  const goWelcome = useCallback(() => {
-    if (didNavigate.current) return
-    didNavigate.current = true
-    if (navTimer.current) {
-      clearTimeout(navTimer.current)
-      navTimer.current = null
-    }
-    router.push('/onboarding/welcome')
-  }, [])
-
-  const finishSave = async (toastMsg?: string) => {
+  const saveToGallery = async () => {
     if (saving) return
     setSaving(true)
     try {
-      await Clipboard.setStringAsync(copy.dummyCode)
-    } catch {
-      // ignore
+      const result = await saveRecoveryCodeImage(cardRef)
+      if (result === 'saved') {
+        showToast(copy.savedToast)
+        goWelcome()
+        return
+      }
+      if (result === 'denied') {
+        setDeniedOpen(true)
+        return
+      }
+      if (result === 'unsupported') {
+        try {
+          await Clipboard.setStringAsync(copy.dummyCode)
+        } catch {
+          // ignore
+        }
+        showToast('웹에서는 스크린샷으로 보관해 주세요')
+        goWelcome()
+        return
+      }
+      Alert.alert('저장 실패', '잠시 후 다시 시도해 주세요.')
+    } finally {
+      setSaving(false)
     }
-    if (toastMsg) showToast(toastMsg)
-
-    setProgressIndex(4)
-    setPopLast(true)
-
-    navTimer.current = setTimeout(() => {
-      goWelcome()
-    }, SAVE_NAV_DELAY_MS)
   }
 
-  /** CTA → 보관 안내 시트 */
-  const onPressSave = () => {
-    if (saving) return
-    setPermSheetOpen(true)
-  }
-
-  /** 나중에 = 그래도 클립보드에 복사하고 진행 */
-  const saveOtherWay = () => {
-    setPermSheetOpen(false)
-    void finishSave(copy.copiedToast)
-  }
-
-  /** 복사하고 계속하기 */
-  const confirmCopy = async () => {
-    setPermSheetOpen(false)
-    await finishSave(
-      '번호가 클립보드에 복사됐어요. 스크린샷으로도 보관해 주세요.',
-    )
+  const toggleMethods = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+    setMethodsOpen((prev) => !prev)
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScreenHeader
-        title={copy.header}
         onBack={saving ? undefined : () => router.back()}
+        onSkip={saving ? undefined : goWelcome}
+        skipLabel={copy.skip}
       />
 
-      <View style={styles.body}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.body}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.headline}>{copy.headline}</Text>
         <Text style={styles.sub}>{copy.body}</Text>
 
-        <View style={styles.codeBlock}>
+        <View ref={cardRef} collapsable={false} style={styles.codeCard}>
+          <Text style={styles.codeValue}>{codeDisplay}</Text>
+          <Text style={styles.codeLabel}>{copy.codeLabel}</Text>
           <Image
             source={PET_IMAGES[petId]}
-            style={styles.peekPet}
+            style={styles.cardPet}
             resizeMode="contain"
-            accessibilityLabel="선택한 펫"
+            accessibilityElementsHidden
+            importantForAccessibility="no"
           />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="번호 복사"
-            disabled={saving}
-            onPress={() => {
-              void copyCode()
-            }}
-            style={({ pressed }) => [
-              styles.codeCard,
-              pressed && styles.codePressed,
-            ]}
-          >
-            <Text style={styles.codeLabel}>{copy.codeLabel}</Text>
-            <View style={styles.codeRow}>
-              <Text style={styles.codeValue}>
-                {`${copy.dummyCode.slice(0, 4)} ${copy.dummyCode.slice(4)}`}
-              </Text>
-              <View style={styles.copyIconWrap}>
-                <Copy size={18} color={Colors.textSecondary} weight="bold" />
-              </View>
-            </View>
-          </Pressable>
         </View>
 
-        <Text style={styles.tip}>{copy.tip}</Text>
-      </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: methodsOpen }}
+          accessibilityLabel={copy.tip}
+          onPress={toggleMethods}
+          style={({ pressed }) => [
+            styles.accordionHeader,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Info size={18} color={Colors.textSecondary} weight="fill" />
+          <Text style={styles.accordionTitle}>{copy.tip}</Text>
+          {methodsOpen ? (
+            <CaretUp size={18} color={Colors.textPrimary} weight="bold" />
+          ) : (
+            <CaretDown size={18} color={Colors.textPrimary} weight="bold" />
+          )}
+        </Pressable>
+
+        {methodsOpen
+          ? copy.methods.map((method, index) => (
+              <View key={method.title} style={styles.methodCard}>
+                <View style={styles.methodIndex}>
+                  <Text style={styles.methodIndexText}>{index + 1}</Text>
+                </View>
+                <View style={styles.methodCopy}>
+                  <Text style={styles.methodTitle}>{method.title}</Text>
+                  <Text style={styles.methodBody}>{method.body}</Text>
+                </View>
+              </View>
+            ))
+          : null}
+      </ScrollView>
 
       <View style={styles.footer}>
-        <ProgressDots
-          total={ONBOARDING_STEPS}
-          index={progressIndex}
-          popLast={popLast}
-          onPopComplete={goWelcome}
-        />
         {saving ? (
           <View style={styles.savingCta}>
-            <ActivityIndicator color={Colors.primary} />
+            <ActivityIndicator color={Colors.buttonPrimaryText} />
             <Text style={styles.savingCtaText}>{copy.ctaBusy}</Text>
           </View>
         ) : (
           <PrimaryButton
             label={copy.cta}
             emphasized
-            onPress={onPressSave}
+            onPress={() => {
+              void saveToGallery()
+            }}
           />
         )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copy.copyLink}
+          disabled={saving}
+          onPress={() => {
+            void copyCode()
+          }}
+          style={({ pressed }) => [
+            styles.copyLinkBtn,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.copyLinkText}>{copy.copyLink}</Text>
+        </Pressable>
       </View>
 
-      <PhotoPermissionSheet
-        visible={permSheetOpen}
-        onAllow={() => {
-          void confirmCopy()
-        }}
-        onOtherWay={saveOtherWay}
+      <PhotoPermissionDeniedDialog
+        visible={deniedOpen}
+        onClose={() => setDeniedOpen(false)}
       />
     </SafeAreaView>
   )
@@ -192,12 +212,14 @@ export default function OnboardingRestoreCode() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
+  },
+  flex: {
+    flex: 1,
   },
   body: {
-    flex: 1,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 0,
+    paddingBottom: Layout.sectionGapLg,
   },
   headline: {
     fontSize: 22,
@@ -205,89 +227,132 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 10,
     lineHeight: 32,
+    letterSpacing: -0.3,
   },
   sub: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 24,
-  },
-  codeBlock: {
-    alignItems: 'center',
-    overflow: 'visible',
-    marginTop: 4,
-  },
-  peekPet: {
-    width: 96,
-    height: 96,
-    marginBottom: -36,
-    zIndex: 2,
+    marginBottom: 22,
   },
   codeCard: {
-    width: '100%',
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingTop: 44,
-    paddingBottom: Layout.sectionGapLg,
-    paddingHorizontal: Layout.cardPaddingH,
-    alignItems: 'center',
-    zIndex: 1,
-    ...Shadows.elevation,
-  },
-  codePressed: {
-    opacity: 0.92,
-  },
-  codeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    marginBottom: 10,
-  },
-  codeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.accent,
+    borderRadius: 20,
+    paddingTop: 28,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
+    marginBottom: 18,
+    overflow: 'hidden',
+    minHeight: 148,
   },
   codeValue: {
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: Colors.cocoa,
     letterSpacing: 2,
+    marginBottom: 8,
   },
-  copyIconWrap: {
-    marginLeft: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: Colors.creamyBeige,
+  codeLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.cocoa,
+    opacity: 0.85,
+    maxWidth: '70%',
+  },
+  cardPet: {
+    position: 'absolute',
+    right: -4,
+    bottom: -8,
+    width: 108,
+    height: 108,
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  accordionTitle: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    lineHeight: 20,
+  },
+  methodCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.beige,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  methodIndex: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tip: {
-    marginTop: 16,
+  methodIndexText: {
     fontSize: 13,
-    lineHeight: 20,
+    fontWeight: '800',
+    color: Colors.textSecondary,
+  },
+  methodCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  methodTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  methodBody: {
+    fontSize: 12,
     fontWeight: '500',
     color: Colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: 8,
+    lineHeight: 18,
   },
   footer: {
     ...onboardingFooterStyle,
+    paddingTop: 8,
   },
   savingCta: {
     height: 54,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
+    backgroundColor: Colors.primary,
   },
   savingCtaText: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.textSecondary,
+    color: Colors.buttonPrimaryText,
+  },
+  copyLinkBtn: {
+    marginTop: 14,
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  copyLinkText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.cocoa,
+    textDecorationLine: 'underline',
+  },
+  pressed: {
+    opacity: 0.88,
   },
 })

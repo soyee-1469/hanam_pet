@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs } from 'expo-router'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -13,11 +13,18 @@ import type { Icon } from 'phosphor-react-native'
 import { ChatTabIcon } from '../../components/ChatTabIcon'
 import { Colors } from '../../constants/Colors'
 import { Layout, tabBarReserveHeight } from '../../constants/Layout'
+import { petTourTabRouteName } from '../../lib/coachmarkTour'
+import {
+  getPetTourStepIndex,
+  subscribePetTour,
+} from '../../lib/coachmarkTourState'
 import {
   isTabBarOverlayLocked,
   subscribeTabBarOverlay,
   useHideTabBarWhileKeyboard,
 } from '../../lib/tabBarOverlay'
+
+type TourTabName = 'chat' | 'diary' | 'index' | 'mind' | 'more'
 
 /** Soft tab button — navigation tab bar button props */
 type SoftTabButtonProps = {
@@ -30,6 +37,14 @@ type SoftTabButtonProps = {
   testID?: string
 }
 
+function useTourTabHighlight(): ReturnType<typeof petTourTabRouteName> {
+  const [step, setStep] = useState(getPetTourStepIndex)
+  useEffect(() => {
+    return subscribePetTour(() => setStep(getPetTourStepIndex()))
+  }, [])
+  return petTourTabRouteName(step)
+}
+
 function SoftTabButton({
   children,
   style,
@@ -38,17 +53,30 @@ function SoftTabButton({
   accessibilityState,
   accessibilityLabel,
   testID,
-}: SoftTabButtonProps) {
+  routeName,
+  highlightRoute,
+}: SoftTabButtonProps & {
+  routeName: TourTabName
+  highlightRoute: ReturnType<typeof petTourTabRouteName>
+}) {
+  const spotlight = highlightRoute != null && highlightRoute === routeName
+  const dimmed = highlightRoute != null && highlightRoute !== routeName
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={accessibilityState}
       accessibilityLabel={accessibilityLabel}
       testID={testID}
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={dimmed ? undefined : onPress}
+      onLongPress={dimmed ? undefined : onLongPress}
       android_ripple={{ color: 'transparent' }}
-      style={({ pressed }) => [style, { opacity: pressed ? 0.88 : 1 }]}
+      style={({ pressed }) => [
+        style,
+        spotlight && styles.tourTabSpotlight,
+        dimmed && styles.tourTabDimmed,
+        pressed && !dimmed && styles.tabPressed,
+      ]}
     >
       {children}
     </Pressable>
@@ -84,7 +112,10 @@ function TabIcon({
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.85}
-        style={[styles.tabLabel, focused ? styles.tabLabelActive : styles.tabLabelIdle]}
+        style={[
+          styles.tabLabel,
+          focused ? styles.tabLabelActive : styles.tabLabelIdle,
+        ]}
       >
         {label}
       </Text>
@@ -97,6 +128,7 @@ export default function TabLayout() {
   const tabBottomPad = Math.max(bottom, 8) + Layout.tabBarExtraBottom
   const tabHeight = tabBarReserveHeight(bottom)
   const [overlayLocked, setOverlayLocked] = useState(isTabBarOverlayLocked)
+  const tourHighlight = useTourTabHighlight()
 
   useHideTabBarWhileKeyboard()
 
@@ -105,6 +137,57 @@ export default function TabLayout() {
       setOverlayLocked(isTabBarOverlayLocked())
     })
   }, [])
+
+  const chatTabButton = useCallback(
+    (props: object) => (
+      <SoftTabButton
+        {...(props as SoftTabButtonProps)}
+        routeName="chat"
+        highlightRoute={tourHighlight}
+      />
+    ),
+    [tourHighlight],
+  )
+  const diaryTabButton = useCallback(
+    (props: object) => (
+      <SoftTabButton
+        {...(props as SoftTabButtonProps)}
+        routeName="diary"
+        highlightRoute={tourHighlight}
+      />
+    ),
+    [tourHighlight],
+  )
+  const petTabButton = useCallback(
+    (props: object) => (
+      <SoftTabButton
+        {...(props as SoftTabButtonProps)}
+        routeName="index"
+        highlightRoute={tourHighlight}
+      />
+    ),
+    [tourHighlight],
+  )
+  const mindTabButton = useCallback(
+    (props: object) => (
+      <SoftTabButton
+        {...(props as SoftTabButtonProps)}
+        routeName="mind"
+        highlightRoute={tourHighlight}
+      />
+    ),
+    [tourHighlight],
+  )
+  const moreTabButton = useCallback(
+    (props: object) => (
+      <SoftTabButton
+        {...(props as SoftTabButtonProps)}
+        routeName="more"
+        highlightRoute={tourHighlight}
+      />
+    ),
+    [tourHighlight],
+  )
 
   const tabBarStyle = useMemo(
     () =>
@@ -129,8 +212,10 @@ export default function TabLayout() {
             shadowOpacity: 0,
             shadowRadius: 0,
             shadowOffset: { width: 0, height: 0 },
+            // 투어 중에도 탭바를 남겨 하이라이트(시안)를 보여 준다
+            zIndex: tourHighlight ? 50 : undefined,
           },
-    [overlayLocked, tabHeight, tabBottomPad],
+    [overlayLocked, tabHeight, tabBottomPad, tourHighlight],
   )
 
   return (
@@ -148,9 +233,6 @@ export default function TabLayout() {
         // sit under / steal taps from the focused tab on web.
         sceneStyle: { backgroundColor: Colors.background, flex: 1 },
         tabBarStyle,
-        tabBarButton: (props) => (
-          <SoftTabButton {...(props as SoftTabButtonProps)} />
-        ),
         tabBarItemStyle: {
           flex: 1,
           paddingHorizontal: 0,
@@ -165,12 +247,17 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: '대화',
+          tabBarButton: chatTabButton,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               focused={focused}
               label="대화"
               customIcon={
-                <ChatTabIcon focused={focused} size={31} color={String(color)} />
+                <ChatTabIcon
+                  focused={focused}
+                  size={31}
+                  color={String(color)}
+                />
               }
             />
           ),
@@ -180,6 +267,7 @@ export default function TabLayout() {
         name="diary"
         options={{
           title: '마음일기',
+          tabBarButton: diaryTabButton,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               IconComponent={NotePencil}
@@ -194,6 +282,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '나의 펫',
+          tabBarButton: petTabButton,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               IconComponent={PawPrint}
@@ -208,6 +297,7 @@ export default function TabLayout() {
         name="mind"
         options={{
           title: '마음챙김',
+          tabBarButton: mindTabButton,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               IconComponent={FlowerLotus}
@@ -222,6 +312,7 @@ export default function TabLayout() {
         name="more"
         options={{
           title: '설정',
+          tabBarButton: moreTabButton,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
               IconComponent={GearSix}
@@ -264,5 +355,19 @@ const styles = StyleSheet.create({
   tabLabelIdle: {
     fontWeight: '500',
     color: Colors.textDisabled,
+  },
+  tourTabSpotlight: {
+    borderRadius: 14,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.cardRecessed,
+    marginHorizontal: 2,
+    marginVertical: 2,
+  },
+  tourTabDimmed: {
+    opacity: 0.4,
+  },
+  tabPressed: {
+    opacity: 0.88,
   },
 })

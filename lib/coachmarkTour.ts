@@ -22,13 +22,13 @@ export type PetTourStep = {
 }
 
 /** 시안 기준 총 장수 */
-export const PET_TOUR_TOTAL = 4
+export const PET_TOUR_TOTAL = 6
 
 export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-02',
     badge: '나의 펫',
-    title: (name) => `${name}를 돌봐 주세요`,
+    title: () => '나만의 펫을 돌봐 주세요',
     body: (name) =>
       `사료를 주고 놀아 주면 무럭무럭 자라요. ${name}를 돌보며 내 마음도 함께 챙겨요.`,
     highlight: 'care',
@@ -76,4 +76,15 @@ export function petTourHref(route: PetTourRoute): string {
     default:
       return '/(tabs)'
   }
+}
+
+/** 탭 바 하이라이트용 — Tabs.Screen name */
+export function petTourTabRouteName(
+  stepIndex: number | null,
+): 'chat' | 'diary' | 'index' | 'mind' | null {
+  if (stepIndex == null) return null
+  const route = PET_TOUR_STEPS[stepIndex]?.route
+  if (route === 'pet') return 'index'
+  if (route === 'chat' || route === 'diary' || route === 'mind') return route
+  return null
 }

@@ -102,6 +102,7 @@ import {
   getPetTourCompletePending,
   getPetTourStepIndex,
   setPetTourStepIndex,
+  startPetTourFromWelcome,
   subscribePetTour,
 } from '../../lib/coachmarkTourState'
 
@@ -1005,6 +1006,11 @@ function PetHomeScreenBody() {
     await setCoachmarkWelcomeStatus(status)
   }
 
+  const startPetTour = () => {
+    setCoachWelcomeOpen(false)
+    startPetTourFromWelcome()
+  }
+
   const finishPetTour = async () => {
     finishPetTourWithComplete()
     await setCoachmarkWelcomeStatus('accepted')
@@ -1586,18 +1592,24 @@ function PetHomeScreenBody() {
 
         {/* 하단 케어 패널 — 에너지 + 사료/장난감 CTA */}
         <View
-          style={[styles.sheet, { maxHeight: sheetMaxHeight }]}
+          style={[
+            styles.sheet,
+            { maxHeight: sheetMaxHeight },
+            tourHighlightCare && styles.sheetTour,
+          ]}
           onLayout={(e) => {
             const h = Math.round(e.nativeEvent.layout.height)
             if (h > 0 && Math.abs(h - sheetH) > 2) setSheetH(h)
           }}
         >
           <View style={styles.primaryBlock}>
-            <LevelEnergyBlock
-              energy={energy}
-              energyMax={ENERGY_MAX}
-              onPressStorage={openStorage}
-            />
+            <View style={tourHighlightCare ? styles.energyTourMuted : null}>
+              <LevelEnergyBlock
+                energy={energy}
+                energyMax={ENERGY_MAX}
+                onPressStorage={openStorage}
+              />
+            </View>
             {showStockTip ? (
               <View style={styles.stockTip}>
                 <Text style={styles.stockTipText}>{HOME_STOCK_TIP}</Text>
@@ -1620,6 +1632,7 @@ function PetHomeScreenBody() {
                 styles.actionRow,
                 tourHighlightCare && styles.actionRowTour,
               ]}
+              collapsable={false}
             >
               <CareStockCard
                 count={foodCount}
@@ -1632,7 +1645,6 @@ function PetHomeScreenBody() {
                 acquireLabel="사료 받기"
                 onUse={handleFeedPress}
                 onAcquire={handleAcquireFeed}
-                tourHighlight={tourHighlightCare}
                 anchorRef={feedCardRef}
               />
               <View style={{ width: actionGap }} />
@@ -1644,7 +1656,6 @@ function PetHomeScreenBody() {
                 grayIconWhenEmpty
                 onUse={handlePlayPress}
                 onAcquire={handleAcquireToy}
-                tourHighlight={tourHighlightCare}
                 anchorRef={toyCardRef}
               />
             </View>
@@ -1653,8 +1664,10 @@ function PetHomeScreenBody() {
       </View>
 
       {showPetTour && homeFocused && tourStep ? (
-        <View style={styles.coachOverlay} pointerEvents="box-none">
-          <View style={styles.coachScrim} />
+        <>
+          <View style={styles.coachScrimLayer} pointerEvents="auto">
+            <View style={styles.coachScrim} />
+          </View>
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={coachTourStep ?? 0}
@@ -1664,7 +1677,7 @@ function PetHomeScreenBody() {
               tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38
             }
           />
-        </View>
+        </>
       ) : null}
 
       <CoachmarkWelcomeSheet
@@ -1672,9 +1685,7 @@ function PetHomeScreenBody() {
         onSkip={() => {
           void dismissCoachWelcome('skipped')
         }}
-        onAccept={() => {
-          void dismissCoachWelcome('accepted')
-        }}
+        onAccept={startPetTour}
       />
 
       <CoachmarkCompleteSheet
@@ -2398,13 +2409,29 @@ const styles = StyleSheet.create({
   primaryBlock: {
     alignSelf: 'stretch',
   },
+  sheetTour: {
+    position: 'relative',
+    zIndex: 30,
+    elevation: 30,
+  },
+  energyTourMuted: {
+    opacity: 0.45,
+  },
   actionRow: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
   },
+  /** Above scrim (spotlight); below CoachmarkTourCard (zIndex 40). */
   actionRowTour: {
+    position: 'relative',
     zIndex: 30,
+    elevation: 30,
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    padding: 4,
+    backgroundColor: Colors.surface,
   },
   stockCardWrap: {
     flex: 1,
@@ -2429,16 +2456,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: Colors.surface,
   },
-  coachOverlay: {
+  coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 28,
+    zIndex: 20,
+    elevation: 20,
   },
   coachScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   stockActionLabel: {

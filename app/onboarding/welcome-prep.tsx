@@ -1,10 +1,11 @@
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import {
   PrimaryButton,
+  ScreenHeader,
   TourDots,
   onboardingFooterStyle,
 } from '../../components/ui'
@@ -13,18 +14,19 @@ import { getOnboardingCopy } from '../../lib/onboarding'
 const copy = getOnboardingCopy().welcomePrep
 /** 온보딩 전체 진행(ob-01~) — 첫 점 활성 */
 const TOUR_TOTAL = 8
-const PREP_HERO = require('../../assets/images/onboarding_1.png')
 
+/**
+ * ob-01 — 하치·나미 만나기 전 준비 안내
+ */
 export default function OnboardingWelcomePrep() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <ScreenHeader
+        onSkip={() => router.push('/onboarding/terms')}
+        skipLabel="건너뛰기"
+      />
+
       <View style={styles.body}>
-        <Image
-          source={PREP_HERO}
-          style={styles.hero}
-          resizeMode="contain"
-          accessibilityLabel="힐링펫"
-        />
         <Text style={styles.title}>{copy.title}</Text>
         <Text style={styles.bodyText}>{copy.body}</Text>
       </View>
@@ -51,21 +53,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 40,
-  },
-  hero: {
-    width: 220,
-    height: 180,
-    marginBottom: 20,
+    paddingBottom: 72,
   },
   title: {
     fontSize: 26,
     fontWeight: '900',
-    color: Colors.textPrimary,
+    color: Colors.primary,
     textAlign: 'center',
     letterSpacing: -0.5,
     lineHeight: 36,
-    marginBottom: 14,
+    marginBottom: 18,
   },
   bodyText: {
     fontSize: 15,

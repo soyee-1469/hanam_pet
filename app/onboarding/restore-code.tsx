@@ -18,10 +18,12 @@ import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 import {
   PrimaryButton,
+  ProgressDots,
   ScreenHeader,
   onboardingFooterStyle,
 } from '../../components/ui'
 import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
+import { ONBOARDING_STEPS } from '../../lib/onboardingDraft'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { showToast } from '../../lib/toast'
 
@@ -152,7 +154,7 @@ export default function OnboardingRestoreCode() {
             pressed && styles.pressed,
           ]}
         >
-          <Warning size={18} color={Colors.error} weight="fill" />
+          <Warning size={18} color={Colors.selected} weight="fill" />
           <Text style={styles.accordionTitle}>{copy.tip}</Text>
           {methodsOpen ? (
             <CaretUp size={18} color={Colors.textPrimary} weight="bold" />
@@ -177,6 +179,7 @@ export default function OnboardingRestoreCode() {
       </ScrollView>
 
       <View style={styles.footer}>
+        <ProgressDots total={ONBOARDING_STEPS} index={3} />
         {saving ? (
           <View style={styles.savingCta}>
             <ActivityIndicator color={Colors.primary} />
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.error,
+    color: Colors.textPrimary,
     lineHeight: 20,
   },
   methodCard: {
@@ -323,6 +326,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 10,
   },
   savingCta: {
     height: 54,

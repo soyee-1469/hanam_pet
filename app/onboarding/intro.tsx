@@ -134,7 +134,7 @@ function ReasonsSlide({
               >
                 <IconComp
                   size={22}
-                  color={on ? Colors.primary : Colors.selected}
+                  color={Colors.selected}
                   weight={on ? 'fill' : 'regular'}
                 />
               </View>
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   helpList: {
-    gap: 10,
+    gap: 14,
   },
   helpCard: {
     flexDirection: 'row',
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.divider,
   },
   reasonCardOn: {
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
   },
   reasonIcon: {
     width: 44,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   reasonIconOn: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.surfaceSecondary,
   },
   reasonTitle: {
     flex: 1,
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   reasonCheckOn: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.selected,
+    borderColor: Colors.selected,
   },
 })

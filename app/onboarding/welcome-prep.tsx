@@ -6,17 +6,15 @@ import { Layout } from '../../constants/Layout'
 import {
   PrimaryButton,
   ScreenHeader,
-  TourDots,
   onboardingFooterStyle,
 } from '../../components/ui'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().welcomePrep
-/** 온보딩 전체 진행(ob-01~) — 첫 점 활성 */
-const TOUR_TOTAL = 8
 
 /**
  * ob-01 — 하치·나미 만나기 전 준비 안내
+ * TourDots는 intro~mind 7단계만 사용 (이 화면은 투어 전 안내)
  */
 export default function OnboardingWelcomePrep() {
   return (
@@ -32,7 +30,6 @@ export default function OnboardingWelcomePrep() {
       </View>
 
       <View style={styles.footer}>
-        <TourDots total={TOUR_TOTAL} index={0} />
         <PrimaryButton
           label={copy.cta}
           emphasized
@@ -53,12 +50,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: 72,
+    paddingBottom: Layout.spaceXl,
   },
   title: {
     fontSize: 26,
     fontWeight: '900',
-    color: Colors.primary,
+    color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
     lineHeight: 36,

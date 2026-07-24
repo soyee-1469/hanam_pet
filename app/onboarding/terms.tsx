@@ -90,7 +90,7 @@ export default function OnboardingTerms() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <ScreenHeader title={copy.header} onBack={() => router.back()} />
+      <ScreenHeader onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -174,7 +174,7 @@ export default function OnboardingTerms() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.creamyBeige,
   },
   scroll: {
     flex: 1,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   allBlock: {
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     paddingLeft: 4,
     paddingRight: 8,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   footerNote: {
-    marginBottom: 12,
+    marginBottom: Layout.sectionGap,
     fontSize: 12,
     lineHeight: 18,
     fontWeight: '500',
@@ -222,5 +222,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 10,
   },
 })

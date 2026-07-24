@@ -13,10 +13,11 @@ import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
-import { PrimaryButton, onboardingFooterStyle } from '../../components/ui'
+import { PrimaryButton, ProgressDots, onboardingFooterStyle } from '../../components/ui'
 import {
   getOnboardingDraft,
   resetOnboardingDraft,
+  ONBOARDING_STEPS,
 } from '../../lib/onboardingDraft'
 import { completeOnboarding } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -82,6 +83,7 @@ export default function OnboardingWelcome() {
       </View>
 
       <View style={styles.footer}>
+        <ProgressDots total={ONBOARDING_STEPS} index={4} />
         {busy ? (
           <ActivityIndicator color={Colors.primary} style={styles.loader} />
         ) : (
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '900',
-    color: Colors.primary,
+    color: Colors.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
     lineHeight: 36,
@@ -166,6 +168,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 10,
   },
   loader: {
     height: 54,

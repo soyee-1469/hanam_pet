@@ -20,10 +20,12 @@ import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 import {
   PrimaryButton,
+  ProgressDots,
   ScreenHeader,
   onboardingFooterStyle,
 } from '../../components/ui'
 import {
+  ONBOARDING_STEPS,
   getOnboardingDraft,
   setOnboardingDraft,
 } from '../../lib/onboardingDraft'
@@ -295,6 +297,7 @@ export default function OnboardingPetSelect() {
         </ScrollView>
 
         <View style={styles.footer}>
+          <ProgressDots total={ONBOARDING_STEPS} index={2} />
           <PrimaryButton
             label={copy.cta}
             disabled={!valid}
@@ -480,5 +483,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 10,
   },
 })

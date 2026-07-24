@@ -607,11 +607,15 @@ function ChatScreenBody() {
               </Pressable>
             </View>
           )}
+
+          <Text style={styles.aiDisclaimer}>
+            {`${petName}의 대화는 AI가 생성해요.\n전문 치료는 아니어도 포근한 마음으로 함께 할게요.`}
+          </Text>
         </View>
 
         <HelpFloatingFab
           visible={showHelpFab}
-          bottom={composerBottomPad + 72}
+          bottom={composerBottomPad + 108}
         />
       </KeyboardAvoidingView>
 
@@ -917,6 +921,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     backgroundColor: Colors.background,
     gap: 10,
+  },
+  aiDisclaimer: {
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+    color: Colors.textSecondary,
+    letterSpacing: -0.2,
+    paddingHorizontal: 4,
   },
   composerWrapTour: {
     position: 'relative',

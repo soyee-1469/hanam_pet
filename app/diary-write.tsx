@@ -607,6 +607,14 @@ export default function DiaryWriteScreen() {
             onLayout={(e) => {
               tagSectionY.current = e.nativeEvent.layout.y
               tagSectionH.current = e.nativeEvent.layout.height
+              if (tagsExpanded) {
+                const bottom =
+                  tagSectionY.current + tagSectionH.current
+                const viewH = scrollViewportH.current || 0
+                if (viewH > 0) {
+                  scrollToY(Math.max(0, bottom - viewH + 24))
+                }
+              }
             }}
           >
             <View style={styles.tagRow}>

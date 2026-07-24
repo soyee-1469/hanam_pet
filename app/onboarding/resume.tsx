@@ -562,7 +562,7 @@ export default function OnboardingResume() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.background,
     overflow: 'hidden',
   },
   flex: {

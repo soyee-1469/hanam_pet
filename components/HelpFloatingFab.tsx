@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     zIndex: 24,
-    elevation: 14,
+    elevation: 0,
   },
   sticker: {
     minHeight: 56,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -2, height: 4 },
     shadowOpacity: 0.22,
     shadowRadius: 6,
-    elevation: 10,
+    elevation: 0,
     overflow: 'hidden',
   },
   phoneBadge: {

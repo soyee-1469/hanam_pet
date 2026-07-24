@@ -2067,7 +2067,7 @@ const styles = StyleSheet.create({
   headerLayerTour: {
     position: 'relative',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
   },
   headerTourMuted: {
     opacity: 0.45,
@@ -2075,7 +2075,7 @@ const styles = StyleSheet.create({
   claimMenuTour: {
     position: 'relative',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
     borderRadius: 20,
     borderWidth: 2.5,
     borderColor: Colors.selected,
@@ -2422,7 +2422,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 0,
   },
   greetingBubbleText: {
     ...TypeStyle.bubble,
@@ -2503,7 +2503,7 @@ const styles = StyleSheet.create({
   sheetTour: {
     position: 'relative',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
   },
   energyTourMuted: {
     opacity: 0.45,
@@ -2517,7 +2517,7 @@ const styles = StyleSheet.create({
   actionRowTour: {
     position: 'relative',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
     borderRadius: 20,
     borderWidth: 2.5,
     borderColor: Colors.selected,
@@ -2550,7 +2550,7 @@ const styles = StyleSheet.create({
   coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20,
-    elevation: 20,
+    elevation: 0,
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,

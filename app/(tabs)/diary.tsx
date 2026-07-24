@@ -666,12 +666,12 @@ const styles = StyleSheet.create({
   /** Above scrim (spotlight); below CoachmarkTourCard (zIndex 40). */
   ctaWrapTour: {
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
   },
   coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20,
-    elevation: 20,
+    elevation: 0,
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
   dayTourSpot: {
     position: 'absolute',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
     borderRadius: 14,
     borderWidth: 2.5,
     borderColor: Colors.selected,

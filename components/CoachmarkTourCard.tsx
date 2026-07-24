@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     zIndex: 40,
-    elevation: 40,
+    elevation: 0,
     alignItems: 'center',
   },
   wrapCenter: {

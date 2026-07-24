@@ -148,14 +148,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     ...Platform.select({
       web: {
-        boxShadow: '0 -4px 18px rgba(92, 64, 51, 0.12)',
+        boxShadow: 'none',
       },
       default: {
         shadowColor: Colors.cocoa,
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.1,
         shadowRadius: 10,
-        elevation: 12,
+        elevation: 0,
       },
     }),
   },

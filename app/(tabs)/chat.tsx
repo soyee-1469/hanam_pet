@@ -941,13 +941,13 @@ const styles = StyleSheet.create({
   composerWrapTour: {
     position: 'relative',
     zIndex: 30,
-    elevation: 30,
+    elevation: 0,
     backgroundColor: 'transparent',
   },
   coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 20,
-    elevation: 20,
+    elevation: 0,
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,

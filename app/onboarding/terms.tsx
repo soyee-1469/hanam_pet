@@ -174,7 +174,7 @@ export default function OnboardingTerms() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.background,
   },
   scroll: {
     flex: 1,

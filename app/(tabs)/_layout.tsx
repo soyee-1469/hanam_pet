@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 60,
-    elevation: 60,
+    elevation: 0,
     alignItems: 'center',
   },
   mainMenuLabel: {

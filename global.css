@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 앱 캔버스 기본면 — Colors.background */
+html,
+body,
+#root {
+  background-color: #F8F4EF;
+  min-height: 100%;
+}
+
+/* 잔여 드롭섀도 제거 (버튼 outline 제거와 별개) */
+* {
+  box-shadow: none !important;
+}
+
 /* RN Web — 브라우저 기본 포커스/버튼 사각 박스 제거 */
 input,
 textarea,

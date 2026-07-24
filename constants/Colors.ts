@@ -98,14 +98,14 @@ export const Colors = {
 
 export type ColorToken = keyof typeof Colors
 
-/** Shadow System */
+/** Flat UI — 그림자 사용 안 함 (스프레드 호환용 빈 토큰) */
 export const Shadows = {
   elevation: {
-    shadowColor: Colors.cocoa,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
 } as const
 

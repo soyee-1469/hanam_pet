@@ -2212,8 +2212,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
     backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.surface,
   },
   menuReadyBadgeText: {
     fontSize: 9,

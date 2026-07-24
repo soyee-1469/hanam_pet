@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   tabUnderlineOn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   list: {
     marginTop: -4,
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   rowDeltaPlus: {
-    color: Colors.primary,
+    color: Colors.cocoa,
   },
   rowDeltaPlusEnergy: {
     color: Colors.accent,

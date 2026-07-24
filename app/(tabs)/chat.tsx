@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: Colors.primaryLight,
+    borderColor: Colors.border,
     ...Shadows.elevation,
   },
   statusPillDepleted: {
@@ -908,7 +908,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
     flexShrink: 0,
   },
   statusDotDepleted: {
@@ -917,7 +917,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.primary,
+    color: Colors.cocoa,
     flexShrink: 1,
   },
   statusTextDepleted: {
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
   },
   composerTour: {
     borderWidth: 2.5,
-    borderColor: Colors.primary,
+    borderColor: Colors.selected,
     backgroundColor: Colors.surface,
   },
   depletedBubble: {

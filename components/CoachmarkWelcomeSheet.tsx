@@ -88,11 +88,11 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '8deg' }],
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
-    lineHeight: 30,
+    lineHeight: 28,
     letterSpacing: -0.3,
     marginBottom: 10,
   },

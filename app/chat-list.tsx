@@ -52,7 +52,7 @@ function ThreadRow({
       <View style={styles.iconWrap}>
         <ChatCircle
           size={22}
-          color={hasUnread ? Colors.primary : Colors.textSecondary}
+          color={hasUnread ? Colors.selected : Colors.textSecondary}
           weight={hasUnread ? 'fill' : 'regular'}
         />
       </View>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     paddingHorizontal: 6,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
     alignItems: 'center',
     justifyContent: 'center',
   },

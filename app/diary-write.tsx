@@ -517,7 +517,7 @@ export default function DiaryWriteScreen() {
                   { opacity: heartOpacity, transform: [{ translateY: heartY }] },
                 ]}
               >
-                <Heart size={18} color={Colors.primary} weight="fill" />
+                <Heart size={18} color={Colors.cocoa} weight="fill" />
               </Animated.View>
             </View>
             <View style={styles.speech}>

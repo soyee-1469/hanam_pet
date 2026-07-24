@@ -229,7 +229,7 @@ export default function MindCheckResultScreen() {
             <View style={styles.tips}>
               {band.tips.map((tip) => (
                 <View key={tip} style={styles.tipRow}>
-                  <CheckCircle size={20} color={Colors.primary} weight="fill" />
+                  <CheckCircle size={20} color={Colors.cocoa} weight="fill" />
                   <Text style={styles.tipText}>{tip}</Text>
                 </View>
               ))}

@@ -95,7 +95,7 @@ export default function PetManageScreen() {
   const borderColor = tooShort
     ? Colors.error
     : nameFocused || trimmed.length > 0
-      ? Colors.primary
+      ? Colors.selected
       : Colors.border
 
   const selectPet = (id: PetChoice) => {
@@ -206,7 +206,7 @@ export default function PetManageScreen() {
                 onSubmitEditing={() => {
                   if (canSave && dirty) void save()
                 }}
-                selectionColor={Colors.primary}
+                selectionColor={Colors.selected}
               />
               <Text
                 style={[

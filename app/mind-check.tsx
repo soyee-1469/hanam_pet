@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -345,25 +345,25 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
   },
   optionOn: {
-    borderColor: Colors.primary,
-    backgroundColor: '#FFF3EE',
+    borderColor: Colors.selected,
+    backgroundColor: Colors.creamyBeige,
   },
   radio: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: Colors.unselected,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
   },
   radioOn: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+    borderColor: Colors.selected,
+    backgroundColor: Colors.selected,
   },
   optionText: {
     flex: 1,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   optionTextOn: {
-    color: Colors.primary,
+    color: Colors.selected,
     fontWeight: '700',
   },
   footer: {

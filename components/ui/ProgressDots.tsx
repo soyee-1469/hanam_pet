@@ -70,7 +70,7 @@ export function ProgressDots({
           const heart = (
             <Heart
               size={18}
-              color={filled ? Colors.primary : '#E4D8CE'}
+              color={filled ? Colors.cocoa : '#E4D8CE'}
               weight={filled ? 'fill' : 'regular'}
               style={styles.heart}
             />

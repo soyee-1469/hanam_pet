@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: 2.5,
     borderRadius: 2,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.selected,
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,

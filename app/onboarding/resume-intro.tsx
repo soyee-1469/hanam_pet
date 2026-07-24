@@ -46,7 +46,7 @@ export default function OnboardingResumeIntro() {
             />
           </View>
           <View style={styles.heart}>
-            <Heart size={18} color={Colors.primary} weight="fill" />
+            <Heart size={18} color={Colors.cocoa} weight="fill" />
           </View>
         </View>
 

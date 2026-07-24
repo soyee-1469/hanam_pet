@@ -136,7 +136,7 @@ export default function DataManageScreen() {
                 disabled={!openChat}
                 onPress={
                   openChat
-                    ? () => router.push('/chat-detail' as Href)
+                    ? () => router.push('/chat-list' as Href)
                     : undefined
                 }
                 style={[

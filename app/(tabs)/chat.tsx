@@ -16,7 +16,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useFocusEffect } from 'expo-router'
-import { CaretLeft, PaperPlaneTilt, X } from 'phosphor-react-native'
+import { CaretLeft, List, PaperPlaneTilt, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
@@ -375,7 +375,15 @@ function ChatScreenBody() {
             <CaretLeft size={24} color={Colors.textPrimary} weight="bold" />
           </Pressable>
           <Text style={styles.title}>대화</Text>
-          <View style={styles.sideBtn} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="대화 기록"
+            hitSlop={8}
+            onPress={() => router.push('/chat-list')}
+            style={({ pressed }) => [styles.sideBtn, pressed && styles.pressed]}
+          >
+            <List size={24} color={Colors.textPrimary} weight="regular" />
+          </Pressable>
         </View>
 
         {!chatting && !depleted ? (

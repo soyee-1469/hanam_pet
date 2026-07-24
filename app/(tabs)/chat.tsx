@@ -616,16 +616,18 @@ function ChatScreenBody() {
       </KeyboardAvoidingView>
 
       {showChatTour && tourStep ? (
-        <View style={styles.coachOverlay} pointerEvents="box-none">
-          <View style={styles.coachScrim} />
+        <>
+          <View style={styles.coachScrimLayer} pointerEvents="auto">
+            <View style={styles.coachScrim} />
+          </View>
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={Math.max(insets.bottom, 12) + 80}
+            bottom={Math.max(insets.bottom, 12) + tabBarSpace + 64}
           />
-        </View>
+        </>
       ) : null}
     </SafeAreaView>
   )
@@ -917,19 +919,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   composerWrapTour: {
+    position: 'relative',
     zIndex: 30,
+    elevation: 30,
+    backgroundColor: 'transparent',
   },
-  coachOverlay: {
+  coachScrimLayer: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 28,
+    zIndex: 20,
+    elevation: 20,
   },
   coachScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(91, 57, 39, 0.35)',
+  },
+  composerTour: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
   },
   depletedBubble: {
     alignSelf: 'stretch',
@@ -1012,9 +1019,8 @@ const styles = StyleSheet.create({
   composerFocused: {
     borderColor: Colors.selected,
   },
-  composerTour: {
-    borderWidth: 2.5,
-    borderColor: Colors.primary,
+  composerLocked: {
+    opacity: 0.72,
   },
   input: {
     flex: 1,

@@ -47,7 +47,7 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-03',
     badge: '대화',
-    title: (name) => `${name}와 이야기 나눠요`,
+    title: () => '펫과 마음을 나눠요',
     body: () =>
       '여기에 오늘의 마음을 적어 보내면, 내 마음에 공감하며 따뜻하게 답해 줘요.',
     highlight: 'composer',

@@ -8,8 +8,12 @@ type CoachmarkTourCardProps = {
   stepIndex: number
   petName: string
   onNext: () => void
-  /** 카드 세로 위치 (하단 기준) */
-  bottom: number
+  /** 카드 세로 위치 (하단 기준) — top과 둘 중 하나 */
+  bottom?: number
+  /** 카드 세로 위치 (상단 기준) — 하이라이트가 위일 때 */
+  top?: number
+  /** 꼬리 가로 정렬 (상단 메뉴 등 왼쪽 타깃용) */
+  tailAlign?: 'center' | 'start'
 }
 
 /** cm-02+ — 중앙 카드형 코치마크 */
@@ -19,13 +23,26 @@ export function CoachmarkTourCard({
   petName,
   onNext,
   bottom,
+  top,
+  tailAlign = 'center',
 }: CoachmarkTourCardProps) {
   const page = stepIndex + 1
   const tailUp = step.tail === 'up'
+  const tailStyle = [
+    styles.tail,
+    tailUp && styles.tailUp,
+    tailAlign === 'start' && styles.tailStart,
+  ]
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom }]}>
-      {tailUp ? <View style={[styles.tail, styles.tailUp]} /> : null}
+    <View
+      pointerEvents="box-none"
+      style={[
+        styles.wrap,
+        top != null ? { top } : { bottom: bottom ?? 0 },
+      ]}
+    >
+      {tailUp ? <View style={tailStyle} /> : null}
       <View style={styles.card}>
         <View style={styles.topRow}>
           <View style={styles.badge}>
@@ -65,7 +82,7 @@ export function CoachmarkTourCard({
           </Pressable>
         </View>
       </View>
-      {!tailUp ? <View style={styles.tail} /> : null}
+      {!tailUp ? <View style={tailStyle} /> : null}
     </View>
   )
 }
@@ -175,5 +192,9 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: -7,
     zIndex: 1,
+  },
+  tailStart: {
+    alignSelf: 'flex-start',
+    marginLeft: 36,
   },
 })

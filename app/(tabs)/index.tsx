@@ -1034,6 +1034,7 @@ function PetHomeScreenBody() {
     coachTourStep != null ? PET_TOUR_STEPS[coachTourStep] : null
   const showPetTour = tourStep?.route === 'pet'
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
+  const tourHighlightMenu = showPetTour && tourStep?.highlight === 'menu'
   const showGuideTips =
     tipsReady && !coachWelcomeOpen && !showPetTour && !coachCompleteOpen
   const showStockTip = showGuideTips && stockTipOn
@@ -1415,86 +1416,126 @@ function PetHomeScreenBody() {
     >
       <View style={[styles.body, { paddingBottom: tabBarReserve }]}>
         {/* 헤더 (상태 문구 + 메뉴) */}
-        <View style={[styles.headerLayer, { paddingTop: headerTopPad }]}>
-          <View style={styles.nicknameRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
-              accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
-              hitSlop={8}
-              onPress={openNameEdit}
-              style={({ pressed }) => [
-                styles.petTitleBtn,
-                pressed && styles.headerIconPressed,
-              ]}
-            >
-              <Text style={styles.nicknameText} numberOfLines={1}>
-                {`나의 펫 ${petName}`}
-              </Text>
-              <PencilSimple
-                size={18}
-                color={Colors.textPrimary}
-                weight="regular"
-              />
-            </Pressable>
-            <View style={styles.headerActions}>
+        <View
+          style={[
+            styles.headerLayer,
+            { paddingTop: headerTopPad },
+            tourHighlightMenu && styles.headerLayerTour,
+          ]}
+        >
+          <View style={tourHighlightMenu ? styles.headerTourMuted : null}>
+            <View style={styles.nicknameRow}>
               <Pressable
-                style={styles.bellBtn}
-                onPress={() => router.push('/notifications')}
-                hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="알림"
+                accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
+                accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
+                hitSlop={8}
+                onPress={openNameEdit}
+                style={({ pressed }) => [
+                  styles.petTitleBtn,
+                  pressed && styles.headerIconPressed,
+                ]}
               >
-                <View>
-                  <Bell size={24} color={Colors.textPrimary} weight="light" />
-                  <View style={styles.notifDot} />
-                </View>
+                <Text style={styles.nicknameText} numberOfLines={1}>
+                  {`나의 펫 ${petName}`}
+                </Text>
+                <PencilSimple
+                  size={18}
+                  color={Colors.textPrimary}
+                  weight="regular"
+                />
               </Pressable>
+              <View style={styles.headerActions}>
+                <Pressable
+                  style={styles.bellBtn}
+                  onPress={() => router.push('/notifications')}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="알림"
+                >
+                  <View>
+                    <Bell size={24} color={Colors.textPrimary} weight="light" />
+                    <View style={styles.notifDot} />
+                  </View>
+                </Pressable>
+              </View>
             </View>
           </View>
 
           <View style={styles.menuRow}>
-            {HEADER_MENU.map((item) => (
-              <MenuQuickItem
-                key={item.id}
-                label={item.label}
-                image={item.image}
-                bgColor={item.bgColor}
-                ready={
-                  item.id === 'feed'
-                    ? feedClaimStatus.kind === 'ready'
-                    : item.id === 'toy'
-                      ? toyClaimStatus.kind === 'ready'
-                      : false
-                }
-                done={item.id === 'stamp' ? stampedToday : false}
-                cooldownLabel={
-                  item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
-                    ? feedClaimStatus.label
-                    : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
-                      ? toyClaimStatus.label
-                      : undefined
-                }
-                cooldownProgress={
-                  item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
-                    ? feedClaimStatus.progress
-                    : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
-                      ? toyClaimStatus.progress
-                      : undefined
-                }
-                highlighted={menuNudge === item.id}
-                circleSize={menuCircleSize}
-                iconSize={menuIconSize}
-                labelSize={menuLabelSize}
-                onPress={() => {
-                  if (item.id === 'storage') openStorage()
-                  else if (item.id === 'guide') setHelpOpen(true)
-                  else if (item.id === 'stamp') openAttendance()
-                  else if (item.id === 'feed') claimFeed()
-                  else if (item.id === 'toy') claimToy()
-                }}
-              />
-            ))}
+            <View
+              style={[
+                styles.claimMenuGroup,
+                tourHighlightMenu && styles.claimMenuTour,
+              ]}
+              collapsable={false}
+            >
+              {HEADER_MENU.filter(
+                (item) => item.id === 'feed' || item.id === 'toy',
+              ).map((item) => (
+                <MenuQuickItem
+                  key={item.id}
+                  label={item.label}
+                  image={item.image}
+                  bgColor={item.bgColor}
+                  ready={
+                    item.id === 'feed'
+                      ? feedClaimStatus.kind === 'ready'
+                      : toyClaimStatus.kind === 'ready'
+                  }
+                  cooldownLabel={
+                    item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
+                      ? feedClaimStatus.label
+                      : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
+                        ? toyClaimStatus.label
+                        : undefined
+                  }
+                  cooldownProgress={
+                    item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
+                      ? feedClaimStatus.progress
+                      : item.id === 'toy' && toyClaimStatus.kind === 'cooldown'
+                        ? toyClaimStatus.progress
+                        : undefined
+                  }
+                  highlighted={menuNudge === item.id}
+                  circleSize={menuCircleSize}
+                  iconSize={menuIconSize}
+                  labelSize={menuLabelSize}
+                  onPress={() => {
+                    if (item.id === 'feed') claimFeed()
+                    else claimToy()
+                  }}
+                />
+              ))}
+            </View>
+            <View
+              style={[
+                styles.menuRestGroup,
+                tourHighlightMenu && styles.headerTourMuted,
+              ]}
+            >
+              {HEADER_MENU.filter(
+                (item) => item.id !== 'feed' && item.id !== 'toy',
+              ).map((item) => (
+                <MenuQuickItem
+                  key={item.id}
+                  label={item.label}
+                  image={item.image}
+                  bgColor={item.bgColor}
+                  ready={false}
+                  done={item.id === 'stamp' ? stampedToday : false}
+                  highlighted={false}
+                  circleSize={menuCircleSize}
+                  iconSize={menuIconSize}
+                  labelSize={menuLabelSize}
+                  onPress={() => {
+                    if (item.id === 'storage') openStorage()
+                    else if (item.id === 'guide') setHelpOpen(true)
+                    else if (item.id === 'stamp') openAttendance()
+                  }}
+                />
+              ))}
+            </View>
           </View>
         </View>
 
@@ -1673,9 +1714,15 @@ function PetHomeScreenBody() {
             stepIndex={coachTourStep ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={
-              tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38
-            }
+            {...(tourHighlightMenu
+              ? {
+                  top: headerTopPad + 118,
+                  tailAlign: 'start' as const,
+                }
+              : {
+                  bottom:
+                    tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38,
+                })}
           />
         </>
       ) : null}
@@ -1979,6 +2026,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     width: '100%',
+  },
+  claimMenuGroup: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  menuRestGroup: {
+    flex: 3,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  headerLayerTour: {
+    position: 'relative',
+    zIndex: 30,
+    elevation: 30,
+  },
+  headerTourMuted: {
+    opacity: 0.45,
+  },
+  claimMenuTour: {
+    position: 'relative',
+    zIndex: 30,
+    elevation: 30,
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    paddingTop: 6,
+    paddingBottom: 4,
+    paddingHorizontal: 2,
+    backgroundColor: Colors.surface,
   },
   helpHeader: {
     flexDirection: 'row',

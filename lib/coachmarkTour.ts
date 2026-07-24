@@ -35,6 +35,16 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
     route: 'pet',
   },
   {
+    id: 'cm-02b',
+    badge: '나의 펫',
+    title: () => '펫에게 선물하세요',
+    body: () =>
+      '위에서 사료와 장난감을 받을 수 있어요. 받은 선물은 아래에서 펫에게 줄 수 있어요.',
+    highlight: 'menu',
+    route: 'pet',
+    tail: 'up',
+  },
+  {
     id: 'cm-03',
     badge: '대화',
     title: (name) => `${name}와 이야기 나눠요`,

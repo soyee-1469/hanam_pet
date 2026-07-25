@@ -326,12 +326,13 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    paddingHorizontal: Layout.screenPaddingH,
-    gap: 18,
+    width: '100%',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.divider,
   },
   tabBtn: {
+    flex: 1,
+    alignItems: 'center',
     paddingTop: Layout.tabMenuPaddingTop,
     paddingBottom: Layout.tabMenuPaddingBottom,
     position: 'relative',
@@ -340,6 +341,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textDisabled,
+    textAlign: 'center',
   },
   tabLabelOn: {
     fontWeight: '800',
@@ -350,9 +352,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 2.5,
-    borderRadius: 2,
-    backgroundColor: Colors.selected,
+    height: 5,
+    backgroundColor: Colors.primary,
   },
   body: {
     paddingHorizontal: Layout.screenPaddingH,

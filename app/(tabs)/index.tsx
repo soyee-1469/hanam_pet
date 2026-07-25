@@ -373,32 +373,33 @@ function menuRingOutset() {
 }
 
 function MenuCooldownRing({
-  size,
+  slotSize,
+  circleSize,
   progress,
 }: {
-  size: number
+  /** 아이콘+링을 담는 고정 슬롯 (항상 동일 → 타이머 때 커져 보이지 않음) */
+  slotSize: number
+  circleSize: number
   progress: number
 }) {
-  // 받기 코랄 띠와 동일: gap + stroke 아웃셋, 스트로크 중심 반경
-  const outset = menuRingOutset()
-  const ringSize = size + outset * 2
-  const r = size / 2 + MENU_RING_GAP + MENU_RING_STROKE / 2
+  // 스트로크 중심: 원 바깥 gap 뒤 (슬롯 안에 맞춤)
+  const r = circleSize / 2 + MENU_RING_GAP + MENU_RING_STROKE / 2
   const c = 2 * Math.PI * r
   const ratio = Math.min(1, Math.max(0, progress))
   const offset = c * (1 - ratio)
-  const cx = ringSize / 2
+  const cx = slotSize / 2
 
   return (
     <Svg
-      width={ringSize}
-      height={ringSize}
+      width={slotSize}
+      height={slotSize}
       style={[
         styles.menuRingSvg,
         {
-          width: ringSize,
-          height: ringSize,
-          left: -outset,
-          top: -outset,
+          width: slotSize,
+          height: slotSize,
+          left: 0,
+          top: 0,
         },
       ]}
       pointerEvents="none"
@@ -450,7 +451,8 @@ function MenuQuickItem({
   const showCooldownRing = !complete && cooling && cooldownProgress != null
   const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
   const bandOutset = menuRingOutset()
-  const bandSize = circleSize + bandOutset * 2
+  /** 링/띠가 있어도 레이아웃 크기가 바뀌지 않도록 슬롯 고정 */
+  const slotSize = circleSize + bandOutset * 2
   return (
     <Pressable
       accessibilityRole="button"
@@ -476,14 +478,17 @@ function MenuQuickItem({
       <View style={styles.menuIconWrap}>
         <View
           style={{
-            width: circleSize,
-            height: circleSize,
+            width: slotSize,
+            height: slotSize,
+            alignItems: 'center',
+            justifyContent: 'center',
             overflow: 'visible',
           }}
         >
           {showCooldownRing ? (
             <MenuCooldownRing
-              size={circleSize}
+              slotSize={slotSize}
+              circleSize={circleSize}
               progress={cooldownProgress ?? 0}
             />
           ) : null}
@@ -493,11 +498,11 @@ function MenuQuickItem({
               style={[
                 styles.menuClaimBand,
                 {
-                  width: bandSize,
-                  height: bandSize,
-                  borderRadius: bandSize / 2,
-                  left: -bandOutset,
-                  top: -bandOutset,
+                  width: slotSize,
+                  height: slotSize,
+                  borderRadius: slotSize / 2,
+                  left: 0,
+                  top: 0,
                 },
               ]}
             />

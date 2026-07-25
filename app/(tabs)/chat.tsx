@@ -487,7 +487,7 @@ function ChatScreenBody() {
                         <ExpandableBubbleText
                           text={m.text}
                           textStyle={styles.userText}
-                          align="left"
+                          align="center"
                           collapsedLines={2}
                           maxExpandedHeight={140}
                         />
@@ -784,11 +784,11 @@ const styles = StyleSheet.create({
   userStackContent: {
     paddingBottom: 4,
     gap: 8,
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   userStackItem: {
     maxWidth: '92%',
-    alignSelf: 'flex-end',
+    alignSelf: 'center',
   },
   userStackItemPrev: {
     opacity: 0.55,
@@ -801,18 +801,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   userRow: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
     marginBottom: 14,
   },
   userBubbleWrap: {
     maxWidth: '100%',
-    alignSelf: 'flex-end',
+    alignSelf: 'center',
   },
   userText: {
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textPrimary,
+    textAlign: 'center',
   },
   petStageFixed: {
     flex: 1,

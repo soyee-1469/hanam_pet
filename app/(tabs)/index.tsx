@@ -118,13 +118,13 @@ const PET = {
 const HEADER_MENU = [
   {
     id: 'feed',
-    label: '사료 받기',
+    label: '사료',
     image: require('../../assets/images/아이콘/사료.png'),
     bgColor: Colors.background,
   },
   {
     id: 'toy',
-    label: '장난감 받기',
+    label: '장난감',
     image: require('../../assets/images/아이콘/공.png'),
     bgColor: Colors.background,
   },
@@ -967,7 +967,7 @@ function PetHomeScreenBody() {
           return
         }
         if (pending === 'fresh') {
-          showSpeech('반가워! 위에서 사료 받기부터 해볼래?', 3200)
+          showSpeech('반가워! 위에서 사료부터 받아볼래?', 3200)
         }
       })()
 
@@ -1343,12 +1343,12 @@ function PetHomeScreenBody() {
 
   const handleAcquireFeed = () => {
     nudgeMenu('feed')
-    showSpeech('위에서 「사료 받기」를 눌러 받아와 줄래요?')
+    showSpeech('위에서 「사료」를 눌러 받아와 줄래요?')
   }
 
   const handleAcquireToy = () => {
     nudgeMenu('toy')
-    showSpeech('위에서 「장난감 받기」를 눌러 받아와 줄래요?')
+    showSpeech('위에서 「장난감」을 눌러 받아와 줄래요?')
   }
 
   /** 출석 메뉴 — 캘린더 대신 완료 팝업 */
@@ -1710,7 +1710,7 @@ function PetHomeScreenBody() {
                     : require('../../assets/images/아이콘/사료.png')
                 }
                 useLabel="사료 주기"
-                acquireLabel="사료 받기"
+                acquireLabel="사료"
                 onUse={handleFeedPress}
                 onAcquire={handleAcquireFeed}
                 anchorRef={feedCardRef}
@@ -1720,7 +1720,7 @@ function PetHomeScreenBody() {
                 count={toyCount}
                 icon={require('../../assets/images/아이콘/공.png')}
                 useLabel="놀아 주기"
-                acquireLabel="장난감 받기"
+                acquireLabel="장난감"
                 grayIconWhenEmpty
                 onUse={handlePlayPress}
                 onAcquire={handleAcquireToy}

@@ -196,10 +196,13 @@ export default function MindReportScreen() {
                   </Text>
                 </View>
 
-                {/* 내 점수 구간까지 진하게, 이후는 회색 */}
+                {/* 가로 그래프 — 구간 글자를 막대 안에 (범례 필과 동일 톤) */}
                 <View style={styles.segBar}>
                   {bands.map((b, i) => {
                     const reached = bandIndex >= 0 && i <= bandIndex
+                    const mine = b.id === band.id
+                    const tone =
+                      SEVERITY_PILL_TEXT[b.id] ?? Colors.textPrimary
                     return (
                       <View
                         key={b.id}
@@ -210,8 +213,25 @@ export default function MindReportScreen() {
                               ? SEVERITY_PILL_BG[b.id] ?? b.color
                               : SEG_GRAY,
                           },
+                          !reached && styles.segDim,
                         ]}
-                      />
+                      >
+                        <Text
+                          style={[
+                            styles.segText,
+                            {
+                              color: reached ? tone : Colors.textDisabled,
+                            },
+                            mine && styles.segTextMine,
+                          ]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.7}
+                          allowFontScaling={false}
+                        >
+                          {`${b.min} ~ ${b.max}점`}
+                        </Text>
+                      </View>
                     )
                   })}
                 </View>
@@ -455,8 +475,23 @@ const styles = StyleSheet.create({
   },
   seg: {
     flex: 1,
-    height: 10,
-    borderRadius: 4,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  segDim: {
+    opacity: 0.55,
+  },
+  segText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.4,
+  },
+  segTextMine: {
+    fontWeight: '800',
   },
   bandList: {
     gap: 8,

@@ -2323,7 +2323,7 @@ const styles = StyleSheet.create({
   },
   menuCompleteBadgeText: {
     color: Colors.surface,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '800',
     letterSpacing: -0.2,
     textAlign: 'center',

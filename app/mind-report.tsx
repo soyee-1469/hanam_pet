@@ -207,12 +207,9 @@ export default function MindReportScreen() {
                           styles.seg,
                           {
                             backgroundColor: reached
-                              ? SEVERITY_PILL_TEXT[b.id] ?? b.color
+                              ? SEVERITY_PILL_BG[b.id] ?? b.color
                               : SEG_GRAY,
                           },
-                          reached &&
-                            i === bandIndex &&
-                            styles.segActive,
                         ]}
                       />
                     )
@@ -240,7 +237,7 @@ export default function MindReportScreen() {
                             styles.bandListSwatch,
                             {
                               backgroundColor: reached
-                                ? tone
+                                ? SEVERITY_PILL_BG[b.id] ?? b.color
                                 : SEG_GRAY,
                             },
                           ]}
@@ -458,12 +455,8 @@ const styles = StyleSheet.create({
   },
   seg: {
     flex: 1,
-    height: 8,
-    borderRadius: 4,
-  },
-  segActive: {
     height: 10,
-    marginTop: -1,
+    borderRadius: 4,
   },
   bandList: {
     gap: 8,

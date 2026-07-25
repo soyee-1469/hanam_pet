@@ -25,20 +25,26 @@ export type SeverityBand = {
   tips: string[]
 }
 
-/** 필·바 면 — 시안 톤온톤 연한 파스텔 */
+/**
+ * 필·바 면 — 원색(#40AE00 / #FFC300 / #FF6A00 / #B40003)을
+ * 크림에 섞어 너무 강하지 않은 연한 면색
+ */
 export const SEVERITY_PILL_BG: Record<SeverityId, string> = {
-  normal: '#E5EEB4',
-  mild: '#FFF0C7',
-  moderate: '#F7DEC4',
-  severe: '#F2D4D4',
+  normal: '#D9EFCC',
+  mild: '#FFF1C4',
+  moderate: '#FFE0CC',
+  severe: '#F5D6D7',
 }
 
-/** 필 글자·링·닷 — 같은 색 계열의 진한 톤 */
+/**
+ * 글자·링·강조 — 같은 원색을 한 톤 눌러 읽기 좋게
+ * (원본: 40AE00 / FFC300 / FF6A00 / B40003)
+ */
 export const SEVERITY_PILL_TEXT: Record<SeverityId, string> = {
-  normal: '#5B7936',
-  mild: '#B2933E',
-  moderate: '#C07B5A',
-  severe: '#BE787A',
+  normal: '#4FA820',
+  mild: '#D4A40F',
+  moderate: '#E56B1C',
+  severe: '#C23A3C',
 }
 
 /** @deprecated SEVERITY_PILL_TEXT 사용 */

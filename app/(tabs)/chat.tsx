@@ -85,7 +85,7 @@ export default function ChatScreen() {
 function ChatScreenBody() {
   const insets = useSafeAreaInsets()
   const { height: windowH } = useWindowDimensions()
-  const userStackMaxH = Math.round(windowH * 0.34)
+  const [stageH, setStageH] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
   const inputRef = useRef<RNTextInput>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -182,10 +182,15 @@ function ChatScreenBody() {
     return ''
   }, [messages])
 
-  /** 강아지 답변 위 — 유저 질문 말풍선들 (최신이 아래) */
+  /** 강아지 답변 위 — 유저 질문 (전체) */
   const userMessages = useMemo(
     () => messages.filter((m) => m.role === 'user'),
     [messages],
+  )
+  /** 무대에는 최신 2개만 — 많으면 답변과 겹치지 않게 */
+  const visibleUserMessages = useMemo(
+    () => userMessages.slice(-2),
+    [userMessages],
   )
 
   const latestPetReply = useMemo(() => {
@@ -245,6 +250,14 @@ function ChatScreenBody() {
   const { keyboardOpen, webKeyboardInset } = useKeyboardAvoidInset({
     onOpen: scrollToEnd,
   })
+
+  /** 캐릭터·답변 자리를 남기고 유저 스택 높이 제한 */
+  const userStackMaxH = useMemo(() => {
+    const petReserve = keyboardOpen ? 200 : 290
+    const fromWindow = Math.round(windowH * 0.26)
+    if (stageH <= 0) return fromWindow
+    return Math.max(64, Math.min(fromWindow, stageH - petReserve))
+  }, [windowH, stageH, keyboardOpen])
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
@@ -454,11 +467,17 @@ function ChatScreenBody() {
             </View>
           </ScrollView>
         ) : (
-          <View style={styles.stageChat}>
+          <View
+            style={styles.stageChat}
+            onLayout={(e) => {
+              const h = Math.round(e.nativeEvent.layout.height)
+              if (h > 0 && Math.abs(h - stageH) > 2) setStageH(h)
+            }}
+          >
             {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
 
-            {/* 유저 질문 — 답변·캐릭터 위, 말풍선, 길면 2줄+펼침 */}
-            {userMessages.length > 0 ? (
+            {/* 유저 질문 — 최신 2개만, 높이 제한으로 답변과 분리 */}
+            {visibleUserMessages.length > 0 ? (
               <ScrollView
                 style={[styles.userStackScroll, { maxHeight: userStackMaxH }]}
                 contentContainerStyle={styles.userStackContent}
@@ -470,8 +489,8 @@ function ChatScreenBody() {
                 }}
                 ref={scrollRef}
               >
-                {userMessages.map((m, i) => {
-                  const isLatest = i === userMessages.length - 1
+                {visibleUserMessages.map((m, i) => {
+                  const isLatest = i === visibleUserMessages.length - 1
                   return (
                     <View
                       key={m.id}
@@ -483,13 +502,14 @@ function ChatScreenBody() {
                       <ChatBubble
                         variant="user"
                         style={styles.userBubbleWrap}
+                        tail="bottom"
                       >
                         <ExpandableBubbleText
                           text={m.text}
                           textStyle={styles.userText}
                           align="center"
                           collapsedLines={2}
-                          maxExpandedHeight={140}
+                          maxExpandedHeight={100}
                         />
                       </ChatBubble>
                     </View>
@@ -498,8 +518,9 @@ function ChatScreenBody() {
               </ScrollView>
             ) : null}
 
-            {/* 캐릭터 + 답변 — 세로 중앙 고정 */}
+            {/* 캐릭터 + 답변 — 남은 공간, 위로 안 넘침 */}
             <View style={styles.petStageFixed}>
+              <View style={styles.petStageInner}>
               {typing ? (
                 <View style={styles.petBubbleContainer}>
                   <ChatBubble
@@ -552,6 +573,8 @@ function ChatScreenBody() {
                       text={latestPetReply.text}
                       textStyle={styles.petAnswerText}
                       align="center"
+                      collapsedLines={3}
+                      maxExpandedHeight={120}
                     />
                   </ChatBubble>
                 </View>
@@ -575,6 +598,7 @@ function ChatScreenBody() {
                   </Text>
                 </View>
               ) : null}
+              </View>
             </View>
           </View>
         )}
@@ -775,11 +799,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Layout.screenPaddingH,
     minHeight: 0,
+    overflow: 'hidden',
   },
   userStackScroll: {
     flexGrow: 0,
-    flexShrink: 1,
+    flexShrink: 0,
     marginBottom: 8,
+    overflow: 'hidden',
   },
   userStackContent: {
     paddingBottom: 4,
@@ -818,9 +844,16 @@ const styles = StyleSheet.create({
   petStageFixed: {
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 8,
+  },
+  petStageInner: {
+    maxHeight: '100%',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   petBlock: {
     alignItems: 'center',
@@ -832,6 +865,8 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginBottom: 6,
     paddingHorizontal: 4,
+    maxHeight: '46%',
+    overflow: 'hidden',
   },
   petAnswerWrap: {
     alignSelf: 'stretch',

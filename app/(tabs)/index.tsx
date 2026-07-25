@@ -1301,17 +1301,13 @@ function PetHomeScreenBody() {
     st: ReturnType<typeof getClaimMenuStatus> | null,
     kind: 'feed' | 'toy',
   ) => {
-    if (st?.kind === 'cooldown') {
-      showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
+    if (st?.kind === 'done') {
+      showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
       return
     }
-    if (st?.kind === 'need_use') {
-      const tip =
-        kind === 'feed'
-          ? '두 번째 사료는 받은 맘마를 먼저 준 뒤에 받을 수 있어요.'
-          : '두 번째 장난감은 먼저 놀아 준 뒤에 받을 수 있어요.'
-      showSpeech(tip, 3400)
-      showToast(tip)
+    if (st?.kind === 'cooldown') {
+      // 1차 후 타이머 중에도 2차 수령은 허용 — 여기는 0회+쿨다운 등 예외만
+      showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
       return
     }
     showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
@@ -1592,6 +1588,7 @@ function PetHomeScreenBody() {
                   bgColor={item.bgColor}
                   ready={false}
                   done={item.id === 'stamp' ? !stampedToday : false}
+                  complete={item.id === 'stamp' ? stampedToday : false}
                   highlighted={false}
                   circleSize={menuCircleSize}
                   iconSize={menuIconSize}

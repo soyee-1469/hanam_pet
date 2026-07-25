@@ -143,6 +143,13 @@ export function formatYearMonth(y: number, m: number): string {
   return `${y}년 ${m}월`
 }
 
+/** 연·월·일 숫자 → 18일 토요일 */
+export function formatDayWithWeekday(y: number, m: number, d: number): string {
+  const date = new Date(`${y}-${pad2(m)}-${pad2(d)}T12:00:00+09:00`)
+  if (Number.isNaN(date.getTime())) return `${d}일`
+  return `${d}일 ${seoulWeekdayLong(date)}`
+}
+
 /** 연·월·일 숫자 → 2026.07.08 */
 export function formatDateFromYmd(y: number, m: number, d: number): string {
   return `${y}.${pad2(m)}.${pad2(d)}`

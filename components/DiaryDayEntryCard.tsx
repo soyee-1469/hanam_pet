@@ -5,7 +5,7 @@ import { Layout } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import { DIARY_MOOD_LABEL_COLOR } from '../constants/diaryDemo'
 import { MoodEmoji } from './MoodEmoji'
-import { formatDateTime } from '../lib/dateFormat'
+import { formatTime } from '../lib/dateFormat'
 import type { DiaryEntry } from '../constants/diaryDemo'
 
 type DiaryDayEntryCardProps = {
@@ -19,12 +19,12 @@ function moodMeta(id: DiaryEntry['moodId']) {
 
 /**
  * 마음일기 탭·선택일 목록 카드
- * 좌: 감정(점·이모지·라벨) / 우: 일시·미리보기·쉐브론
+ * 좌: 감정 / 우: 시간만·본문 2줄(초과 시 …)·쉐브론
  */
 export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
   const mood = moodMeta(entry.moodId)
   const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
-  const timeLabel = formatDateTime(entry.createdAt)
+  const timeLabel = formatTime(entry.createdAt)
 
   return (
     <Pressable
@@ -49,7 +49,11 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
         <Text style={styles.time} numberOfLines={1}>
           {timeLabel}
         </Text>
-        <Text style={styles.preview} numberOfLines={1}>
+        <Text
+          style={styles.preview}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {entry.preview}
         </Text>
       </View>
@@ -61,7 +65,7 @@ export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
 
 /** 리스트 2칸 노출용 대략 높이 (카드+갭) */
 export const DIARY_DAY_LIST_VISIBLE = 2
-export const DIARY_DAY_CARD_SLOT = 88
+export const DIARY_DAY_CARD_SLOT = 100
 
 const styles = StyleSheet.create({
   card: {

@@ -178,51 +178,67 @@ export default function MindCheckResultScreen() {
         <View style={styles.summaryCard}>
           <Text style={styles.statusLabel}>{statusLabel(assessmentId)}</Text>
           <ScoreRing score={score} max={max} color={accent} />
-          <View style={styles.spectrumRow}>
+
+          {/* 색만 있는 스펙트럼 — 글자는 아래 범례에 */}
+          <View
+            style={styles.spectrumBar}
+            accessibilityLabel={`${band.label} ${score}점`}
+          >
             {bands.map((b) => {
               const mine = b.id === band.id
               const softBg =
                 SEVERITY_PILL_BG[b.id as SeverityId] ?? b.color
-              const labelColor =
+              const tone =
                 SEVERITY_PILL_TEXT[b.id as SeverityId] ?? Colors.textPrimary
               return (
                 <View
                   key={b.id}
-                  style={[styles.spectrumItem, !mine && styles.spectrumDim]}
+                  style={[
+                    styles.spectrumSeg,
+                    {
+                      backgroundColor: mine ? tone : softBg,
+                    },
+                    !mine && styles.spectrumSegDim,
+                  ]}
+                />
+              )
+            })}
+          </View>
+
+          {/* 구간 범례 — 상세에서는 전부 표기 */}
+          <View style={styles.bandList}>
+            {bands.map((b) => {
+              const mine = b.id === band.id
+              const softBg =
+                SEVERITY_PILL_BG[b.id as SeverityId] ?? b.color
+              const tone =
+                SEVERITY_PILL_TEXT[b.id as SeverityId] ?? Colors.textPrimary
+              return (
+                <View
+                  key={b.id}
+                  style={[styles.bandListRow, !mine && styles.bandListRowDim]}
+                  accessibilityLabel={`${b.label} ${b.min}점부터 ${b.max}점${mine ? `, 내 점수 ${score}점` : ''}`}
                 >
                   <View
                     style={[
-                      styles.spectrumSeg,
-                      {
-                        backgroundColor: mine ? labelColor : softBg,
-                      },
+                      styles.bandListSwatch,
+                      { backgroundColor: mine ? tone : softBg },
                     ]}
-                  >
-                    <Text
-                      style={[
-                        styles.spectrumSegText,
-                        { color: mine ? '#FFFFFF' : labelColor },
-                        mine && styles.spectrumSegTextMine,
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.75}
-                      allowFontScaling={false}
-                    >
-                      {`${b.min} ~ ${b.max}점`}
-                    </Text>
-                  </View>
+                  />
                   <Text
                     style={[
-                      styles.spectrumLabel,
-                      {
-                        color: mine ? labelColor : Colors.textDisabled,
-                      },
-                      mine && styles.spectrumLabelActive,
+                      styles.bandListLabel,
+                      { color: mine ? tone : Colors.textSecondary },
+                      mine && styles.bandListLabelMine,
                     ]}
                   >
-                    {mine ? `${b.label} · ${score}점` : b.label}
+                    {b.label} ({b.min}~{b.max}점)
                   </Text>
+                  {mine ? (
+                    <Text style={[styles.bandListScore, { color: tone }]}>
+                      {score}점
+                    </Text>
+                  ) : null}
                 </View>
               )
             })}
@@ -400,45 +416,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
   },
-  spectrumRow: {
+  spectrumBar: {
     flexDirection: 'row',
     alignSelf: 'stretch',
-    alignItems: 'stretch',
-    gap: 6,
-  },
-  spectrumItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
+    gap: 4,
+    marginBottom: 14,
   },
   spectrumSeg: {
-    alignSelf: 'stretch',
-    minHeight: 36,
-    height: 36,
+    flex: 1,
+    height: 12,
     borderRadius: 999,
+  },
+  spectrumSegDim: {
+    opacity: 0.55,
+  },
+  bandList: {
+    alignSelf: 'stretch',
+    gap: 10,
+  },
+  bandListRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
+    gap: 10,
   },
-  spectrumDim: {
-    opacity: 0.4,
+  bandListRowDim: {
+    opacity: 0.72,
   },
-  spectrumSegText: {
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.3,
+  bandListSwatch: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
   },
-  spectrumSegTextMine: {
-    fontWeight: '800',
-  },
-  spectrumLabel: {
-    fontSize: 11,
+  bandListLabel: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.textSecondary,
-    textAlign: 'center',
   },
-  spectrumLabelActive: {
+  bandListLabelMine: {
+    fontWeight: '800',
+  },
+  bandListScore: {
+    fontSize: 13,
     fontWeight: '800',
   },
   opinionWrap: {

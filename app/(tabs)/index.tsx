@@ -1115,10 +1115,10 @@ function PetHomeScreenBody() {
 
   const feedClaimStatus = claimState
     ? getClaimMenuStatus(claimState.feed, claimNow, 'feed')
-    : { kind: 'idle' as const }
+    : { kind: 'ready' as const }
   const toyClaimStatus = claimState
     ? getClaimMenuStatus(claimState.toy, claimNow, 'toy')
-    : { kind: 'idle' as const }
+    : { kind: 'ready' as const }
   const claimTickerOn =
     feedClaimStatus.kind === 'cooldown' ||
     toyClaimStatus.kind === 'cooldown'
@@ -1305,15 +1305,10 @@ function PetHomeScreenBody() {
 
   const claimBlockedSpeech = (
     st: ReturnType<typeof getClaimMenuStatus> | null,
-    kind: 'feed' | 'toy',
+    _kind: 'feed' | 'toy',
   ) => {
     if (st?.kind === 'done') {
       showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
-      return
-    }
-    if (st?.kind === 'cooldown') {
-      // 1차 후 타이머 중에도 2차 수령은 허용 — 여기는 0회+쿨다운 등 예외만
-      showSpeech(`아직 제작 중이에요. ${st.label} 뒤에 다시 와요!`)
       return
     }
     showSpeech('오늘은 이미 받았어요. 내일 다시 와요!')
@@ -1343,8 +1338,14 @@ function PetHomeScreenBody() {
       setClaimState(claims)
       setClaimNow(Date.now())
       setMenuNudge(null)
-      showToast('사료를 받았어요')
-      showSpeech(pickRandom(CLAIM_FEED_LINES), 3000)
+      const afterCount = claims.feed.count
+      if (afterCount >= 2) {
+        showToast('사료 받기 완료')
+        showSpeech('오늘 사료는 모두 받았어요!', 3000)
+      } else {
+        showToast('사료를 받았어요')
+        showSpeech(pickRandom(CLAIM_FEED_LINES), 3000)
+      }
       await playFx('+1 사료', false)
     })()
   }
@@ -1373,8 +1374,14 @@ function PetHomeScreenBody() {
       setClaimState(claims)
       setClaimNow(Date.now())
       setMenuNudge(null)
-      showToast('장난감을 받았어요')
-      showSpeech(pickRandom(CLAIM_TOY_LINES(petName)), 3000)
+      const afterCount = claims.toy.count
+      if (afterCount >= 2) {
+        showToast('장난감 받기 완료')
+        showSpeech('오늘 장난감은 모두 받았어요!', 3000)
+      } else {
+        showToast('장난감을 받았어요')
+        showSpeech(pickRandom(CLAIM_TOY_LINES(petName)), 3000)
+      }
       await playFx('+1 장난감', false)
     })()
   }
@@ -1592,8 +1599,7 @@ function PetHomeScreenBody() {
                   label={item.label}
                   image={item.image}
                   bgColor={item.bgColor}
-                  ready={false}
-                  done={item.id === 'stamp' ? !stampedToday : false}
+                  ready={item.id === 'stamp' ? !stampedToday : false}
                   complete={item.id === 'stamp' ? stampedToday : false}
                   highlighted={false}
                   circleSize={menuCircleSize}
@@ -1602,7 +1608,15 @@ function PetHomeScreenBody() {
                   onPress={() => {
                     if (item.id === 'storage') openStorage()
                     else if (item.id === 'guide') setHelpOpen(true)
-                    else if (item.id === 'stamp') openAttendance()
+                    else if (item.id === 'stamp') {
+                      if (stampedToday) {
+                        setAttendCredited(0)
+                        setAttendAlready(true)
+                        setAttendOpen(true)
+                        return
+                      }
+                      openAttendance()
+                    }
                   }}
                 />
               ))}

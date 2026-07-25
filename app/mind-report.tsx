@@ -14,7 +14,7 @@ import { Layout } from '../constants/Layout'
 import {
   getSeverityBand,
   getSeverityBands,
-  SEVERITY_BAR_COLOR,
+  SEVERITY_PILL_BG,
   SEVERITY_PILL_TEXT,
   type AssessmentId,
   type SeverityBand,
@@ -27,7 +27,7 @@ import {
 
 type TabId = AssessmentId
 
-const SEG_EMPTY = '#F3EEE8'
+const SEG_GRAY = '#D9D0C8'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'phq', label: '우울' },
@@ -151,22 +151,22 @@ export default function MindReportScreen() {
         ) : (
           list.map((item) => {
             const band = getSeverityBand(item.score, tab)
+            const bandIndex = bands.findIndex((x) => x.id === band.id)
             return (
               <View key={item.id} style={styles.card}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardDate}>
                     {formatResultDate(item.at)}
                   </Text>
-                  <View style={styles.bandChip}>
-                    <View
-                      style={[
-                        styles.bandDot,
-                        {
-                          backgroundColor:
-                            SEVERITY_PILL_TEXT[band.id] ?? band.color,
-                        },
-                      ]}
-                    />
+                  <View
+                    style={[
+                      styles.bandChip,
+                      {
+                        backgroundColor:
+                          SEVERITY_PILL_BG[band.id] ?? Colors.creamyBeige,
+                      },
+                    ]}
+                  >
                     <Text
                       style={[
                         styles.bandChipText,
@@ -196,21 +196,72 @@ export default function MindReportScreen() {
                   </Text>
                 </View>
 
+                {/* 내 점수 구간까지 진하게, 이후는 회색 */}
                 <View style={styles.segBar}>
                   {bands.map((b, i) => {
-                    const filled = i <= bands.findIndex((x) => x.id === band.id)
+                    const reached = bandIndex >= 0 && i <= bandIndex
                     return (
                       <View
                         key={b.id}
                         style={[
                           styles.seg,
                           {
-                            backgroundColor: filled
-                              ? SEVERITY_BAR_COLOR[b.id] ?? b.color
-                              : SEG_EMPTY,
+                            backgroundColor: reached
+                              ? SEVERITY_PILL_TEXT[b.id] ?? b.color
+                              : SEG_GRAY,
                           },
+                          reached &&
+                            i === bandIndex &&
+                            styles.segActive,
                         ]}
                       />
+                    )
+                  })}
+                </View>
+
+                {/* 점수 구간별 리스트 */}
+                <View style={styles.bandList}>
+                  {bands.map((b, i) => {
+                    const reached = bandIndex >= 0 && i <= bandIndex
+                    const mine = b.id === band.id
+                    const tone =
+                      SEVERITY_PILL_TEXT[b.id] ?? Colors.textPrimary
+                    return (
+                      <View
+                        key={b.id}
+                        style={[
+                          styles.bandListRow,
+                          !reached && styles.bandListRowDim,
+                        ]}
+                        accessibilityLabel={`${b.label} ${b.min}점부터 ${b.max}점${mine ? `, 내 점수 ${item.score}점` : ''}`}
+                      >
+                        <View
+                          style={[
+                            styles.bandListSwatch,
+                            {
+                              backgroundColor: reached
+                                ? tone
+                                : SEG_GRAY,
+                            },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.bandListLabel,
+                            {
+                              color: reached ? tone : Colors.textDisabled,
+                            },
+                            mine && styles.bandListLabelMine,
+                          ]}
+                        >
+                          {b.label} ({b.min}~{b.max}점)
+                        </Text>
+                        {mine ? (
+                          <Text style={[styles.bandListScore, { color: tone }]}>
+                            {item.score}점
+                          </Text>
+                        ) : null}
+                      </View>
                     )
                   })}
                 </View>
@@ -374,16 +425,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  bandDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   bandChipText: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.textPrimary,
   },
   scoreRow: {
     flexDirection: 'row',
@@ -411,6 +459,42 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 8,
     borderRadius: 4,
+  },
+  segActive: {
+    height: 10,
+    marginTop: -1,
+  },
+  bandList: {
+    gap: 8,
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  bandListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  bandListRowDim: {
+    opacity: 0.55,
+  },
+  bandListSwatch: {
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+  },
+  bandListLabel: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  bandListLabelMine: {
+    fontWeight: '800',
+  },
+  bandListScore: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   cardSummary: {
     fontSize: 13,

@@ -15,6 +15,7 @@ import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { CatExpr } from '../constants/OnboardingMascot'
 import { ScreenHeader } from '../components/ui'
+import { ExpandableBubbleText } from '../components/ExpandableBubbleText'
 import {
   countUnreadChatMessages,
   getChatThread,
@@ -77,7 +78,11 @@ function MessageRow({
       <View
         style={[styles.bubble, isUser ? styles.userBubble : styles.petBubble]}
       >
-        <Text style={isUser ? styles.userText : styles.petText}>{text}</Text>
+        <ExpandableBubbleText
+          text={text}
+          textStyle={isUser ? styles.userText : styles.petText}
+          align={isUser ? 'right' : 'left'}
+        />
       </View>
     </View>
   )

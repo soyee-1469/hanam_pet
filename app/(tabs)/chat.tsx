@@ -24,6 +24,7 @@ import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpFloatingFab } from '../../components/HelpFloatingFab'
+import { ExpandableBubbleText } from '../../components/ExpandableBubbleText'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
@@ -502,9 +503,11 @@ function ChatScreenBody() {
               ) : latestPetReply ? (
                 <View style={styles.petBubbleContainer}>
                   <View style={styles.petAnswerBubble}>
-                    <Text style={styles.petAnswerText}>
-                      {latestPetReply.text}
-                    </Text>
+                    <ExpandableBubbleText
+                      text={latestPetReply.text}
+                      textStyle={styles.petAnswerText}
+                      align="center"
+                    />
                   </View>
                   <View style={styles.petBubbleTail} />
                 </View>
@@ -520,9 +523,11 @@ function ChatScreenBody() {
                 {latestUserMessage ? (
                   <View style={styles.userBeside}>
                     <View style={styles.userBubble}>
-                      <Text style={styles.userText}>
-                        {latestUserMessage.text}
-                      </Text>
+                      <ExpandableBubbleText
+                        text={latestUserMessage.text}
+                        textStyle={styles.userText}
+                        align="left"
+                      />
                     </View>
                   </View>
                 ) : (

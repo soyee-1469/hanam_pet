@@ -194,17 +194,30 @@ export default function MindCheckResultScreen() {
                     style={[
                       styles.spectrumSeg,
                       { backgroundColor: segColor },
-                      mine && styles.spectrumSegActive,
                     ]}
-                  />
+                  >
+                    <Text
+                      style={[
+                        styles.spectrumSegText,
+                        { color: labelColor },
+                        mine && styles.spectrumSegTextMine,
+                      ]}
+                      numberOfLines={1}
+                      allowFontScaling={false}
+                    >
+                      {mine ? `${score}점` : `${b.min}-${b.max}`}
+                    </Text>
+                  </View>
                   <Text
                     style={[
                       styles.spectrumLabel,
-                      { color: labelColor },
+                      {
+                        color: mine ? labelColor : Colors.textDisabled,
+                      },
                       mine && styles.spectrumLabelActive,
                     ]}
                   >
-                    {b.label} {b.min}-{b.max}
+                    {b.label}
                   </Text>
                 </View>
               )
@@ -386,6 +399,7 @@ const styles = StyleSheet.create({
   spectrumRow: {
     flexDirection: 'row',
     alignSelf: 'stretch',
+    alignItems: 'stretch',
     gap: 6,
   },
   spectrumItem: {
@@ -395,15 +409,23 @@ const styles = StyleSheet.create({
   },
   spectrumSeg: {
     alignSelf: 'stretch',
-    height: 8,
-    borderRadius: 4,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   spectrumDim: {
-    opacity: 0.5,
+    opacity: 0.42,
   },
-  spectrumSegActive: {
-    height: 10,
-    borderRadius: 5,
+  spectrumSegText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  spectrumSegTextMine: {
+    fontSize: 14,
+    fontWeight: '800',
   },
   spectrumLabel: {
     fontSize: 11,

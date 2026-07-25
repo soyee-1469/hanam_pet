@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
+import Svg, { Path, Rect } from 'react-native-svg'
 import { Colors } from '../constants/Colors'
 
 type ChatBubbleVariant = 'user' | 'pet'
@@ -21,7 +22,107 @@ type ChatBubbleProps = {
   tail?: TailMode
 }
 
-const TAIL = 11
+const TAIL_W = 16
+const TAIL_H = 10
+const STROKE = 1
+const TAIL_INSET = 18
+
+type TailAnchor = 'bottomLeft' | 'bottomRight' | 'sideLeft' | 'sideRight'
+
+type TailProps = {
+  fill: string
+  stroke?: string
+  anchor: TailAnchor
+}
+
+/**
+ * 삼각 꼬리 — 옆 두 변만 stroke, 말풍선과 맞닿는 변은 fill로 가려 이어지게
+ */
+function BubbleTail({ fill, stroke, anchor }: TailProps) {
+  const toward = anchor === 'bottomLeft' || anchor === 'bottomRight'
+  const hasStroke = Boolean(stroke)
+
+  const d = toward
+    ? `M 0 0 L ${TAIL_W / 2} ${TAIL_H} L ${TAIL_W} 0 Z`
+    : anchor === 'sideRight'
+      ? `M 0 0 L ${TAIL_H} ${TAIL_W / 2} L 0 ${TAIL_W} Z`
+      : `M ${TAIL_H} 0 L 0 ${TAIL_W / 2} L ${TAIL_H} ${TAIL_W} Z`
+
+  const svgW = toward ? TAIL_W : TAIL_H
+  const svgH = toward ? TAIL_H : TAIL_W
+
+  const posStyle =
+    anchor === 'bottomLeft'
+      ? ({ left: TAIL_INSET, bottom: -TAIL_H + 2 } as const)
+      : anchor === 'bottomRight'
+        ? ({ right: TAIL_INSET, bottom: -TAIL_H + 2 } as const)
+        : anchor === 'sideLeft'
+          ? ({ left: -TAIL_H + 2, bottom: 12 } as const)
+          : ({ right: -TAIL_H + 2, bottom: 12 } as const)
+
+  return (
+    <Svg
+      pointerEvents="none"
+      width={svgW}
+      height={svgH}
+      style={[styles.tailSvg, posStyle]}
+    >
+      <Path
+        d={d}
+        fill={fill}
+        stroke={hasStroke ? stroke : 'none'}
+        strokeWidth={hasStroke ? STROKE : 0}
+        strokeLinejoin="round"
+      />
+      {hasStroke && toward ? (
+        <Rect
+          x={STROKE}
+          y={-1}
+          width={TAIL_W - STROKE * 2}
+          height={3}
+          fill={fill}
+        />
+      ) : null}
+      {hasStroke && anchor === 'sideRight' ? (
+        <Rect
+          x={-1}
+          y={STROKE}
+          width={3}
+          height={TAIL_W - STROKE * 2}
+          fill={fill}
+        />
+      ) : null}
+      {hasStroke && anchor === 'sideLeft' ? (
+        <Rect
+          x={TAIL_H - 2}
+          y={STROKE}
+          width={3}
+          height={TAIL_W - STROKE * 2}
+          fill={fill}
+        />
+      ) : null}
+    </Svg>
+  )
+}
+
+function seamStyle(anchor: TailAnchor, fill: string): StyleProp<ViewStyle> {
+  if (anchor === 'bottomLeft') {
+    return [
+      styles.seamToward,
+      { left: TAIL_INSET + 1, backgroundColor: fill },
+    ]
+  }
+  if (anchor === 'bottomRight') {
+    return [
+      styles.seamToward,
+      { right: TAIL_INSET + 1, backgroundColor: fill },
+    ]
+  }
+  if (anchor === 'sideLeft') {
+    return [styles.seamSide, { left: 0, backgroundColor: fill }]
+  }
+  return [styles.seamSide, { right: 0, backgroundColor: fill }]
+}
 
 /**
  * 대화 말풍선 — 동글동글 + 꼬리가 면에 이어짐.
@@ -38,12 +139,15 @@ export function ChatBubble({
   const fill =
     tailColor ?? (isUser ? Colors.accentSoft : Colors.surface)
   const toward = tail === 'towardCharacter'
-  const bordered = !isUser
+  const stroke = isUser ? undefined : Colors.border
 
-  const towardPos = isUser ? styles.posBottomRight : styles.posBottomLeft
-  const sidePos = isUser ? styles.posSideRight : styles.posSideLeft
-  const seamToward = isUser ? styles.seamBottomRight : styles.seamBottomLeft
-  const seamSide = isUser ? styles.seamSideRight : styles.seamSideLeft
+  const anchor: TailAnchor = toward
+    ? isUser
+      ? 'bottomRight'
+      : 'bottomLeft'
+    : isUser
+      ? 'sideRight'
+      : 'sideLeft'
 
   return (
     <View
@@ -69,48 +173,12 @@ export function ChatBubble({
         {children}
       </View>
 
-      {toward ? (
-        <>
-          {bordered ? (
-            <View
-              pointerEvents="none"
-              style={[styles.tailOutline, towardPos, styles.outlineNudgeToward]}
-            />
-          ) : null}
-          <View
-            pointerEvents="none"
-            style={[styles.tailFill, towardPos, { backgroundColor: fill }]}
-          />
-          <View
-            pointerEvents="none"
-            style={[
-              styles.seamToward,
-              seamToward,
-              {
-                backgroundColor: fill,
-                height: bordered ? 3 : 2,
-              },
-            ]}
-          />
-        </>
-      ) : (
-        <>
-          {bordered ? (
-            <View
-              pointerEvents="none"
-              style={[styles.tailOutline, sidePos, styles.outlineNudgeSide]}
-            />
-          ) : null}
-          <View
-            pointerEvents="none"
-            style={[styles.tailFill, sidePos, { backgroundColor: fill }]}
-          />
-          <View
-            pointerEvents="none"
-            style={[styles.seamSide, seamSide, { backgroundColor: fill }]}
-          />
-        </>
-      )}
+      <BubbleTail fill={fill} stroke={stroke} anchor={anchor} />
+
+      {/* 펫만: 말풍선 하단/측면 테두리와 꼬리 접합부 덮개 */}
+      {!isUser ? (
+        <View pointerEvents="none" style={seamStyle(anchor, fill)} />
+      ) : null}
     </View>
   )
 }
@@ -144,71 +212,25 @@ const styles = StyleSheet.create({
   },
   bubblePet: {
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: STROKE,
     borderColor: Colors.border,
   },
-  tailFill: {
+  tailSvg: {
     position: 'absolute',
-    width: TAIL,
-    height: TAIL,
-    transform: [{ rotate: '45deg' }],
     zIndex: 2,
-  },
-  tailOutline: {
-    position: 'absolute',
-    width: TAIL + 2,
-    height: TAIL + 2,
-    backgroundColor: Colors.border,
-    transform: [{ rotate: '45deg' }],
-    zIndex: 1,
-  },
-  /** 유저 — 오른쪽 아래 → 캐릭터 */
-  posBottomRight: {
-    right: 16,
-    bottom: -(TAIL / 2) + 1,
-  },
-  /** 펫 — 왼쪽 아래 → 캐릭터 */
-  posBottomLeft: {
-    left: 16,
-    bottom: -(TAIL / 2) + 1,
-  },
-  outlineNudgeToward: {
-    bottom: -(TAIL / 2),
   },
   seamToward: {
     position: 'absolute',
-    width: TAIL + 8,
+    width: TAIL_W - 2,
+    height: STROKE + 1,
     bottom: 0,
     zIndex: 3,
   },
-  seamBottomRight: {
-    right: 12,
-  },
-  seamBottomLeft: {
-    left: 12,
-  },
-  posSideRight: {
-    right: -(TAIL / 2) + 1,
-    bottom: 14,
-  },
-  posSideLeft: {
-    left: -(TAIL / 2) + 1,
-    bottom: 14,
-  },
-  outlineNudgeSide: {
-    // keep same anchor; larger box peeks as border
-  },
   seamSide: {
     position: 'absolute',
-    width: 3,
-    height: TAIL + 8,
-    bottom: 10,
+    width: STROKE + 1,
+    height: TAIL_W - 2,
+    bottom: 13,
     zIndex: 3,
-  },
-  seamSideRight: {
-    right: 0,
-  },
-  seamSideLeft: {
-    left: 0,
   },
 })

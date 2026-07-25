@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { CaretLeft, CaretRight, List, Plus } from 'phosphor-react-native'
+import { CaretLeft, CaretRight, List, Plus, X } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import {
@@ -26,7 +26,6 @@ import {
 import { MoodEmoji } from '../../components/MoodEmoji'
 import {
   DiaryDayEntryCard,
-  DIARY_DAY_CARD_SLOT,
   DIARY_DAY_LIST_VISIBLE,
 } from '../../components/DiaryDayEntryCard'
 import { EmptyRecordsCard } from '../../components/EmptyRecordsCard'
@@ -41,7 +40,7 @@ import {
 } from '../../lib/coachmarkTourState'
 import { setCoachmarkWelcomeStatus } from '../../lib/coachmarkStorage'
 import { getPetName } from '../../lib/petProfile'
-import { formatDateFromYmd } from '../../lib/dateFormat'
+import { formatDayWithWeekday } from '../../lib/dateFormat'
 
 type DayMood = {
   day: number
@@ -111,6 +110,8 @@ function DiaryScreenBody() {
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   )
   const [selectedDay, setSelectedDay] = useState(today.getDate())
+  /** 기록 있는 날짜 클릭 시 달력 아래 리스트 — 닫으면 월 그래프 */
+  const [dayListOpen, setDayListOpen] = useState(false)
   const [petName, setPetName] = useState('하치')
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
@@ -234,6 +235,7 @@ function DiaryScreenBody() {
   const shiftMonth = (delta: number) => {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
     setSelectedDay(1)
+    setDayListOpen(false)
   }
 
   const isFutureDay = (day: number) => {
@@ -249,10 +251,12 @@ function DiaryScreenBody() {
     return { y, m, d }
   }
 
-  /** 기록 없는 날은 선택만 — 있으면 「이번 달 … 마음」 위에 리스트 */
+  /** 기록 있는 날 → 리스트 열기 / 없는 날 → 선택만·리스트 닫기 */
   const onPressDay = (day: number) => {
     if (isFutureDay(day)) return
     setSelectedDay(day)
+    const count = countDiaryEntriesByDate(year, month + 1, day)
+    setDayListOpen(count > 0)
   }
 
   const selectedDayCount = useMemo(() => {
@@ -263,17 +267,19 @@ function DiaryScreenBody() {
 
   const selectedDayEntries = useMemo(() => {
     const { y, m, d } = resolveSelectedYmd()
-    return listDiaryEntriesByDate(y, m, d)
+    return listDiaryEntriesByDate(y, m, d).slice(0, DIARY_DAY_LIST_VISIBLE)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, diaryEpoch])
 
   const selectedDayTitle = useMemo(() => {
     const { y, m, d } = resolveSelectedYmd()
-    return `${formatDateFromYmd(y, m, d)} ${selectedDayCount}개 기록`
+    return `${formatDayWithWeekday(y, m, d)} ${selectedDayCount}개 기록`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDay, year, month, today, selectedDayCount])
 
-  const showDayPanel = selectedDayCount > 0
+  const showDayPanel = dayListOpen && selectedDayCount > 0
+  const showMonthGraph = !showDayPanel
+  const ctaLabel = showDayPanel ? '마음을 더 기록할게요' : '마음을 기록할게요'
 
   const openWriteForSelected = () => {
     const { y, m, d } = resolveSelectedYmd()
@@ -463,23 +469,24 @@ function DiaryScreenBody() {
 
         {showDayPanel ? (
           <View style={[styles.dayPanel, styles.belowCalendar]}>
-            <Text style={styles.dayPanelTitle} numberOfLines={1}>
-              {selectedDayTitle}
-            </Text>
-            <ScrollView
-              style={
-                selectedDayEntries.length >= DIARY_DAY_LIST_VISIBLE
-                  ? {
-                      maxHeight:
-                        DIARY_DAY_CARD_SLOT * DIARY_DAY_LIST_VISIBLE,
-                    }
-                  : undefined
-              }
-              nestedScrollEnabled
-              scrollEnabled={selectedDayEntries.length >= 2}
-              showsVerticalScrollIndicator={selectedDayEntries.length > 2}
-              contentContainerStyle={styles.dayListContent}
-            >
+            <View style={styles.dayPanelHeader}>
+              <Text style={styles.dayPanelTitle} numberOfLines={1}>
+                {selectedDayTitle}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="목록 닫기"
+                hitSlop={10}
+                onPress={() => setDayListOpen(false)}
+                style={({ pressed }) => [
+                  styles.dayPanelClose,
+                  pressed && styles.iconBtnPressed,
+                ]}
+              >
+                <X size={18} color={Colors.textDisabled} weight="bold" />
+              </Pressable>
+            </View>
+            <View style={styles.dayListContent}>
               {selectedDayEntries.map((entry) => (
                 <DiaryDayEntryCard
                   key={entry.id}
@@ -492,34 +499,27 @@ function DiaryScreenBody() {
                   }
                 />
               ))}
-            </ScrollView>
+            </View>
           </View>
         ) : null}
 
-        {selectedDayCount === 0 && dist.count === 0 ? (
-          <View
-            style={[
-              styles.belowCalendar,
-              showDayPanel ? styles.belowDayPanel : null,
-            ]}
-          >
-            <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
-          </View>
-        ) : (
-          <View
-            style={[
-              styles.distCard,
-              showDayPanel ? styles.belowDayPanel : styles.belowCalendar,
-            ]}
-          >
-            <Text style={styles.distTitle} numberOfLines={2}>
-              {month + 1}월 {petName}와 마음 {dist.count}일 기록
-            </Text>
-            <View style={styles.distBar}>
-              {dist.count === 0 ? (
-                <View style={[styles.distSeg, styles.distEmpty, { flex: 1 }]} />
-              ) : (
-                dist.chips.map((chip) => (
+        {showMonthGraph ? (
+          dist.count === 0 ? (
+            <View style={styles.belowCalendar}>
+              <EmptyRecordsCard title="아직 마음을 기록하기 전이에요!" />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.distCard,
+                styles.belowCalendar,
+              ]}
+            >
+              <Text style={styles.distTitle} numberOfLines={2}>
+                {month + 1}월 {petName}와 마음 {dist.count}일 기록
+              </Text>
+              <View style={styles.distBar}>
+                {dist.chips.map((chip) => (
                   <View
                     key={chip.id}
                     style={[
@@ -527,33 +527,33 @@ function DiaryScreenBody() {
                       { flex: chip.count, backgroundColor: chip.barColor },
                     ]}
                   />
-                ))
-              )}
-            </View>
+                ))}
+              </View>
 
-            <View style={styles.legendRow}>
-              {dist.legend.map((item) => (
-                <View
-                  key={item.id}
-                  style={styles.legendItem}
-                  accessibilityLabel={`${item.label} ${item.count}`}
-                >
-                  <MoodEmoji
-                    index={item.emojiIndex}
-                    size={22}
-                    colorDot={item.color}
-                    dotSize={5}
-                  />
-                  <Text style={styles.legendCount}>{item.count}</Text>
-                </View>
-              ))}
-            </View>
+              <View style={styles.legendRow}>
+                {dist.legend.map((item) => (
+                  <View
+                    key={item.id}
+                    style={styles.legendItem}
+                    accessibilityLabel={`${item.label} ${item.count}`}
+                  >
+                    <MoodEmoji
+                      index={item.emojiIndex}
+                      size={22}
+                      colorDot={item.color}
+                      dotSize={5}
+                    />
+                    <Text style={styles.legendCount}>{item.count}</Text>
+                  </View>
+                ))}
+              </View>
 
-            {dist.insight ? (
-              <Text style={styles.distInsight}>{dist.insight}</Text>
-            ) : null}
-          </View>
-        )}
+              {dist.insight ? (
+                <Text style={styles.distInsight}>{dist.insight}</Text>
+              ) : null}
+            </View>
+          )
+        ) : null}
       </ScrollView>
 
       <View
@@ -566,7 +566,7 @@ function DiaryScreenBody() {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="+ 마음을 기록할게요"
+          accessibilityLabel={`+ ${ctaLabel}`}
           onPress={openWriteForSelected}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
@@ -578,7 +578,7 @@ function DiaryScreenBody() {
           >
             <View style={styles.cta} collapsable={false}>
               <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-              <Text style={styles.ctaText}>마음을 기록할게요</Text>
+              <Text style={styles.ctaText}>{ctaLabel}</Text>
             </View>
           </View>
         </Pressable>
@@ -708,17 +708,28 @@ const styles = StyleSheet.create({
   belowCalendar: {
     marginTop: 24,
   },
-  belowDayPanel: {
-    marginTop: 20,
-  },
   dayPanel: {
     gap: 10,
   },
+  dayPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
   dayPanelTitle: {
+    flex: 1,
+    minWidth: 0,
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
-    paddingHorizontal: 4,
+  },
+  dayPanelClose: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dayListContent: {
     gap: 10,

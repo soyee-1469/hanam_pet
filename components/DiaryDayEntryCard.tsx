@@ -5,7 +5,7 @@ import { Layout } from '../constants/Layout'
 import { DIARY_MOODS } from '../constants/Moods'
 import { DIARY_MOOD_LABEL_COLOR } from '../constants/diaryDemo'
 import { MoodEmoji } from './MoodEmoji'
-import { formatDateTime } from '../lib/dateFormat'
+import { formatTime } from '../lib/dateFormat'
 import type { DiaryEntry } from '../constants/diaryDemo'
 
 type DiaryDayEntryCardProps = {
@@ -24,7 +24,7 @@ function moodMeta(id: DiaryEntry['moodId']) {
 export function DiaryDayEntryCard({ entry, onPress }: DiaryDayEntryCardProps) {
   const mood = moodMeta(entry.moodId)
   const moodColor = DIARY_MOOD_LABEL_COLOR[entry.moodId]
-  const timeLabel = formatDateTime(entry.createdAt)
+  const timeLabel = formatTime(entry.createdAt)
 
   return (
     <Pressable

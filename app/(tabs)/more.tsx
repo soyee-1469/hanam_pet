@@ -9,7 +9,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import Constants from 'expo-constants'
-import { CaretRight } from 'phosphor-react-native'
+import { CaretRight, UserMinus } from 'phosphor-react-native'
 import { Colors, Shadows } from '../../constants/Colors'
 import { Layout, HeaderTitleStyle, tabBarReserveHeight } from '../../constants/Layout'
 import { TypeStyle } from '../../constants/Typography'
@@ -223,6 +223,7 @@ function MoreScreenBody() {
             pressed && styles.rowPressed,
           ]}
         >
+          <UserMinus size={18} color={Colors.textDisabled} weight="regular" />
           <Text style={styles.withdrawText}>회원탈퇴</Text>
         </Pressable>
       </ScrollView>
@@ -298,6 +299,9 @@ const styles = StyleSheet.create({
   },
   withdrawBtn: {
     alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingVertical: 8,
     paddingHorizontal: Layout.headerPaddingH,
     marginTop: 4,
@@ -305,6 +309,6 @@ const styles = StyleSheet.create({
   withdrawText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: Colors.textDisabled,
   },
 })

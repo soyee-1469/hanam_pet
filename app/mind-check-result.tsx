@@ -203,9 +203,11 @@ export default function MindCheckResultScreen() {
                         mine && styles.spectrumSegTextMine,
                       ]}
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.75}
                       allowFontScaling={false}
                     >
-                      {mine ? `${score}점` : `${b.min}-${b.max}`}
+                      {`${b.min} ~ ${b.max}점`}
                     </Text>
                   </View>
                   <Text
@@ -217,7 +219,7 @@ export default function MindCheckResultScreen() {
                       mine && styles.spectrumLabelActive,
                     ]}
                   >
-                    {b.label}
+                    {mine ? `${b.label} · ${score}점` : b.label}
                   </Text>
                 </View>
               )
@@ -409,22 +411,23 @@ const styles = StyleSheet.create({
   },
   spectrumSeg: {
     alignSelf: 'stretch',
-    height: 40,
-    borderRadius: 10,
+    minHeight: 36,
+    height: 36,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
   },
   spectrumDim: {
-    opacity: 0.42,
+    opacity: 0.4,
   },
   spectrumSegText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   spectrumSegTextMine: {
-    fontSize: 14,
     fontWeight: '800',
   },
   spectrumLabel: {

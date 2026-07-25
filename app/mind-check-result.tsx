@@ -181,7 +181,7 @@ export default function MindCheckResultScreen() {
           <View style={styles.spectrumRow}>
             {bands.map((b) => {
               const mine = b.id === band.id
-              const segColor =
+              const softBg =
                 SEVERITY_PILL_BG[b.id as SeverityId] ?? b.color
               const labelColor =
                 SEVERITY_PILL_TEXT[b.id as SeverityId] ?? Colors.textPrimary
@@ -193,13 +193,15 @@ export default function MindCheckResultScreen() {
                   <View
                     style={[
                       styles.spectrumSeg,
-                      { backgroundColor: segColor },
+                      {
+                        backgroundColor: mine ? labelColor : softBg,
+                      },
                     ]}
                   >
                     <Text
                       style={[
                         styles.spectrumSegText,
-                        { color: labelColor },
+                        { color: mine ? '#FFFFFF' : labelColor },
                         mine && styles.spectrumSegTextMine,
                       ]}
                       numberOfLines={1}

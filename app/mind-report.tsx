@@ -203,15 +203,18 @@ export default function MindReportScreen() {
                     const mine = b.id === band.id
                     const tone =
                       SEVERITY_PILL_TEXT[b.id] ?? Colors.textPrimary
+                    const softBg = SEVERITY_PILL_BG[b.id] ?? b.color
                     return (
                       <View
                         key={b.id}
                         style={[
                           styles.seg,
                           {
-                            backgroundColor: reached
-                              ? SEVERITY_PILL_BG[b.id] ?? b.color
-                              : SEG_GRAY,
+                            backgroundColor: mine
+                              ? tone
+                              : reached
+                                ? softBg
+                                : SEG_GRAY,
                           },
                           !reached && styles.segDim,
                         ]}
@@ -220,7 +223,11 @@ export default function MindReportScreen() {
                           style={[
                             styles.segText,
                             {
-                              color: reached ? tone : Colors.textDisabled,
+                              color: mine
+                                ? '#FFFFFF'
+                                : reached
+                                  ? tone
+                                  : Colors.textDisabled,
                             },
                             mine && styles.segTextMine,
                           ]}

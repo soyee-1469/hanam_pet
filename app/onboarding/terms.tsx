@@ -15,12 +15,10 @@ import { Colors } from '../../constants/Colors'
 import {
   CheckRow,
   PrimaryButton,
-  ProgressDots,
   ScreenHeader,
   TermsSheet,
   onboardingFooterStyle,
 } from '../../components/ui'
-import { ONBOARDING_STEPS } from '../../lib/onboardingDraft'
 import { getOnboardingCopy, type TermKeyV1 } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().terms
@@ -141,7 +139,6 @@ export default function OnboardingTerms() {
 
       <View style={styles.footer}>
         <Text style={styles.footerNote}>{copy.footerNote}</Text>
-        <ProgressDots total={ONBOARDING_STEPS} index={0} />
         <Animated.View style={{ transform: [{ scale: ctaScale }] }}>
           <PrimaryButton
             label={allRequired ? copy.cta : copy.ctaDisabled}

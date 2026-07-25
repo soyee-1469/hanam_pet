@@ -13,11 +13,10 @@ import { Colors } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
-import { PrimaryButton, ProgressDots, onboardingFooterStyle } from '../../components/ui'
+import { PrimaryButton, onboardingFooterStyle } from '../../components/ui'
 import {
   getOnboardingDraft,
   resetOnboardingDraft,
-  ONBOARDING_STEPS,
 } from '../../lib/onboardingDraft'
 import { completeOnboarding } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -83,7 +82,6 @@ export default function OnboardingWelcome() {
       </View>
 
       <View style={styles.footer}>
-        <ProgressDots total={ONBOARDING_STEPS} index={4} />
         {busy ? (
           <ActivityIndicator color={Colors.cocoa} style={styles.loader} />
         ) : (

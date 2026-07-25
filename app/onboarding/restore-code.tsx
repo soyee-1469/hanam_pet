@@ -18,12 +18,10 @@ import { Layout } from '../../constants/Layout'
 import { Colors } from '../../constants/Colors'
 import {
   PrimaryButton,
-  ProgressDots,
   ScreenHeader,
   onboardingFooterStyle,
 } from '../../components/ui'
 import { PhotoPermissionSheet } from '../../components/PhotoPermissionSheet'
-import { ONBOARDING_STEPS } from '../../lib/onboardingDraft'
 import { getOnboardingCopy } from '../../lib/onboarding'
 import { showToast } from '../../lib/toast'
 
@@ -179,7 +177,6 @@ export default function OnboardingRestoreCode() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <ProgressDots total={ONBOARDING_STEPS} index={3} />
         {saving ? (
           <View style={styles.savingCta}>
             <ActivityIndicator color={Colors.cocoa} />

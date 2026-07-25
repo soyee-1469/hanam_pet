@@ -522,7 +522,14 @@ function MenuQuickItem({
           ) : null}
         </View>
       </View>
-      <Text style={[styles.menuLabel, { fontSize: labelSize }]} numberOfLines={1}>
+      <Text
+        style={[
+          styles.menuLabel,
+          { fontSize: labelSize },
+          ready && styles.menuLabelReady,
+        ]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </Pressable>
@@ -2211,7 +2218,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: Colors.selected,
+    backgroundColor: Colors.primary,
   },
   menuReadyBadgeText: {
     fontSize: 9,
@@ -2221,7 +2228,7 @@ const styles = StyleSheet.create({
   },
   menuCircleReady: {
     borderWidth: 2.5,
-    borderColor: Colors.selected,
+    borderColor: Colors.primary,
     backgroundColor: Colors.background,
   },
   menuCircleCooldown: {
@@ -2231,7 +2238,7 @@ const styles = StyleSheet.create({
   },
   menuCircleNudge: {
     borderWidth: 2,
-    borderColor: Colors.selected,
+    borderColor: Colors.primary,
     backgroundColor: Colors.background,
   },
   menuLabel: {
@@ -2239,6 +2246,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     color: Colors.textSecondary,
+  },
+  menuLabelReady: {
+    color: Colors.primary,
+    fontWeight: '700',
   },
   petLayer: {
     flex: 1,

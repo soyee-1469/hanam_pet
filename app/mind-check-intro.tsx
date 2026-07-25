@@ -1,17 +1,14 @@
-import { useCallback, useState } from 'react'
 import {
   View,
   Text,
-  Image,
   Pressable,
   StyleSheet,
   ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import {
   CaretLeft,
-  CaretRight,
   CheckCircle,
   FileMagnifyingGlass,
   WarningCircle,
@@ -21,17 +18,11 @@ import { Layout } from '../constants/Layout'
 import { PrimaryButton, onboardingFooterStyle } from '../components/ui'
 import {
   getAssessment,
-  getSeverityBand,
   getSeverityBands,
   SEVERITY_PILL_BG,
   SEVERITY_PILL_TEXT,
   type AssessmentId,
 } from '../constants/MindAssessments'
-import {
-  formatResultDate,
-  getLatestMindCheckResult,
-  type MindCheckResultRecord,
-} from '../lib/mindCheckResults'
 
 export default function MindCheckIntroScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>()
@@ -39,19 +30,6 @@ export default function MindCheckIntroScreen() {
     ? id
     : id?.[0] ?? 'phq') as AssessmentId
   const assessment = getAssessment(assessmentId)
-  const [latest, setLatest] = useState<MindCheckResultRecord | null>(null)
-
-  useFocusEffect(
-    useCallback(() => {
-      let alive = true
-      void getLatestMindCheckResult(assessmentId).then((r) => {
-        if (alive) setLatest(r)
-      })
-      return () => {
-        alive = false
-      }
-    }, [assessmentId]),
-  )
 
   if (!assessment) {
     return (
@@ -76,25 +54,9 @@ export default function MindCheckIntroScreen() {
   }
 
   const bands = getSeverityBands(assessment.id)
-  const latestBand = latest
-    ? getSeverityBand(latest.score, assessment.id)
-    : null
 
   const startCheck = () => {
     router.push({ pathname: '/mind-check', params: { id: assessment.id } })
-  }
-
-  const openLatest = () => {
-    if (!latest) return
-    router.push({
-      pathname: '/mind-check-result',
-      params: {
-        id: latest.assessmentId,
-        score: String(latest.score),
-        max: String(latest.max),
-        view: '1',
-      },
-    })
   }
 
   const openHistory = () => {
@@ -205,58 +167,6 @@ export default function MindCheckIntroScreen() {
           ))}
         </View>
 
-        <Text style={styles.sectionLabel}>최근 검사 결과</Text>
-        {latest && latestBand ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="최근 검사 결과 보기"
-            onPress={openLatest}
-            style={({ pressed }) => [
-              styles.recentCard,
-              pressed && styles.pressed,
-            ]}
-          >
-            <View
-              style={[
-                styles.scoreCircle,
-                {
-                  backgroundColor:
-                    SEVERITY_PILL_BG[latestBand.id] ?? '#F7D7B8',
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.scoreCircleText,
-                  {
-                    color:
-                      SEVERITY_PILL_TEXT[latestBand.id] ?? Colors.textPrimary,
-                  },
-                ]}
-              >
-                {latest.score}점
-              </Text>
-            </View>
-            <View style={styles.recentCopy}>
-              <Text style={styles.recentDate}>
-                {formatResultDate(latest.at)}
-              </Text>
-              <Text style={styles.recentLabel}>{latestBand.shortLabel}</Text>
-            </View>
-            <CaretRight size={18} color={Colors.textDisabled} weight="bold" />
-          </Pressable>
-        ) : (
-          <View style={styles.recentEmpty}>
-            <Image
-              source={require('../assets/images/아이콘/메모장.png')}
-              style={styles.recentEmptyImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.recentEmptyText}>
-              아직 마음을 깊이 살펴보기 전이에요!
-            </Text>
-          </View>
-        )}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -413,70 +323,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 21,
     color: Colors.textSecondary,
-  },
-  recentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingVertical: 14,
-    marginBottom: 12,
-    ...Shadows.elevation,
-  },
-  scoreCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#F7D7B8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreCircleText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  recentCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  recentDate: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textDisabled,
-    marginBottom: 4,
-  },
-  recentLabel: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  recentEmpty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.divider,
-    paddingVertical: 28,
-    paddingHorizontal: Layout.cardPaddingH,
-    marginBottom: 12,
-    ...Shadows.elevation,
-  },
-  recentEmptyImage: {
-    width: 64,
-    height: 64,
-  },
-  recentEmptyText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
   footer: {
     ...onboardingFooterStyle,

@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 26,
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
-    backgroundColor: Colors.accentSoft,
+    backgroundColor: Colors.accent,
     overflow: 'hidden',
   },
   phoneBadge: {

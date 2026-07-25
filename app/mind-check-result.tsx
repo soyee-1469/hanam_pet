@@ -49,10 +49,13 @@ function ScoreRing({
   score,
   max,
   color,
+  statusLabel: severityLabel,
 }: {
   score: number
   max: number
   color: string
+  /** 점수 아래 — 정상 / 경도 / 중증 등 */
+  statusLabel: string
 }) {
   const ratio = max > 0 ? Math.min(1, Math.max(0, score / max)) : 0
   const offset = RING_C * (1 - ratio)
@@ -83,7 +86,9 @@ function ScoreRing({
       </Svg>
       <View style={styles.ringCenter}>
         <Text style={styles.ringScore}>{score}</Text>
-        <Text style={styles.ringMax}>{max}점</Text>
+        <Text style={[styles.ringStatus, { color }]} numberOfLines={1}>
+          {severityLabel}
+        </Text>
       </View>
     </View>
   )
@@ -177,7 +182,12 @@ export default function MindCheckResultScreen() {
       >
         <View style={styles.summaryCard}>
           <Text style={styles.statusLabel}>{statusLabel(assessmentId)}</Text>
-          <ScoreRing score={score} max={max} color={accent} />
+          <ScoreRing
+            score={score}
+            max={max}
+            color={accent}
+            statusLabel={band.label}
+          />
 
           {/* 색만 있는 스펙트럼 — 글자는 아래 범례에 */}
           <View
@@ -411,20 +421,21 @@ const styles = StyleSheet.create({
     lineHeight: 50,
     color: Colors.textPrimary,
   },
-  ringMax: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+  ringStatus: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 2,
+    letterSpacing: -0.2,
   },
   spectrumBar: {
     flexDirection: 'row',
     alignSelf: 'stretch',
-    gap: 4,
+    gap: 3,
     marginBottom: 14,
   },
   spectrumSeg: {
     flex: 1,
-    height: 12,
+    height: 8,
     borderRadius: 999,
   },
   spectrumSegDim: {

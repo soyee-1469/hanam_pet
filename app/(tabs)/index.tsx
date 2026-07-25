@@ -338,8 +338,10 @@ function CareStockCard({
   )
 }
 
-/** Progress ring stroke for claim cooldown (main orange). */
+/** 서브메뉴 원형 링 — 받기 띠·타이머 링 공통 크기 */
 const MENU_RING_STROKE = 2.5
+/** 아이콘 원과 링 안쪽 사이 간격 */
+const MENU_RING_GAP = 2
 
 /** 미션 퀵 바 — 원형 + 수령 가능/쿨다운 링 */
 type MenuQuickItemProps = {
@@ -366,6 +368,10 @@ type MenuQuickItemProps = {
   onPress: () => void
 }
 
+function menuRingOutset() {
+  return MENU_RING_GAP + MENU_RING_STROKE
+}
+
 function MenuCooldownRing({
   size,
   progress,
@@ -373,10 +379,10 @@ function MenuCooldownRing({
   size: number
   progress: number
 }) {
-  // Stroke sits just outside the opaque circle so it isn't covered.
-  const outset = MENU_RING_STROKE
+  // 받기 코랄 띠와 동일: gap + stroke 아웃셋, 스트로크 중심 반경
+  const outset = menuRingOutset()
   const ringSize = size + outset * 2
-  const r = (ringSize - MENU_RING_STROKE) / 2
+  const r = size / 2 + MENU_RING_GAP + MENU_RING_STROKE / 2
   const c = 2 * Math.PI * r
   const ratio = Math.min(1, Math.max(0, progress))
   const offset = c * (1 - ratio)
@@ -443,7 +449,7 @@ function MenuQuickItem({
   const lift = ((claimable || complete) && hovered) || highlighted
   const showCooldownRing = !complete && cooling && cooldownProgress != null
   const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
-  const bandOutset = MENU_CLAIM_BAND_GAP + MENU_CLAIM_BAND_STROKE
+  const bandOutset = menuRingOutset()
   const bandSize = circleSize + bandOutset * 2
   return (
     <Pressable
@@ -2251,7 +2257,7 @@ const styles = StyleSheet.create({
   menuClaimBand: {
     position: 'absolute',
     zIndex: 1,
-    borderWidth: MENU_CLAIM_BAND_STROKE,
+    borderWidth: MENU_RING_STROKE,
     borderColor: Colors.primary,
     backgroundColor: 'transparent',
   },

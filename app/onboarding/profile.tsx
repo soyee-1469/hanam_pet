@@ -16,9 +16,8 @@ import { router } from 'expo-router'
 import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import { DogExpr } from '../../constants/DogExpr'
-import { PrimaryButton, ProgressDots, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
+import { PrimaryButton, ScreenHeader, onboardingFooterStyle } from '../../components/ui'
 import {
-  ONBOARDING_STEPS,
   getOnboardingDraft,
   setOnboardingDraft,
   type AgeGroup,
@@ -218,7 +217,6 @@ export default function OnboardingProfile() {
         ) : null}
 
         <View style={styles.footer}>
-          <ProgressDots total={ONBOARDING_STEPS} index={1} />
           <PrimaryButton
             label={copy.cta}
             disabled={!valid}

@@ -92,6 +92,8 @@ function ChatScreenBody() {
   const replyIndex = useRef(0)
   const [message, setMessage] = useState('')
   const [inputFocused, setInputFocused] = useState(false)
+  /** multiline 빈 칸이 두 줄로 커지지 않게 — 내용 높이만 반영 */
+  const [inputH, setInputH] = useState(22)
   const [noticeDone, setNoticeDone] = useState(false)
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
@@ -304,6 +306,7 @@ function ChatScreenBody() {
     }
     setMessages((prev) => [...prev, next])
     setMessage('')
+    setInputH(22)
     setInputFocused(false)
     inputRef.current?.blur()
     Keyboard.dismiss()
@@ -628,9 +631,16 @@ function ChatScreenBody() {
               <TextInput
                 {...TextKeyboardProps}
                 ref={inputRef}
-                style={styles.input}
+                style={[styles.input, { height: inputH }]}
                 value={message}
-                onChangeText={setMessage}
+                onChangeText={(t) => {
+                  setMessage(t)
+                  if (!t.trim()) setInputH(22)
+                }}
+                onContentSizeChange={(e) => {
+                  const h = Math.ceil(e.nativeEvent.contentSize.height)
+                  setInputH(Math.min(88, Math.max(22, h)))
+                }}
                 onFocus={() => {
                   if (typing) return
                   setInputFocused(true)
@@ -1128,7 +1138,7 @@ const styles = StyleSheet.create({
   },
   composer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     minHeight: 52,
     paddingLeft: 18,
     paddingRight: 8,
@@ -1148,8 +1158,8 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     maxHeight: 88,
-    paddingTop: Platform.OS === 'ios' ? 6 : 4,
-    paddingBottom: Platform.OS === 'ios' ? 6 : 4,
+    paddingTop: 0,
+    paddingBottom: 0,
     fontSize: 15,
     lineHeight: 22,
     color: Colors.textPrimary,
@@ -1165,7 +1175,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.inactive,
     borderWidth: 0,
     overflow: 'hidden',
-    marginBottom: 0,
+    alignSelf: 'flex-end',
   },
   sendBtnActive: {
     backgroundColor: Colors.primary,

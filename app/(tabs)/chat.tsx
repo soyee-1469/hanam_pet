@@ -626,11 +626,11 @@ function ChatScreenBody() {
                 }
                 placeholderTextColor={Colors.textDisabled}
                 editable={!typing && !depleted}
-                returnKeyType="send"
-                onSubmitEditing={() => {
-                  void sendMessage()
-                }}
+                multiline
+                textAlignVertical="center"
+                scrollEnabled
                 blurOnSubmit={false}
+                returnKeyType="default"
               />
               <Pressable
                 accessibilityRole="button"

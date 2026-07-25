@@ -15,6 +15,7 @@ import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
 import { CatExpr } from '../constants/OnboardingMascot'
 import { ScreenHeader } from '../components/ui'
+import { ChatBubble } from '../components/ChatBubble'
 import { ExpandableBubbleText } from '../components/ExpandableBubbleText'
 import {
   countUnreadChatMessages,
@@ -75,15 +76,13 @@ function MessageRow({
         <Text style={styles.metaName}>{name}</Text>
         <Text style={styles.metaTime}>{timeLabel}</Text>
       </View>
-      <View
-        style={[styles.bubble, isUser ? styles.userBubble : styles.petBubble]}
-      >
+      <ChatBubble variant={isUser ? 'user' : 'pet'}>
         <ExpandableBubbleText
           text={text}
           textStyle={isUser ? styles.userText : styles.petText}
           align={isUser ? 'right' : 'left'}
         />
-      </View>
+      </ChatBubble>
     </View>
   )
 }
@@ -275,21 +274,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     color: Colors.textDisabled,
-  },
-  bubble: {
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  userBubble: {
-    backgroundColor: Colors.accentSoft,
-    borderBottomRightRadius: 6,
-  },
-  petBubble: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderBottomLeftRadius: 6,
   },
   userText: {
     fontSize: 15,

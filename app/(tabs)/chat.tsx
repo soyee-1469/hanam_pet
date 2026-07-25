@@ -25,6 +25,7 @@ import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpFloatingFab } from '../../components/HelpFloatingFab'
 import { ExpandableBubbleText } from '../../components/ExpandableBubbleText'
+import { ChatBubble } from '../../components/ChatBubble'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
 import type { PetChoice } from '../../lib/onboardingStorage'
@@ -465,7 +466,11 @@ function ChatScreenBody() {
             <View style={styles.petBlock}>
               {typing ? (
                 <View style={styles.petBubbleContainer}>
-                  <View style={styles.typingBubble}>
+                  <ChatBubble
+                    variant="pet"
+                    style={styles.typingBubbleWrap}
+                    contentStyle={styles.typingBubble}
+                  >
                     <View style={styles.typingDotsRow}>
                       {Array.from({ length: 6 }, (_, i) => (
                         <View
@@ -477,8 +482,7 @@ function ChatScreenBody() {
                         />
                       ))}
                     </View>
-                  </View>
-                  <View style={styles.petBubbleTail} />
+                  </ChatBubble>
                 </View>
               ) : depleted ? (
                 depletedBubble
@@ -502,14 +506,18 @@ function ChatScreenBody() {
                 </View>
               ) : latestPetReply ? (
                 <View style={styles.petBubbleContainer}>
-                  <View style={styles.petAnswerBubble}>
+                  <ChatBubble
+                    variant="pet"
+                    style={styles.petAnswerWrap}
+                    contentStyle={styles.petAnswerBubble}
+                    tailColor={Colors.cardRecessed}
+                  >
                     <ExpandableBubbleText
                       text={latestPetReply.text}
                       textStyle={styles.petAnswerText}
                       align="center"
                     />
-                  </View>
-                  <View style={styles.petBubbleTail} />
+                  </ChatBubble>
                 </View>
               ) : null}
 
@@ -522,13 +530,13 @@ function ChatScreenBody() {
                 />
                 {latestUserMessage ? (
                   <View style={styles.userBeside}>
-                    <View style={styles.userBubble}>
+                    <ChatBubble variant="user" style={styles.userBubbleWrap}>
                       <ExpandableBubbleText
                         text={latestUserMessage.text}
                         textStyle={styles.userText}
                         align="left"
                       />
-                    </View>
+                    </ChatBubble>
                   </View>
                 ) : (
                   <View style={styles.userBesideSpacer} />
@@ -765,19 +773,16 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     maxWidth: 168,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
+    paddingRight: 4,
   },
   userBesideSpacer: {
     flex: 1,
     maxWidth: 168,
   },
-  userBubble: {
+  userBubbleWrap: {
     maxWidth: '100%',
-    backgroundColor: Colors.accentSoft,
-    borderRadius: 18,
-    borderBottomLeftRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    alignSelf: 'flex-end',
   },
   userText: {
     fontSize: 15,
@@ -791,15 +796,19 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   petBubbleContainer: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     alignSelf: 'stretch',
     marginBottom: 6,
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
+  },
+  petAnswerWrap: {
+    alignSelf: 'stretch',
   },
   petAnswerBubble: {
     alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
     borderRadius: 22,
+    borderBottomLeftRadius: 4,
     paddingHorizontal: Layout.screenPaddingH,
     paddingVertical: 18,
     borderWidth: 1,
@@ -813,20 +822,14 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  petBubbleTail: {
-    width: 14,
-    height: 14,
-    backgroundColor: Colors.cardRecessed,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -8,
+  typingBubbleWrap: {
+    alignSelf: 'center',
   },
   typingBubble: {
     minWidth: 88,
     backgroundColor: Colors.surface,
     borderRadius: 20,
+    borderBottomLeftRadius: 4,
     paddingHorizontal: 22,
     paddingVertical: 14,
     borderWidth: 1,

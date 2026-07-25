@@ -68,6 +68,7 @@ export default function RootLayout() {
           <Stack.Screen name="notification-detail" />
           <Stack.Screen name="storage" />
           <Stack.Screen name="attendance" />
+          <Stack.Screen name="error" />
           <Stack.Screen name="component-catalog" />
         </Stack>
         <ToastHost />

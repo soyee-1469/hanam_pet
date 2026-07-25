@@ -346,10 +346,12 @@ type MenuQuickItemProps = {
   label: string
   image: number
   bgColor: string
-  /** 받기 가능(제작 완료) — 사료/장난감 */
+  /** 받기 가능 — 코랄 띠 + 「받기」 뱃지 */
   ready?: boolean
   /** 출석 도장 받기 가능 등 — ready와 동일하게 띠+받기 뱃지 */
   done?: boolean
+  /** 하루 수령 완료 — 중앙 「완료」 오버레이 비활성 */
+  complete?: boolean
   /** 쿨다운 남은 시간 HH:MM:SS */
   cooldownLabel?: string
   /**
@@ -425,6 +427,7 @@ function MenuQuickItem({
   bgColor,
   ready = false,
   done = false,
+  complete = false,
   cooldownLabel,
   cooldownProgress,
   highlighted,
@@ -436,29 +439,31 @@ function MenuQuickItem({
   const cooling = Boolean(cooldownLabel)
   const [hovered, setHovered] = useState(false)
   /** 받기 가능 — 코랄 원형 띠 + 「받기」 뱃지 */
-  const claimable = ready || done
-  const lift = (claimable && hovered) || highlighted
-  const showCooldownRing = cooling && cooldownProgress != null
+  const claimable = !complete && (ready || done)
+  const lift = ((claimable || complete) && hovered) || highlighted
+  const showCooldownRing = !complete && cooling && cooldownProgress != null
   const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
   const bandOutset = MENU_CLAIM_BAND_GAP + MENU_CLAIM_BAND_STROKE
   const bandSize = circleSize + bandOutset * 2
-
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: complete }}
       accessibilityLabel={
-        claimable
-          ? `${label}, 받기`
-          : cooling
-            ? `${label}, 남은 시간 ${cooldownLabel}`
-            : label
+        complete
+          ? `${label}, 완료`
+          : claimable
+            ? `${label}, 받기`
+            : cooling
+              ? `${label}, 남은 시간 ${cooldownLabel}`
+              : label
       }
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={[
         styles.menuItem,
-        { cursor: 'pointer' } as object,
+        { cursor: complete ? 'default' : 'pointer' } as object,
         lift && styles.menuItemLift,
       ]}
     >
@@ -501,19 +506,24 @@ function MenuQuickItem({
                 backgroundColor: bgColor,
               },
               claimable && styles.menuCircleClaimable,
+              complete && styles.menuCircleComplete,
               showCooldownRing && styles.menuCircleCooldown,
-              highlighted && !claimable && !cooling && styles.menuCircleNudge,
+              highlighted &&
+                !claimable &&
+                !complete &&
+                !cooling &&
+                styles.menuCircleNudge,
             ]}
           >
             <Image
               source={image}
               style={[
                 { width: iconSize, height: iconSize },
-                cooling && styles.menuIconDimmed,
+                (cooling || complete) && styles.menuIconDimmed,
               ]}
               resizeMode="contain"
             />
-            {cooling && cooldownLabel ? (
+            {cooling && cooldownLabel && !complete ? (
               <View style={styles.menuCooldownTimerWrap} pointerEvents="none">
                 <Text
                   style={[
@@ -524,6 +534,17 @@ function MenuQuickItem({
                   allowFontScaling={false}
                 >
                   {cooldownLabel}
+                </Text>
+              </View>
+            ) : null}
+            {complete ? (
+              <View style={styles.menuCompleteBadge} pointerEvents="none">
+                <Text
+                  style={styles.menuCompleteBadgeText}
+                  numberOfLines={1}
+                  allowFontScaling={false}
+                >
+                  완료
                 </Text>
               </View>
             ) : null}
@@ -538,7 +559,11 @@ function MenuQuickItem({
         </View>
       </View>
       <Text
-        style={[styles.menuLabel, { fontSize: labelSize }]}
+        style={[
+          styles.menuLabel,
+          { fontSize: labelSize },
+          complete && styles.menuLabelComplete,
+        ]}
         numberOfLines={1}
       >
         {label}
@@ -1511,7 +1536,7 @@ function PetHomeScreenBody() {
               {HEADER_MENU.filter(
                 (item) => item.id === 'feed' || item.id === 'toy',
               ).map((item) => (
-                <MenuQuickItem
+                                <MenuQuickItem
                   key={item.id}
                   label={item.label}
                   image={item.image}
@@ -1520,6 +1545,11 @@ function PetHomeScreenBody() {
                     item.id === 'feed'
                       ? feedClaimStatus.kind === 'ready'
                       : toyClaimStatus.kind === 'ready'
+                  }
+                  complete={
+                    item.id === 'feed'
+                      ? feedClaimStatus.kind === 'done'
+                      : toyClaimStatus.kind === 'done'
                   }
                   cooldownLabel={
                     item.id === 'feed' && feedClaimStatus.kind === 'cooldown'
@@ -2248,6 +2278,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.background,
+  },
+  menuCircleComplete: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  menuCompleteBadge: {
+    position: 'absolute',
+    left: '19%',
+    right: '19%',
+    top: '34%',
+    bottom: '34%',
+    zIndex: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: Colors.selected,
+    paddingHorizontal: 4,
+  },
+  menuCompleteBadgeText: {
+    color: Colors.surface,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    textAlign: 'center',
+  },
+  menuLabelComplete: {
+    color: Colors.selected,
+    fontWeight: '700',
   },
   menuCircleCooldown: {
     borderWidth: 0,

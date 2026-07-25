@@ -107,6 +107,8 @@ export type ClaimMenuStatus =
     }
   /** 1차 수령 후 사용 전 — 2차 수령 불가 */
   | { kind: 'need_use' }
+  /** 하루 수령 횟수 소진 */
+  | { kind: 'done' }
   | { kind: 'idle' }
 
 function clamp01(n: number): number {
@@ -130,21 +132,13 @@ export function getClaimMenuStatus(
   kind: ClaimKind = 'feed',
 ): ClaimMenuStatus {
   const b = normalizeBucket(bucket)
+  // 하루 2회 모두 수령 — 자정까지 「완료」 비활성 (쿨다운보다 우선)
+  if (b.count >= CLAIM_MAX_PER_DAY) {
+    return { kind: 'done' }
+  }
   if (b.nextReadyAt > now) {
     const remainingMs = b.nextReadyAt - now
     const totalMs = kind === 'feed' ? FEED_COOLDOWN_MS : TOY_COOLDOWN_MS
-    return {
-      kind: 'cooldown',
-      remainingMs,
-      label: formatClaimCountdown(remainingMs),
-      progress: progressTowardReady(remainingMs, totalMs),
-    }
-  }
-  if (b.count >= CLAIM_MAX_PER_DAY) {
-    const remainingMs = msUntilMidnight(now)
-    const dayEnd = now + remainingMs
-    const phaseStart = b.nextReadyAt > 0 ? b.nextReadyAt : dayEnd - remainingMs
-    const totalMs = Math.max(1, dayEnd - phaseStart)
     return {
       kind: 'cooldown',
       remainingMs,

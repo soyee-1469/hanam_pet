@@ -490,15 +490,14 @@ function ChatScreenBody() {
                   <ChatBubble
                     variant="user"
                     style={styles.userBubbleWrap}
-                    tail="bottom"
                   >
-                    <ExpandableBubbleText
-                      text={latestUserMessage.text}
-                      textStyle={styles.userText}
-                      align="center"
-                      collapsedLines={2}
-                      maxExpandedHeight={100}
-                    />
+                        <ExpandableBubbleText
+                          text={latestUserMessage.text}
+                          textStyle={styles.userText}
+                          align="left"
+                          collapsedLines={2}
+                          maxExpandedHeight={100}
+                        />
                   </ChatBubble>
                 </View>
               </ScrollView>
@@ -558,7 +557,7 @@ function ChatScreenBody() {
                     <ExpandableBubbleText
                       text={latestPetReply.text}
                       textStyle={styles.petAnswerText}
-                      align="center"
+                      align="left"
                       collapsedLines={3}
                       maxExpandedHeight={120}
                     />
@@ -796,11 +795,11 @@ const styles = StyleSheet.create({
   userStackContent: {
     paddingBottom: 4,
     gap: 8,
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   userStackItem: {
-    maxWidth: '92%',
-    alignSelf: 'center',
+    maxWidth: '88%',
+    alignSelf: 'flex-end',
   },
   userStackItemPrev: {
     opacity: 0.55,
@@ -813,19 +812,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   userRow: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginBottom: 14,
   },
   userBubbleWrap: {
     maxWidth: '100%',
-    alignSelf: 'center',
+    alignSelf: 'flex-end',
   },
   userText: {
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   petStageFixed: {
     flex: 1,
@@ -833,7 +832,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
   petStageInner: {
     maxHeight: '100%',
@@ -847,23 +846,22 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   petBubbleContainer: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     alignSelf: 'stretch',
-    marginBottom: 6,
+    marginBottom: 2,
     paddingHorizontal: 4,
+    paddingBottom: 4,
     maxHeight: '46%',
-    overflow: 'hidden',
   },
   petAnswerWrap: {
-    alignSelf: 'stretch',
+    alignSelf: 'flex-start',
+    maxWidth: '92%',
   },
   petAnswerBubble: {
-    alignSelf: 'stretch',
     backgroundColor: Colors.cardRecessed,
-    borderRadius: 22,
-    borderBottomLeftRadius: 4,
+    borderRadius: 24,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingVertical: 18,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.elevation,
@@ -873,16 +871,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   typingBubbleWrap: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
   },
   typingBubble: {
     minWidth: 88,
     backgroundColor: Colors.surface,
-    borderRadius: 20,
-    borderBottomLeftRadius: 4,
+    borderRadius: 24,
     paddingHorizontal: 22,
     paddingVertical: 14,
     borderWidth: 1,

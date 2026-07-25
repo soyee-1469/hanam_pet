@@ -76,7 +76,7 @@ function MessageRow({
         <Text style={styles.metaName}>{name}</Text>
         <Text style={styles.metaTime}>{timeLabel}</Text>
       </View>
-      <ChatBubble variant={isUser ? 'user' : 'pet'}>
+      <ChatBubble variant={isUser ? 'user' : 'pet'} tail="side">
         <ExpandableBubbleText
           text={text}
           textStyle={isUser ? styles.userText : styles.petText}

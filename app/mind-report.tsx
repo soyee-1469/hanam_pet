@@ -196,14 +196,17 @@ export default function MindReportScreen() {
                   </Text>
                 </View>
 
-                {/* 가로 그래프 — 구간 글자를 막대 안에 (범례 필과 동일 톤) */}
-                <View style={styles.segBar}>
+                {/* 얇은 스펙트럼 — 카드에서는 색만, 범례·구간 글자는 상세로 */}
+                <View
+                  style={styles.segBar}
+                  accessibilityLabel={`${band.label} ${item.score}점`}
+                >
                   {bands.map((b, i) => {
                     const reached = bandIndex >= 0 && i <= bandIndex
                     const mine = b.id === band.id
+                    const softBg = SEVERITY_PILL_BG[b.id] ?? b.color
                     const tone =
                       SEVERITY_PILL_TEXT[b.id] ?? Colors.textPrimary
-                    const softBg = SEVERITY_PILL_BG[b.id] ?? b.color
                     return (
                       <View
                         key={b.id}
@@ -218,74 +221,7 @@ export default function MindReportScreen() {
                           },
                           !reached && styles.segDim,
                         ]}
-                      >
-                        <Text
-                          style={[
-                            styles.segText,
-                            {
-                              color: mine
-                                ? '#FFFFFF'
-                                : reached
-                                  ? tone
-                                  : Colors.textDisabled,
-                            },
-                            mine && styles.segTextMine,
-                          ]}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit
-                          minimumFontScale={0.7}
-                          allowFontScaling={false}
-                        >
-                          {`${b.min} ~ ${b.max}점`}
-                        </Text>
-                      </View>
-                    )
-                  })}
-                </View>
-
-                {/* 점수 구간별 리스트 */}
-                <View style={styles.bandList}>
-                  {bands.map((b, i) => {
-                    const reached = bandIndex >= 0 && i <= bandIndex
-                    const mine = b.id === band.id
-                    const tone =
-                      SEVERITY_PILL_TEXT[b.id] ?? Colors.textPrimary
-                    return (
-                      <View
-                        key={b.id}
-                        style={[
-                          styles.bandListRow,
-                          !reached && styles.bandListRowDim,
-                        ]}
-                        accessibilityLabel={`${b.label} ${b.min}점부터 ${b.max}점${mine ? `, 내 점수 ${item.score}점` : ''}`}
-                      >
-                        <View
-                          style={[
-                            styles.bandListSwatch,
-                            {
-                              backgroundColor: reached
-                                ? SEVERITY_PILL_BG[b.id] ?? b.color
-                                : SEG_GRAY,
-                            },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.bandListLabel,
-                            {
-                              color: reached ? tone : Colors.textDisabled,
-                            },
-                            mine && styles.bandListLabelMine,
-                          ]}
-                        >
-                          {b.label} ({b.min}~{b.max}점)
-                        </Text>
-                        {mine ? (
-                          <Text style={[styles.bandListScore, { color: tone }]}>
-                            {item.score}점
-                          </Text>
-                        ) : null}
-                      </View>
+                      />
                     )
                   })}
                 </View>
@@ -477,60 +413,16 @@ const styles = StyleSheet.create({
   },
   segBar: {
     flexDirection: 'row',
-    gap: 4,
-    marginBottom: 12,
+    gap: 3,
+    marginBottom: 10,
   },
   seg: {
     flex: 1,
-    height: 36,
+    height: 10,
     borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
   },
   segDim: {
-    opacity: 0.55,
-  },
-  segText: {
-    fontSize: 10,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.4,
-  },
-  segTextMine: {
-    fontWeight: '800',
-  },
-  bandList: {
-    gap: 8,
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  bandListRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  bandListRowDim: {
-    opacity: 0.55,
-  },
-  bandListSwatch: {
-    width: 14,
-    height: 14,
-    borderRadius: 4,
-  },
-  bandListLabel: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  bandListLabelMine: {
-    fontWeight: '800',
-  },
-  bandListScore: {
-    fontSize: 13,
-    fontWeight: '800',
+    opacity: 0.45,
   },
   cardSummary: {
     fontSize: 13,

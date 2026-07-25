@@ -251,12 +251,12 @@ function ChatScreenBody() {
     onOpen: scrollToEnd,
   })
 
-  /** 캐릭터·답변 자리를 남기고 유저 스택 높이 제한 */
+  /** 캐릭터·답변 우선 — 질문은 2줄(+펼침)만이라 높이 작게 */
   const userStackMaxH = useMemo(() => {
-    const petReserve = keyboardOpen ? 200 : 290
-    const fromWindow = Math.round(windowH * 0.26)
-    if (stageH <= 0) return fromWindow
-    return Math.max(64, Math.min(fromWindow, stageH - petReserve))
+    const petReserve = keyboardOpen ? 260 : 340
+    const fromWindow = Math.round(windowH * 0.16)
+    if (stageH <= 0) return Math.min(96, fromWindow)
+    return Math.max(56, Math.min(fromWindow, stageH - petReserve))
   }, [windowH, stageH, keyboardOpen])
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
@@ -476,34 +476,30 @@ function ChatScreenBody() {
           >
             {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
 
-            {/* 유저 질문 — 최신 1개만 */}
+            {/* 유저 질문 — 최신 1개, 2줄+우측 확대 (캐릭터 기준 살짝 오른쪽) */}
             {latestUserMessage ? (
-              <ScrollView
-                style={[styles.userStackScroll, { maxHeight: userStackMaxH }]}
-                contentContainerStyle={styles.userStackContent}
-                showsVerticalScrollIndicator={false}
-                nestedScrollEnabled
-                keyboardShouldPersistTaps="handled"
-                ref={scrollRef}
+              <View
+                style={[styles.userStack, { maxHeight: userStackMaxH }]}
               >
                 <View style={styles.userStackItem}>
                   <ChatBubble
                     variant="user"
                     style={styles.userBubbleWrap}
                   >
-                        <ExpandableBubbleText
-                          text={latestUserMessage.text}
-                          textStyle={styles.userText}
-                          align="left"
-                          collapsedLines={2}
-                          maxExpandedHeight={100}
-                        />
+                    <ExpandableBubbleText
+                      text={latestUserMessage.text}
+                      textStyle={styles.userText}
+                      align="left"
+                      collapsedLines={2}
+                      expandPlacement="trailing"
+                      maxExpandedHeight={72}
+                    />
                   </ChatBubble>
                 </View>
-              </ScrollView>
+              </View>
             ) : null}
 
-            {/* 캐릭터 + 답변 — 남은 공간, 위로 안 넘침 */}
+            {/* 캐릭터(가운데) + 답변(살짝 왼쪽) — 남은 공간 우선 */}
             <View style={styles.petStageFixed}>
               <View style={styles.petStageInner}>
               {typing ? (
@@ -558,8 +554,8 @@ function ChatScreenBody() {
                       text={latestPetReply.text}
                       textStyle={styles.petAnswerText}
                       align="left"
-                      collapsedLines={3}
-                      maxExpandedHeight={120}
+                      collapsedLines={4}
+                      maxExpandedHeight={140}
                     />
                   </ChatBubble>
                 </View>
@@ -792,13 +788,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     overflow: 'hidden',
   },
+  userStack: {
+    flexGrow: 0,
+    flexShrink: 0,
+    marginBottom: 6,
+    overflow: 'hidden',
+    width: '100%',
+    alignItems: 'flex-end',
+    paddingLeft: '14%',
+    paddingRight: 4,
+  },
   userStackContent: {
     paddingBottom: 4,
     gap: 8,
     alignItems: 'flex-end',
   },
   userStackItem: {
-    maxWidth: '88%',
+    maxWidth: '100%',
     alignSelf: 'flex-end',
   },
   userStackItemPrev: {
@@ -828,10 +834,10 @@ const styles = StyleSheet.create({
   },
   petStageFixed: {
     flex: 1,
-    minHeight: 0,
+    minHeight: 180,
     overflow: 'hidden',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     paddingBottom: 10,
   },
   petStageInner: {
@@ -849,13 +855,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     alignSelf: 'stretch',
     marginBottom: 2,
-    paddingHorizontal: 4,
+    paddingLeft: 4,
+    paddingRight: '12%',
     paddingBottom: 4,
-    maxHeight: '46%',
+    maxHeight: '48%',
+    flexShrink: 1,
   },
   petAnswerWrap: {
     alignSelf: 'flex-start',
-    maxWidth: '92%',
+    maxWidth: '100%',
   },
   petAnswerBubble: {
     backgroundColor: Colors.cardRecessed,

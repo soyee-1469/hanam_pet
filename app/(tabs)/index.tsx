@@ -348,7 +348,7 @@ type MenuQuickItemProps = {
   bgColor: string
   /** 받기 가능(제작 완료) — 사료/장난감 */
   ready?: boolean
-  /** 오늘 출석 등 — 완료 띠 */
+  /** 출석 도장 받기 가능 등 — ready와 동일하게 띠+받기 뱃지 */
   done?: boolean
   /** 쿨다운 남은 시간 HH:MM:SS */
   cooldownLabel?: string
@@ -435,22 +435,23 @@ function MenuQuickItem({
 }: MenuQuickItemProps) {
   const cooling = Boolean(cooldownLabel)
   const [hovered, setHovered] = useState(false)
-  const showDoneBadge = ready || done
-  const lift = (showDoneBadge && hovered) || highlighted
-  const showRing = cooling && cooldownProgress != null
+  /** 받기 가능 — 코랄 원형 띠 + 「받기」 뱃지 */
+  const claimable = ready || done
+  const lift = (claimable && hovered) || highlighted
+  const showCooldownRing = cooling && cooldownProgress != null
   const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
+  const bandOutset = MENU_CLAIM_BAND_GAP + MENU_CLAIM_BAND_STROKE
+  const bandSize = circleSize + bandOutset * 2
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
-        done
-          ? `${label}, 완료`
-          : ready
-            ? `${label}, 완료`
-            : cooling
-              ? `${label}, 남은 시간 ${cooldownLabel}`
-              : label
+        claimable
+          ? `${label}, 받기`
+          : cooling
+            ? `${label}, 남은 시간 ${cooldownLabel}`
+            : label
       }
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
@@ -469,10 +470,25 @@ function MenuQuickItem({
             overflow: 'visible',
           }}
         >
-          {showRing ? (
+          {showCooldownRing ? (
             <MenuCooldownRing
               size={circleSize}
               progress={cooldownProgress ?? 0}
+            />
+          ) : null}
+          {claimable && !showCooldownRing ? (
+            <View
+              pointerEvents="none"
+              style={[
+                styles.menuClaimBand,
+                {
+                  width: bandSize,
+                  height: bandSize,
+                  borderRadius: bandSize / 2,
+                  left: -bandOutset,
+                  top: -bandOutset,
+                },
+              ]}
             />
           ) : null}
           <View
@@ -484,10 +500,9 @@ function MenuQuickItem({
                 borderRadius: circleSize / 2,
                 backgroundColor: bgColor,
               },
-              ready && styles.menuCircleReady,
-              done && !ready && styles.menuCircleReady,
-              showRing && styles.menuCircleCooldown,
-              highlighted && !showDoneBadge && !cooling && styles.menuCircleNudge,
+              claimable && styles.menuCircleClaimable,
+              showCooldownRing && styles.menuCircleCooldown,
+              highlighted && !claimable && !cooling && styles.menuCircleNudge,
             ]}
           >
             <Image
@@ -513,21 +528,17 @@ function MenuQuickItem({
               </View>
             ) : null}
           </View>
-          {showDoneBadge ? (
+          {claimable ? (
             <View style={styles.menuReadyBadge} pointerEvents="none">
               <Text style={styles.menuReadyBadgeText} allowFontScaling={false}>
-                완료
+                받기
               </Text>
             </View>
           ) : null}
         </View>
       </View>
       <Text
-        style={[
-          styles.menuLabel,
-          { fontSize: labelSize },
-          ready && styles.menuLabelReady,
-        ]}
+        style={[styles.menuLabel, { fontSize: labelSize }]}
         numberOfLines={1}
       >
         {label}
@@ -1550,7 +1561,7 @@ function PetHomeScreenBody() {
                   image={item.image}
                   bgColor={item.bgColor}
                   ready={false}
-                  done={item.id === 'stamp' ? stampedToday : false}
+                  done={item.id === 'stamp' ? !stampedToday : false}
                   highlighted={false}
                   circleSize={menuCircleSize}
                   iconSize={menuIconSize}
@@ -2210,10 +2221,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
     includeFontPadding: false,
   },
+  menuClaimBand: {
+    position: 'absolute',
+    zIndex: 1,
+    borderWidth: MENU_CLAIM_BAND_STROKE,
+    borderColor: Colors.primary,
+    backgroundColor: 'transparent',
+  },
   menuReadyBadge: {
     position: 'absolute',
-    top: -4,
-    right: -8,
+    top: -5,
+    right: -7,
     zIndex: 4,
     paddingHorizontal: 6,
     paddingVertical: 3,
@@ -2226,9 +2244,9 @@ const styles = StyleSheet.create({
     color: Colors.surface,
     letterSpacing: -0.2,
   },
-  menuCircleReady: {
-    borderWidth: 2.5,
-    borderColor: Colors.primary,
+  menuCircleClaimable: {
+    borderWidth: 1,
+    borderColor: Colors.border,
     backgroundColor: Colors.background,
   },
   menuCircleCooldown: {
@@ -2246,10 +2264,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     color: Colors.textSecondary,
-  },
-  menuLabelReady: {
-    color: Colors.primary,
-    fontWeight: '700',
   },
   petLayer: {
     flex: 1,

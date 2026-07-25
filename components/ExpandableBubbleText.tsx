@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Pressable,
+  ScrollView,
   StyleSheet,
   type StyleProp,
   type TextStyle,
@@ -16,6 +17,8 @@ type ExpandableBubbleTextProps = {
   textStyle?: StyleProp<TextStyle>
   /** 접힌 상태 최대 줄 수 */
   collapsedLines?: number
+  /** 펼친 상태 최대 높이 — 넘치면 내부 스크롤 */
+  maxExpandedHeight?: number
   align?: 'left' | 'center' | 'right'
   style?: StyleProp<ViewStyle>
 }
@@ -28,6 +31,7 @@ export function ExpandableBubbleText({
   text,
   textStyle,
   collapsedLines = 2,
+  maxExpandedHeight = 160,
   align = 'left',
   style,
 }: ExpandableBubbleTextProps) {
@@ -46,6 +50,15 @@ export function ExpandableBubbleText({
       : align === 'right'
         ? 'flex-end'
         : 'flex-start'
+
+  const body = (
+    <Text
+      style={textStyle}
+      numberOfLines={expanded || !needsExpand ? undefined : collapsedLines}
+    >
+      {text}
+    </Text>
+  )
 
   return (
     <View
@@ -70,12 +83,18 @@ export function ExpandableBubbleText({
         </Text>
       ) : null}
 
-      <Text
-        style={textStyle}
-        numberOfLines={expanded || !needsExpand ? undefined : collapsedLines}
-      >
-        {text}
-      </Text>
+      {expanded && needsExpand ? (
+        <ScrollView
+          style={{ maxHeight: maxExpandedHeight }}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          {body}
+        </ScrollView>
+      ) : (
+        body
+      )}
 
       {needsExpand ? (
         <Pressable
@@ -85,7 +104,14 @@ export function ExpandableBubbleText({
           onPress={() => setExpanded((v) => !v)}
           style={({ pressed }) => [
             styles.expandBtn,
-            { alignSelf: justify === 'center' ? 'center' : justify === 'flex-end' ? 'flex-end' : 'flex-start' },
+            {
+              alignSelf:
+                justify === 'center'
+                  ? 'center'
+                  : justify === 'flex-end'
+                    ? 'flex-end'
+                    : 'flex-start',
+            },
             pressed && styles.expandPressed,
           ]}
         >

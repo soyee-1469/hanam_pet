@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   primaryInner: {
-    height: 54,
+    height: 60,
     width: '100%',
     borderRadius: 16,
     alignItems: 'center',
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   primaryEmphasized: {
-    height: 56,
+    height: 60,
     backgroundColor: Colors.primary,
   },
   primaryDisabled: {
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     color: Colors.inactiveText,
   },
   secondaryInner: {
-    height: 54,
+    height: 60,
     width: '100%',
     borderRadius: 14,
     alignItems: 'center',

@@ -1,11 +1,13 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import type { Icon } from 'phosphor-react-native'
-import { Trash, Warning } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { TypeStyle } from '../../constants/Typography'
 import { CenterDialog } from './AppOverlay'
+import {
+  DialogIconBadge,
+  type DialogIconTone,
+} from './DialogIconBadge'
 
-type ConfirmTone = 'danger' | 'warning'
 type CancelTone = 'outline' | 'primary'
 type ActionsOrder = 'cancel-confirm' | 'confirm-cancel'
 
@@ -15,12 +17,16 @@ type ConfirmDialogProps = {
   body: string
   cancelLabel?: string
   confirmLabel?: string
-  /** danger=삭제(error), warning=이탈 경고(악센트+주황 CTA) */
-  tone?: ConfirmTone
+  /**
+   * danger=삭제 · warning=이탈/주의 · info=안내 · withdraw=회원탈퇴
+   * 모두 같은 원형 뱃지 패턴, 아이콘만 톤별 통일
+   */
+  tone?: DialogIconTone
   /** outline=테두리 취소, primary=코랄 면(계속 이용 등) */
   cancelTone?: CancelTone
   /** 기본 cancel→confirm. 탈퇴 확인처럼 위험 액션을 왼쪽에 둘 때 confirm-cancel */
   actionsOrder?: ActionsOrder
+  /** 톤 기본 아이콘 덮어쓰기 */
   Icon?: Icon
   onCancel: () => void
   onConfirm: () => void
@@ -28,7 +34,7 @@ type ConfirmDialogProps = {
   onBackdropPress?: () => void
 }
 
-/** 가운데 팝업 — 삭제·이탈·탈퇴 등 신중한 확인용 (바텀시트와 구분) */
+/** 가운데 팝업 — 삭제·이탈·탈퇴·안내 등 신중한 확인용 (바텀시트와 구분) */
 export function ConfirmDialog({
   visible,
   title,
@@ -43,9 +49,7 @@ export function ConfirmDialog({
   onConfirm,
   onBackdropPress,
 }: ConfirmDialogProps) {
-  const isDanger = tone === 'danger'
-  const Glyph = Icon ?? (isDanger ? Trash : Warning)
-  const iconColor = isDanger ? Colors.error : Colors.accent
+  const isDanger = tone === 'danger' || tone === 'withdraw'
   const confirmFirst = actionsOrder === 'confirm-cancel'
 
   const cancelBtn = (
@@ -56,7 +60,8 @@ export function ConfirmDialog({
       onPress={onCancel}
       style={({ pressed }) => [
         cancelTone === 'primary' ? styles.primary : styles.secondary,
-        pressed && (cancelTone === 'primary' ? styles.actionPressed : styles.pressed),
+        pressed &&
+          (cancelTone === 'primary' ? styles.actionPressed : styles.pressed),
       ]}
     >
       <Text
@@ -91,14 +96,7 @@ export function ConfirmDialog({
       onBackdropPress={onBackdropPress ?? onCancel}
       cardStyle={styles.cardAlign}
     >
-      <View
-        style={[
-          styles.iconWrap,
-          isDanger ? styles.iconWrapDanger : styles.iconWrapWarning,
-        ]}
-      >
-        <Glyph size={28} color={iconColor} weight="regular" />
-      </View>
+      <DialogIconBadge tone={tone} Icon={Icon} />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>{body}</Text>
       <View style={styles.actions}>
@@ -121,20 +119,6 @@ export function ConfirmDialog({
 const styles = StyleSheet.create({
   cardAlign: {
     alignItems: 'center',
-  },
-  iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  iconWrapDanger: {
-    backgroundColor: Colors.errorSoft,
-  },
-  iconWrapWarning: {
-    backgroundColor: Colors.accentSoft,
   },
   title: {
     ...TypeStyle.modalTitle,

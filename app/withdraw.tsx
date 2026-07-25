@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Check, Trash } from 'phosphor-react-native'
+import { Check } from 'phosphor-react-native'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import {
@@ -110,8 +110,7 @@ export default function WithdrawScreen() {
 
       <ConfirmDialog
         visible={dialog === 'confirm'}
-        Icon={Trash}
-        tone="danger"
+        tone="withdraw"
         title="정말 탈퇴하시겠어요?"
         body={
           '탈퇴하시면 모든 추억이 사라지고,\n이전 기록을 다시 되돌릴 수 없어요.'
@@ -129,8 +128,7 @@ export default function WithdrawScreen() {
 
       <ConfirmDialog
         visible={dialog === 'fail'}
-        Icon={Trash}
-        tone="danger"
+        tone="warning"
         title="탈퇴 처리에 실패했어요."
         body={'기록은 그대로 있어요.\n잠시 후 다시 시도해 주세요.'}
         confirmLabel="다시 시도하기"

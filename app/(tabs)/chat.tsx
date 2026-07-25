@@ -476,45 +476,31 @@ function ChatScreenBody() {
           >
             {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
 
-            {/* 유저 질문 — 최신 2개만, 높이 제한으로 답변과 분리 */}
-            {visibleUserMessages.length > 0 ? (
+            {/* 유저 질문 — 최신 1개만 */}
+            {latestUserMessage ? (
               <ScrollView
                 style={[styles.userStackScroll, { maxHeight: userStackMaxH }]}
                 contentContainerStyle={styles.userStackContent}
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled
                 keyboardShouldPersistTaps="handled"
-                onContentSizeChange={() => {
-                  scrollRef.current?.scrollToEnd({ animated: true })
-                }}
                 ref={scrollRef}
               >
-                {visibleUserMessages.map((m, i) => {
-                  const isLatest = i === visibleUserMessages.length - 1
-                  return (
-                    <View
-                      key={m.id}
-                      style={[
-                        styles.userStackItem,
-                        !isLatest && styles.userStackItemPrev,
-                      ]}
-                    >
-                      <ChatBubble
-                        variant="user"
-                        style={styles.userBubbleWrap}
-                        tail="bottom"
-                      >
-                        <ExpandableBubbleText
-                          text={m.text}
-                          textStyle={styles.userText}
-                          align="center"
-                          collapsedLines={2}
-                          maxExpandedHeight={100}
-                        />
-                      </ChatBubble>
-                    </View>
-                  )
-                })}
+                <View style={styles.userStackItem}>
+                  <ChatBubble
+                    variant="user"
+                    style={styles.userBubbleWrap}
+                    tail="bottom"
+                  >
+                    <ExpandableBubbleText
+                      text={latestUserMessage.text}
+                      textStyle={styles.userText}
+                      align="center"
+                      collapsedLines={2}
+                      maxExpandedHeight={100}
+                    />
+                  </ChatBubble>
+                </View>
               </ScrollView>
             ) : null}
 

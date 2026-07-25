@@ -9,7 +9,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native'
-import { Phone } from 'phosphor-react-native'
+import { CaretLeft, Phone } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
 import { HelpContactsSheet } from './HelpContactsSheet'
 
@@ -144,7 +144,11 @@ export function HelpFloatingFab({
           >
             <Animated.View style={[styles.sticker, { width: stickerWidth }]}>
               <View style={styles.phoneBadge}>
-                <Phone size={18} color={Colors.cocoa} weight="fill" />
+                {expanded ? (
+                  <Phone size={18} color={Colors.cocoa} weight="fill" />
+                ) : (
+                  <CaretLeft size={18} color={Colors.cocoa} weight="bold" />
+                )}
               </View>
 
               {expanded ? (

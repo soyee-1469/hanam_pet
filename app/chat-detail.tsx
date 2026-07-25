@@ -2,14 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
+  Image,
   Pressable,
   StyleSheet,
   ScrollView,
+  type ImageSourcePropType,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
+import { DogExpr } from '../constants/DogExpr'
+import { CatExpr } from '../constants/OnboardingMascot'
 import { ScreenHeader } from '../components/ui'
 import {
   countUnreadChatMessages,
@@ -17,13 +21,21 @@ import {
   markAllChatMessagesRead,
   type ChatHistoryMessage,
 } from '../lib/chatHistory'
-import { getOnboardingProfile } from '../lib/onboardingStorage'
+import {
+  getOnboardingProfile,
+  type PetChoice,
+} from '../lib/onboardingStorage'
 import { getPetName } from '../lib/petProfile'
 import {
   formatDateFromYmdWithWeekday,
   formatTime,
 } from '../lib/dateFormat'
 import { showToast } from '../lib/toast'
+
+const PET_AVATAR: Record<PetChoice, ImageSourcePropType> = {
+  mongi: DogExpr.wink,
+  nami: CatExpr.wink,
+}
 
 function parseYmd(date: string) {
   const [y, m, d] = date.split('-').map((n) => Number(n))
@@ -34,10 +46,12 @@ function MessageRow({
   message,
   name,
   text,
+  avatar,
 }: {
   message: ChatHistoryMessage
   name: string
   text: string
+  avatar?: ImageSourcePropType
 }) {
   const isUser = message.role === 'user'
   const timeLabel = formatTime(message.at)
@@ -49,6 +63,14 @@ function MessageRow({
       <View
         style={[styles.metaRow, isUser ? styles.metaRowUser : styles.metaRowPet]}
       >
+        {avatar ? (
+          <Image
+            source={avatar}
+            style={styles.metaAvatar}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
+        ) : null}
         <Text style={styles.metaName}>{name}</Text>
         <Text style={styles.metaTime}>{timeLabel}</Text>
       </View>
@@ -70,12 +92,15 @@ export default function ChatDetailScreen() {
   )
   const [nickname, setNickname] = useState('닉네임')
   const [petName, setPetName] = useState('하치')
+  const [petId, setPetId] = useState<PetChoice>('mongi')
 
   useEffect(() => {
     void (async () => {
       const profile = await getOnboardingProfile()
+      const id: PetChoice = profile?.petId ?? 'mongi'
+      setPetId(id)
       if (profile?.nickname) setNickname(profile.nickname)
-      const name = await getPetName(profile?.petId ?? 'mongi')
+      const name = await getPetName(id)
       if (name) setPetName(name)
     })()
   }, [])
@@ -145,6 +170,9 @@ export default function ChatDetailScreen() {
             key={message.id}
             message={message}
             name={message.role === 'user' ? nickname : petName}
+            avatar={
+              message.role === 'pet' ? PET_AVATAR[petId] : undefined
+            }
             text={
               message.role === 'pet'
                 ? message.text.replaceAll('하치', petName)
@@ -226,6 +254,12 @@ const styles = StyleSheet.create({
   },
   metaRowPet: {
     justifyContent: 'flex-start',
+  },
+  metaAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.creamyBeige,
   },
   metaName: {
     fontSize: 12,

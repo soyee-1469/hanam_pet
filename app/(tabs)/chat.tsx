@@ -251,17 +251,34 @@ function ChatScreenBody() {
     onOpen: scrollToEnd,
   })
 
-  /** 캐릭터·답변 우선 — 질문은 2줄(+펼침)만이라 높이 작게 */
-  const userStackMaxH = useMemo(() => {
-    const petReserve = keyboardOpen ? 260 : 340
-    const fromWindow = Math.round(windowH * 0.16)
-    if (stageH <= 0) return Math.min(96, fromWindow)
-    return Math.max(56, Math.min(fromWindow, stageH - petReserve))
-  }, [windowH, stageH, keyboardOpen])
+  /**
+   * 무대 반반:
+   * - 위 50% = 질문+답변 (질문은 상한, 답변이 나머지)
+   * - 아래 50% = 캐릭터
+   */
+  const stampBandH = stamp ? 28 : 0
+  const usableStageH = Math.max(0, stageH - stampBandH)
+  const dialogueH =
+    usableStageH > 0 ? Math.round(usableStageH * 0.5) : Math.round(windowH * 0.28)
+  const characterH =
+    usableStageH > 0 ? usableStageH - dialogueH : Math.round(windowH * 0.28)
+  /** 질문 최대 ≈ 위 구간의 38% (2줄+확대), 답변이 나머지 */
+  const userMaxH = Math.max(56, Math.min(96, Math.round(dialogueH * 0.38)))
+  const answerMaxH = Math.max(
+    64,
+    dialogueH - (latestUserMessage ? userMaxH : 0) - 8,
+  )
+  const petDisplaySize = Math.min(
+    keyboardOpen ? 140 : 200,
+    Math.max(96, characterH - 20),
+  )
 
   const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
   const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
-  const petChatStyle = keyboardOpen ? styles.petChatKeyboard : styles.petChat
+  const petChatStyle = {
+    width: petDisplaySize,
+    height: petDisplaySize,
+  }
   /** 입력창 위 우측 고정 — 긴박 시 바로 누를 수 있게 키보드·타이핑 중에도 노출 */
   const showHelpFab = !depleted && !showChatTour && noticeDone
 
@@ -476,98 +493,98 @@ function ChatScreenBody() {
           >
             {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
 
-            {/* 유저 질문 — 최신 1개, 2줄+우측 확대 (캐릭터 기준 살짝 오른쪽) */}
-            {latestUserMessage ? (
-              <View
-                style={[styles.userStack, { maxHeight: userStackMaxH }]}
-              >
-                <View style={styles.userStackItem}>
-                  <ChatBubble
-                    variant="user"
-                    style={styles.userBubbleWrap}
-                  >
-                    <ExpandableBubbleText
-                      text={latestUserMessage.text}
-                      textStyle={styles.userText}
-                      align="left"
-                      collapsedLines={2}
-                      expandPlacement="trailing"
-                      maxExpandedHeight={72}
-                    />
-                  </ChatBubble>
-                </View>
-              </View>
-            ) : null}
-
-            {/* 캐릭터(가운데) + 답변(살짝 왼쪽) — 남은 공간 우선 */}
-            <View style={styles.petStageFixed}>
-              <View style={styles.petStageInner}>
-              {typing ? (
-                <View style={styles.petBubbleContainer}>
-                  <ChatBubble
-                    variant="pet"
-                    style={styles.typingBubbleWrap}
-                    contentStyle={styles.typingBubble}
-                  >
-                    <View style={styles.typingDotsRow}>
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <View
-                          key={i}
-                          style={[
-                            styles.typingDot,
-                            i >= dotCount && styles.typingDotDim,
-                          ]}
-                        />
-                      ))}
-                    </View>
-                  </ChatBubble>
-                </View>
-              ) : depleted ? (
-                depletedBubble
-              ) : showComposeTip && userMessages.length === 0 ? (
-                <View style={styles.tipWrap}>
-                  <View style={styles.tipBubble}>
-                    <Text style={styles.tipText}>
-                      내가 마음을 보낼 때마다 대답 내용이 바뀌어요
-                    </Text>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="안내 닫기"
-                      hitSlop={8}
-                      onPress={() => setTipVisible(false)}
-                      style={styles.tipClose}
+            {/* 위 50% — 질문+답변 (질문은 상한, 답변이 나머지) */}
+            <View style={[styles.dialogueBand, { height: dialogueH }]}>
+              {latestUserMessage ? (
+                <View style={[styles.userStack, { maxHeight: userMaxH }]}>
+                  <View style={styles.userStackItem}>
+                    <ChatBubble
+                      variant="user"
+                      style={styles.userBubbleWrap}
                     >
-                      <X size={14} color={Colors.surface} weight="bold" />
-                    </Pressable>
+                      <ExpandableBubbleText
+                        text={latestUserMessage.text}
+                        textStyle={styles.userText}
+                        align="left"
+                        collapsedLines={2}
+                        expandPlacement="trailing"
+                        maxExpandedHeight={Math.max(48, userMaxH - 52)}
+                      />
+                    </ChatBubble>
                   </View>
-                  <View style={styles.tipTail} />
-                </View>
-              ) : latestPetReply ? (
-                <View style={styles.petBubbleContainer}>
-                  <ChatBubble
-                    variant="pet"
-                    style={styles.petAnswerWrap}
-                    contentStyle={styles.petAnswerBubble}
-                    tailColor={Colors.cardRecessed}
-                  >
-                    <ExpandableBubbleText
-                      text={latestPetReply.text}
-                      textStyle={styles.petAnswerText}
-                      align="left"
-                      collapsedLines={4}
-                      maxExpandedHeight={140}
-                    />
-                  </ChatBubble>
                 </View>
               ) : null}
 
+              <View style={[styles.answerBand, { maxHeight: answerMaxH }]}>
+                {typing ? (
+                  <View style={styles.petBubbleContainer}>
+                    <ChatBubble
+                      variant="pet"
+                      style={styles.typingBubbleWrap}
+                      contentStyle={styles.typingBubble}
+                    >
+                      <View style={styles.typingDotsRow}>
+                        {Array.from({ length: 6 }, (_, i) => (
+                          <View
+                            key={i}
+                            style={[
+                              styles.typingDot,
+                              i >= dotCount && styles.typingDotDim,
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    </ChatBubble>
+                  </View>
+                ) : depleted ? (
+                  depletedBubble
+                ) : showComposeTip && userMessages.length === 0 ? (
+                  <View style={styles.tipWrap}>
+                    <View style={styles.tipBubble}>
+                      <Text style={styles.tipText}>
+                        내가 마음을 보낼 때마다 대답 내용이 바뀌어요
+                      </Text>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="안내 닫기"
+                        hitSlop={8}
+                        onPress={() => setTipVisible(false)}
+                        style={styles.tipClose}
+                      >
+                        <X size={14} color={Colors.surface} weight="bold" />
+                      </Pressable>
+                    </View>
+                    <View style={styles.tipTail} />
+                  </View>
+                ) : latestPetReply ? (
+                  <View style={styles.petBubbleContainer}>
+                    <ChatBubble
+                      variant="pet"
+                      style={styles.petAnswerWrap}
+                      contentStyle={styles.petAnswerBubble}
+                      tailColor={Colors.cardRecessed}
+                    >
+                      <ExpandableBubbleText
+                        text={latestPetReply.text}
+                        textStyle={styles.petAnswerText}
+                        align="left"
+                        collapsedLines={5}
+                        maxExpandedHeight={Math.max(72, answerMaxH - 40)}
+                      />
+                    </ChatBubble>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            {/* 아래 50% — 캐릭터 고정 대역 */}
+            <View style={[styles.characterBand, { height: characterH }]}>
               <Image
                 source={petImage}
                 style={petChatStyle}
                 resizeMode="contain"
                 accessibilityLabel={petName}
               />
-
               {depleted ? (
                 <View style={[styles.statusPill, styles.statusPillDepleted]}>
                   <View style={[styles.statusDot, styles.statusDotDepleted]} />
@@ -579,7 +596,6 @@ function ChatScreenBody() {
                   </Text>
                 </View>
               ) : null}
-              </View>
             </View>
           </View>
         )}
@@ -782,6 +798,26 @@ const styles = StyleSheet.create({
     minHeight: 0,
     overflow: 'hidden',
   },
+  dialogueBand: {
+    width: '100%',
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  answerBand: {
+    width: '100%',
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  characterBand: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
   userStackScroll: {
     flexGrow: 0,
     flexShrink: 0,
@@ -791,7 +827,6 @@ const styles = StyleSheet.create({
   userStack: {
     flexGrow: 0,
     flexShrink: 0,
-    marginBottom: 6,
     overflow: 'hidden',
     width: '100%',
     alignItems: 'flex-end',
@@ -815,7 +850,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
-    marginBottom: 10,
+    marginBottom: 6,
+    height: 22,
   },
   userRow: {
     alignItems: 'flex-end',
@@ -854,12 +890,11 @@ const styles = StyleSheet.create({
   petBubbleContainer: {
     alignItems: 'flex-start',
     alignSelf: 'stretch',
-    marginBottom: 2,
     paddingLeft: 4,
     paddingRight: '12%',
-    paddingBottom: 4,
-    maxHeight: '48%',
+    paddingBottom: 2,
     flexShrink: 1,
+    minHeight: 0,
   },
   petAnswerWrap: {
     alignSelf: 'flex-start',
@@ -869,7 +904,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cardRecessed,
     borderRadius: 24,
     paddingHorizontal: Layout.screenPaddingH,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderWidth: 1,
     borderColor: Colors.border,
     ...Shadows.elevation,

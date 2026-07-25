@@ -12,6 +12,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  useWindowDimensions,
   type TextInput as RNTextInput,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -83,6 +84,8 @@ export default function ChatScreen() {
 
 function ChatScreenBody() {
   const insets = useSafeAreaInsets()
+  const { height: windowH } = useWindowDimensions()
+  const userStackMaxH = Math.round(windowH * 0.34)
   const scrollRef = useRef<ScrollView>(null)
   const inputRef = useRef<RNTextInput>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -179,13 +182,11 @@ function ChatScreenBody() {
     return ''
   }, [messages])
 
-  /** 강아지 우측 — 방금 보낸 유저 말풍선 1개만 */
-  const latestUserMessage = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      if (messages[i].role === 'user') return messages[i]
-    }
-    return null
-  }, [messages])
+  /** 강아지 답변 위 — 유저 질문 말풍선들 (최신이 아래) */
+  const userMessages = useMemo(
+    () => messages.filter((m) => m.role === 'user'),
+    [messages],
+  )
 
   const latestPetReply = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -453,17 +454,52 @@ function ChatScreenBody() {
             </View>
           </ScrollView>
         ) : (
-          <ScrollView
-            ref={scrollRef}
-            style={styles.flex}
-            contentContainerStyle={styles.chatContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-          >
-            <Text style={styles.stamp}>{stamp}</Text>
+          <View style={styles.stageChat}>
+            {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
 
-            <View style={styles.petBlock}>
+            {/* 유저 질문 — 답변·캐릭터 위, 말풍선, 길면 2줄+펼침 */}
+            {userMessages.length > 0 ? (
+              <ScrollView
+                style={[styles.userStackScroll, { maxHeight: userStackMaxH }]}
+                contentContainerStyle={styles.userStackContent}
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled
+                keyboardShouldPersistTaps="handled"
+                onContentSizeChange={() => {
+                  scrollRef.current?.scrollToEnd({ animated: true })
+                }}
+                ref={scrollRef}
+              >
+                {userMessages.map((m, i) => {
+                  const isLatest = i === userMessages.length - 1
+                  return (
+                    <View
+                      key={m.id}
+                      style={[
+                        styles.userStackItem,
+                        !isLatest && styles.userStackItemPrev,
+                      ]}
+                    >
+                      <ChatBubble
+                        variant="user"
+                        style={styles.userBubbleWrap}
+                      >
+                        <ExpandableBubbleText
+                          text={m.text}
+                          textStyle={styles.userText}
+                          align="left"
+                          collapsedLines={2}
+                          maxExpandedHeight={140}
+                        />
+                      </ChatBubble>
+                    </View>
+                  )
+                })}
+              </ScrollView>
+            ) : null}
+
+            {/* 캐릭터 + 답변 — 세로 중앙 고정 */}
+            <View style={styles.petStageFixed}>
               {typing ? (
                 <View style={styles.petBubbleContainer}>
                   <ChatBubble
@@ -486,7 +522,7 @@ function ChatScreenBody() {
                 </View>
               ) : depleted ? (
                 depletedBubble
-              ) : showComposeTip ? (
+              ) : showComposeTip && userMessages.length === 0 ? (
                 <View style={styles.tipWrap}>
                   <View style={styles.tipBubble}>
                     <Text style={styles.tipText}>
@@ -521,27 +557,12 @@ function ChatScreenBody() {
                 </View>
               ) : null}
 
-              <View style={styles.petStageRow}>
-                <Image
-                  source={petImage}
-                  style={petChatStyle}
-                  resizeMode="contain"
-                  accessibilityLabel={petName}
-                />
-                {latestUserMessage ? (
-                  <View style={styles.userBeside}>
-                    <ChatBubble variant="user" style={styles.userBubbleWrap}>
-                      <ExpandableBubbleText
-                        text={latestUserMessage.text}
-                        textStyle={styles.userText}
-                        align="left"
-                      />
-                    </ChatBubble>
-                  </View>
-                ) : (
-                  <View style={styles.userBesideSpacer} />
-                )}
-              </View>
+              <Image
+                source={petImage}
+                style={petChatStyle}
+                resizeMode="contain"
+                accessibilityLabel={petName}
+              />
 
               {depleted ? (
                 <View style={[styles.statusPill, styles.statusPillDepleted]}>
@@ -555,7 +576,7 @@ function ChatScreenBody() {
                 </View>
               ) : null}
             </View>
-          </ScrollView>
+          </View>
         )}
 
         <View
@@ -750,35 +771,38 @@ const styles = StyleSheet.create({
     paddingBottom: Layout.blockGap,
     flexGrow: 1,
   },
+  stageChat: {
+    flex: 1,
+    paddingHorizontal: Layout.screenPaddingH,
+    minHeight: 0,
+  },
+  userStackScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    marginBottom: 8,
+  },
+  userStackContent: {
+    paddingBottom: 4,
+    gap: 8,
+    alignItems: 'flex-end',
+  },
+  userStackItem: {
+    maxWidth: '92%',
+    alignSelf: 'flex-end',
+  },
+  userStackItemPrev: {
+    opacity: 0.55,
+  },
   stamp: {
     alignSelf: 'center',
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   userRow: {
     alignItems: 'flex-end',
     marginBottom: 14,
-  },
-  petStageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 4,
-  },
-  userBeside: {
-    flex: 1,
-    minWidth: 0,
-    maxWidth: 168,
-    alignItems: 'flex-end',
-    paddingRight: 4,
-  },
-  userBesideSpacer: {
-    flex: 1,
-    maxWidth: 168,
   },
   userBubbleWrap: {
     maxWidth: '100%',
@@ -790,16 +814,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
   },
+  petStageFixed: {
+    flex: 1,
+    minHeight: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 8,
+  },
   petBlock: {
     alignItems: 'center',
     marginTop: 8,
     paddingBottom: 8,
   },
   petBubbleContainer: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     alignSelf: 'stretch',
     marginBottom: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   petAnswerWrap: {
     alignSelf: 'stretch',

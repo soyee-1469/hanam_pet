@@ -125,20 +125,24 @@ function progressTowardReady(remainingMs: number, totalMs: number): number {
   return clamp01(1 - remainingSec / totalSec)
 }
 
-/** Progress ring: fills toward ready while waiting. */
+/**
+ * 메뉴 상태
+ * - 0회: ready（받기）
+ * - 1회: cooldown（타이머）— 남은 시간과 무관하게 표시, 2차 수령은 canClaimNow
+ * - 2회: done（완료）
+ */
 export function getClaimMenuStatus(
   bucket: ClaimBucket,
   now = Date.now(),
   kind: ClaimKind = 'feed',
 ): ClaimMenuStatus {
   const b = normalizeBucket(bucket)
-  // 하루 2회 모두 수령 — 「완료」
   if (b.count >= CLAIM_MAX_PER_DAY) {
     return { kind: 'done' }
   }
-  // 1차 수령 후: 타이머 표시 (2차는 남은 시간과 무관하게 가능 — canClaimNow)
-  if (b.count >= 1 && b.nextReadyAt > now) {
-    const remainingMs = b.nextReadyAt - now
+  // 1차 수령 후 ~ 2차 전: 항상 타이머 (시계가 0이어도 유지)
+  if (b.count >= 1) {
+    const remainingMs = Math.max(0, b.nextReadyAt - now)
     const totalMs = kind === 'feed' ? FEED_COOLDOWN_MS : TOY_COOLDOWN_MS
     return {
       kind: 'cooldown',
@@ -151,15 +155,14 @@ export function getClaimMenuStatus(
 }
 
 /**
- * 수령 가능 여부.
- * - 0회: 쿨다운이 없어야 함
- * - 1회 후: 남은 시간·사용 여부와 무관하게 2차 수령 가능 → 누르면 완료
+ * 수령 가능
+ * - 0회: 받기 가능
+ * - 1회 후: 타이머 중이어도 한 번 더 받으면 완료
+ * - 2회: 불가
  */
-export function canClaimNow(bucket: ClaimBucket, now = Date.now()): boolean {
+export function canClaimNow(bucket: ClaimBucket, _now = Date.now()): boolean {
   const b = normalizeBucket(bucket)
-  if (b.count >= CLAIM_MAX_PER_DAY) return false
-  if (b.count === 0 && b.nextReadyAt > now) return false
-  return true
+  return b.count < CLAIM_MAX_PER_DAY
 }
 
 /** 수령 성공 후 쿨다운·일일 카운트 반영 (사용 게이트 리셋) */

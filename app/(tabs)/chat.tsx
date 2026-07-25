@@ -187,9 +187,9 @@ function ChatScreenBody() {
     () => messages.filter((m) => m.role === 'user'),
     [messages],
   )
-  /** 무대에는 최신 2개만 — 많으면 답변과 겹치지 않게 */
-  const visibleUserMessages = useMemo(
-    () => userMessages.slice(-2),
+  /** 무대에는 최신 유저 말풍선 1개만 */
+  const latestUserMessage = useMemo(
+    () => userMessages[userMessages.length - 1] ?? null,
     [userMessages],
   )
 

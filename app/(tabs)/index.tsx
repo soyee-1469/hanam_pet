@@ -373,31 +373,29 @@ function menuRingOutset() {
 }
 
 function MenuCooldownRing({
-  slotSize,
-  circleSize,
+  outerSize,
   progress,
 }: {
-  /** 아이콘+링을 담는 고정 슬롯 (항상 동일 → 타이머 때 커져 보이지 않음) */
-  slotSize: number
-  circleSize: number
+  /** 띠·링의 바깥 지름 (= 일반 메뉴 원 크기와 동일) */
+  outerSize: number
   progress: number
 }) {
-  // 스트로크 중심: 원 바깥 gap 뒤 (슬롯 안에 맞춤)
-  const r = circleSize / 2 + MENU_RING_GAP + MENU_RING_STROKE / 2
+  // 스트로크 바깥이 outerSize에 맞도록 중심 반경
+  const r = outerSize / 2 - MENU_RING_STROKE / 2
   const c = 2 * Math.PI * r
   const ratio = Math.min(1, Math.max(0, progress))
   const offset = c * (1 - ratio)
-  const cx = slotSize / 2
+  const cx = outerSize / 2
 
   return (
     <Svg
-      width={slotSize}
-      height={slotSize}
+      width={outerSize}
+      height={outerSize}
       style={[
         styles.menuRingSvg,
         {
-          width: slotSize,
-          height: slotSize,
+          width: outerSize,
+          height: outerSize,
           left: 0,
           top: 0,
         },
@@ -449,10 +447,15 @@ function MenuQuickItem({
   const claimable = !complete && (ready || done)
   const lift = ((claimable || complete) && hovered) || highlighted
   const showCooldownRing = !complete && cooling && cooldownProgress != null
-  const timerFontSize = Math.max(7, Math.min(9, Math.round(circleSize * 0.18)))
+  /** 띠/링이 있을 때 안쪽 원을 줄여 바깥 지름 = 일반 메뉴와 동일 */
+  const framed = claimable || showCooldownRing
   const bandOutset = menuRingOutset()
-  /** 링/띠가 있어도 레이아웃 크기가 바뀌지 않도록 슬롯 고정 */
-  const slotSize = circleSize + bandOutset * 2
+  const outerSize = circleSize
+  const innerSize = framed ? Math.max(1, circleSize - bandOutset * 2) : circleSize
+  const innerIcon = framed
+    ? Math.max(1, Math.round(iconSize * (innerSize / circleSize)))
+    : iconSize
+  const timerFontSize = Math.max(7, Math.min(9, Math.round(innerSize * 0.18)))
   return (
     <Pressable
       accessibilityRole="button"
@@ -478,8 +481,8 @@ function MenuQuickItem({
       <View style={styles.menuIconWrap}>
         <View
           style={{
-            width: slotSize,
-            height: slotSize,
+            width: outerSize,
+            height: outerSize,
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'visible',
@@ -487,8 +490,7 @@ function MenuQuickItem({
         >
           {showCooldownRing ? (
             <MenuCooldownRing
-              slotSize={slotSize}
-              circleSize={circleSize}
+              outerSize={outerSize}
               progress={cooldownProgress ?? 0}
             />
           ) : null}
@@ -498,9 +500,9 @@ function MenuQuickItem({
               style={[
                 styles.menuClaimBand,
                 {
-                  width: slotSize,
-                  height: slotSize,
-                  borderRadius: slotSize / 2,
+                  width: outerSize,
+                  height: outerSize,
+                  borderRadius: outerSize / 2,
                   left: 0,
                   top: 0,
                 },
@@ -511,9 +513,9 @@ function MenuQuickItem({
             style={[
               styles.menuCircle,
               {
-                width: circleSize,
-                height: circleSize,
-                borderRadius: circleSize / 2,
+                width: innerSize,
+                height: innerSize,
+                borderRadius: innerSize / 2,
                 backgroundColor: bgColor,
               },
               claimable && styles.menuCircleClaimable,
@@ -529,7 +531,7 @@ function MenuQuickItem({
             <Image
               source={image}
               style={[
-                { width: iconSize, height: iconSize },
+                { width: innerIcon, height: innerIcon },
                 (cooling || complete) && styles.menuIconDimmed,
               ]}
               resizeMode="contain"

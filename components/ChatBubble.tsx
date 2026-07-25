@@ -3,25 +3,28 @@ import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
 import { Colors } from '../constants/Colors'
 
 type ChatBubbleVariant = 'user' | 'pet'
-type TailPlacement = 'side' | 'bottom'
+/** towardCharacter = 무대(캐릭터쪽 아래 꼬리) / side = 기록 목록(메신저형) */
+type TailMode = 'towardCharacter' | 'side'
 
 type ChatBubbleProps = {
-  /** user = 노랑 / pet = 흰 */
+  /** user = 노랑 · pet = 흰 */
   variant: ChatBubbleVariant
   children: ReactNode
   style?: StyleProp<ViewStyle>
   contentStyle?: StyleProp<ViewStyle>
-  /** 말풍선 면색과 맞출 꼬리 색 (기본: variant 색) */
+  /** 말풍선·꼬리 면색 (기본: variant 색) */
   tailColor?: string
   /**
-   * side — user 우측 / pet 좌측 (메신저형)
-   * bottom — 아래 중앙 (무대 가운데 정렬)
+   * towardCharacter — 유저 오른쪽 아래 / 펫 왼쪽 아래, 꼬리는 캐릭터 방향
+   * side — 유저 우측 / 펫 좌측 (대화 기록)
    */
-  tail?: TailPlacement
+  tail?: TailMode
 }
 
+const TAIL = 11
+
 /**
- * 대화 말풍선 — 노랑(질문) / 흰(캐릭터).
+ * 대화 말풍선 — 동글동글 + 꼬리가 면에 이어짐.
  */
 export function ChatBubble({
   variant,
@@ -29,19 +32,30 @@ export function ChatBubble({
   style,
   contentStyle,
   tailColor,
-  tail = 'side',
+  tail = 'towardCharacter',
 }: ChatBubbleProps) {
   const isUser = variant === 'user'
   const fill =
     tailColor ?? (isUser ? Colors.accentSoft : Colors.surface)
-  const bottomTail = tail === 'bottom'
+  const toward = tail === 'towardCharacter'
+  const bordered = !isUser
+
+  const towardPos = isUser ? styles.posBottomRight : styles.posBottomLeft
+  const sidePos = isUser ? styles.posSideRight : styles.posSideLeft
+  const seamToward = isUser ? styles.seamBottomRight : styles.seamBottomLeft
+  const seamSide = isUser ? styles.seamSideRight : styles.seamSideLeft
 
   return (
     <View
       style={[
         styles.wrap,
-        isUser ? styles.wrapUser : styles.wrapPet,
-        bottomTail && styles.wrapCenter,
+        toward
+          ? isUser
+            ? styles.wrapUserToward
+            : styles.wrapPetToward
+          : isUser
+            ? styles.wrapUserSide
+            : styles.wrapPetSide,
         style,
       ]}
     >
@@ -49,30 +63,54 @@ export function ChatBubble({
         style={[
           styles.bubble,
           isUser ? styles.bubbleUser : styles.bubblePet,
-          bottomTail && styles.bubbleBottomTail,
           contentStyle,
         ]}
       >
         {children}
       </View>
-      <View
-        pointerEvents="none"
-        style={[
-          styles.tail,
-          bottomTail
-            ? styles.tailBottom
-            : isUser
-              ? styles.tailRight
-              : styles.tailLeft,
-          { backgroundColor: fill },
-          bottomTail &&
-            !isUser && {
-              borderRightWidth: 1,
-              borderBottomWidth: 1,
-              borderColor: Colors.border,
-            },
-        ]}
-      />
+
+      {toward ? (
+        <>
+          {bordered ? (
+            <View
+              pointerEvents="none"
+              style={[styles.tailOutline, towardPos, styles.outlineNudgeToward]}
+            />
+          ) : null}
+          <View
+            pointerEvents="none"
+            style={[styles.tailFill, towardPos, { backgroundColor: fill }]}
+          />
+          <View
+            pointerEvents="none"
+            style={[
+              styles.seamToward,
+              seamToward,
+              {
+                backgroundColor: fill,
+                height: bordered ? 3 : 2,
+              },
+            ]}
+          />
+        </>
+      ) : (
+        <>
+          {bordered ? (
+            <View
+              pointerEvents="none"
+              style={[styles.tailOutline, sidePos, styles.outlineNudgeSide]}
+            />
+          ) : null}
+          <View
+            pointerEvents="none"
+            style={[styles.tailFill, sidePos, { backgroundColor: fill }]}
+          />
+          <View
+            pointerEvents="none"
+            style={[styles.seamSide, seamSide, { backgroundColor: fill }]}
+          />
+        </>
+      )}
     </View>
   )
 }
@@ -82,58 +120,95 @@ const styles = StyleSheet.create({
     position: 'relative',
     maxWidth: '100%',
   },
-  wrapUser: {
+  wrapUserToward: {
+    alignSelf: 'flex-end',
+    marginBottom: 8,
+  },
+  wrapPetToward: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  wrapUserSide: {
     alignSelf: 'flex-end',
   },
-  wrapPet: {
+  wrapPetSide: {
     alignSelf: 'flex-start',
   },
-  wrapCenter: {
-    alignSelf: 'center',
-  },
   bubble: {
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
   },
   bubbleUser: {
     backgroundColor: Colors.accentSoft,
-    borderBottomRightRadius: 4,
   },
   bubblePet: {
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderBottomLeftRadius: 4,
   },
-  bubbleBottomTail: {
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-  },
-  tail: {
+  tailFill: {
     position: 'absolute',
-    width: 12,
-    height: 12,
+    width: TAIL,
+    height: TAIL,
     transform: [{ rotate: '45deg' }],
+    zIndex: 2,
   },
-  /** 노란 말풍선 — 우측 꼬리 */
-  tailRight: {
-    right: -5,
-    bottom: 12,
+  tailOutline: {
+    position: 'absolute',
+    width: TAIL + 2,
+    height: TAIL + 2,
+    backgroundColor: Colors.border,
+    transform: [{ rotate: '45deg' }],
+    zIndex: 1,
   },
-  /** 흰 말풍선 — 좌측 꼬리 (+ 테두리) */
-  tailLeft: {
-    left: -5,
-    bottom: 12,
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
+  /** 유저 — 오른쪽 아래 → 캐릭터 */
+  posBottomRight: {
+    right: 16,
+    bottom: -(TAIL / 2) + 1,
   },
-  /** 무대형 — 아래 중앙 꼬리 */
-  tailBottom: {
-    bottom: -5,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -6,
+  /** 펫 — 왼쪽 아래 → 캐릭터 */
+  posBottomLeft: {
+    left: 16,
+    bottom: -(TAIL / 2) + 1,
+  },
+  outlineNudgeToward: {
+    bottom: -(TAIL / 2),
+  },
+  seamToward: {
+    position: 'absolute',
+    width: TAIL + 8,
+    bottom: 0,
+    zIndex: 3,
+  },
+  seamBottomRight: {
+    right: 12,
+  },
+  seamBottomLeft: {
+    left: 12,
+  },
+  posSideRight: {
+    right: -(TAIL / 2) + 1,
+    bottom: 14,
+  },
+  posSideLeft: {
+    left: -(TAIL / 2) + 1,
+    bottom: 14,
+  },
+  outlineNudgeSide: {
+    // keep same anchor; larger box peeks as border
+  },
+  seamSide: {
+    position: 'absolute',
+    width: 3,
+    height: TAIL + 8,
+    bottom: 10,
+    zIndex: 3,
+  },
+  seamSideRight: {
+    right: 0,
+  },
+  seamSideLeft: {
+    left: 0,
   },
 })

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { dayKey, msUntilMidnight } from './dayKey'
 
-const KEY = 'hp_pet_claim_cooldown_v1'
+const KEY = 'hp_pet_claim_cooldown_v2'
 
 /** 하루 최대 수령 횟수 (시안·안내 문구) */
 export const CLAIM_MAX_PER_DAY = 2

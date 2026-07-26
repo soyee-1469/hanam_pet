@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
-import { Layout } from '../constants/Layout'
+import Svg, { Path } from 'react-native-svg'
 import { Colors } from '../constants/Colors'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
@@ -15,8 +15,8 @@ type CoachmarkTourCardProps = {
 }
 
 /**
- * 6단계 투어 카드
- * — 흰 면 + 코랄은「다음」만 / 테두리·이중 꼬리 없음
+ * 영역별 설명 콜아웃 (모달 카드 아님)
+ * — 딤 위 타이틀·본문 + 화살표, CTA만 코랄
  */
 export function CoachmarkTourCard({
   step,
@@ -30,9 +30,10 @@ export function CoachmarkTourCard({
 }: CoachmarkTourCardProps) {
   const page = stepIndex + 1
   const tailMode = step.tail ?? 'down'
-  const showTail = tailMode !== 'none'
-  const tailUp = tailMode === 'up'
+  const showArrow = tailMode !== 'none'
+  const arrowUp = tailMode === 'up'
   const ctaLabel = step.ctaLabel ?? '다음'
+  const alignStart = tailAlign === 'start'
 
   return (
     <View
@@ -43,72 +44,93 @@ export function CoachmarkTourCard({
         !center && (top != null ? { top } : { bottom: bottom ?? 0 }),
       ]}
     >
-      <View style={styles.unit}>
-        {showTail && tailUp ? (
+      <View
+        style={[styles.unit, alignStart && styles.unitStart]}
+        pointerEvents="box-none"
+      >
+        {showArrow && arrowUp ? (
           <View
-            style={[
-              styles.tailSlot,
-              styles.tailSlotUp,
-              tailAlign === 'start' && styles.tailSlotStart,
-            ]}
+            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
+            accessibilityElementsHidden
           >
-            <View style={[styles.tail, styles.tailUp]} />
+            <DashedArrow up />
           </View>
         ) : null}
 
-        <View style={styles.card}>
-          <View style={styles.topRow}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{step.badge}</Text>
-            </View>
-            <Text style={styles.page}>
-              {page} / {PET_TOUR_TOTAL}
-            </Text>
-          </View>
-
+        <View style={[styles.copy, alignStart && styles.copyStart]}>
+          <Text style={styles.page}>
+            {page}/{PET_TOUR_TOTAL}
+          </Text>
           <Text style={styles.title} numberOfLines={2}>
             {step.title(petName)}
           </Text>
-          <Text style={styles.body} numberOfLines={4}>
+          <Text style={styles.body} numberOfLines={3}>
             {step.body(petName)}
           </Text>
-
-          <View style={styles.footer}>
-            <View style={styles.dots} accessibilityRole="progressbar">
-              {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
-                <View
-                  key={i}
-                  style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
-                />
-              ))}
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={ctaLabel}
-              onPress={onNext}
-              style={({ pressed }) => [
-                styles.nextBtn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={styles.nextText}>{ctaLabel}</Text>
-            </Pressable>
-          </View>
         </View>
 
-        {showTail && !tailUp ? (
+        {showArrow && !arrowUp ? (
           <View
-            style={[
-              styles.tailSlot,
-              styles.tailSlotDown,
-              tailAlign === 'start' && styles.tailSlotStart,
-            ]}
+            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
+            accessibilityElementsHidden
           >
-            <View style={styles.tail} />
+            <DashedArrow />
           </View>
         ) : null}
+
+        <View
+          style={[styles.footer, alignStart && styles.footerStart]}
+          pointerEvents="box-none"
+        >
+          <View style={styles.dots} accessibilityRole="progressbar">
+            {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
+              <View
+                key={i}
+                style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
+              />
+            ))}
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ctaLabel}
+            onPress={onNext}
+            style={({ pressed }) => [
+              styles.nextBtn,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text style={styles.nextText}>{ctaLabel}</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
+  )
+}
+
+function DashedArrow({ up = false }: { up?: boolean }) {
+  return (
+    <Svg
+      width={28}
+      height={36}
+      viewBox="0 0 28 36"
+      style={up ? styles.arrowFlip : undefined}
+    >
+      <Path
+        d="M14 2 V26"
+        stroke={Colors.surface}
+        strokeWidth={2}
+        strokeDasharray="4 4"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M8 20 L14 28 L20 20"
+        stroke={Colors.surface}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </Svg>
   )
 }
 
@@ -119,63 +141,70 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 40,
     elevation: 40,
-    alignItems: 'center',
   },
   wrapCenter: {
-    top: '30%',
+    top: '28%',
   },
   unit: {
     width: '100%',
     alignItems: 'center',
   },
-  card: {
-    width: '100%',
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: 16,
-    paddingBottom: 16,
+  unitStart: {
+    alignItems: 'flex-start',
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  copy: {
+    width: '100%',
+    maxWidth: 320,
+    paddingHorizontal: 4,
     marginBottom: 10,
   },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: Colors.peach,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.cocoa,
+  copyStart: {
+    paddingLeft: 8,
   },
   page: {
     fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textDisabled,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    marginBottom: 6,
+    letterSpacing: 0.2,
   },
   title: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: Colors.accent,
     marginBottom: 6,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    lineHeight: 28,
   },
   body: {
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.textSecondary,
+    color: 'rgba(255,255,255,0.92)',
     lineHeight: 21,
-    marginBottom: 16,
+  },
+  arrowSlot: {
+    height: 36,
+    marginVertical: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrowSlotStart: {
+    alignSelf: 'flex-start',
+    paddingLeft: 36,
+  },
+  arrowFlip: {
+    transform: [{ rotate: '180deg' }],
   },
   footer: {
+    marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 320,
+  },
+  footerStart: {
+    paddingLeft: 8,
   },
   dots: {
     flexDirection: 'row',
@@ -186,18 +215,18 @@ const styles = StyleSheet.create({
     width: 16,
     height: 6,
     borderRadius: 999,
-    backgroundColor: Colors.cocoa,
+    backgroundColor: Colors.accent,
   },
   dotOff: {
     width: 6,
     height: 6,
     borderRadius: 999,
-    backgroundColor: Colors.sand,
+    backgroundColor: 'rgba(255,255,255,0.35)',
   },
   nextBtn: {
-    minWidth: 80,
-    height: 38,
-    paddingHorizontal: 16,
+    minWidth: 84,
+    height: 40,
+    paddingHorizontal: 18,
     borderRadius: 12,
     backgroundColor: Colors.primary,
     alignItems: 'center',
@@ -210,33 +239,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.88,
-  },
-  tailSlot: {
-    width: '100%',
-    height: 10,
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  tailSlotUp: {
-    marginBottom: -1,
-  },
-  tailSlotDown: {
-    marginTop: -1,
-  },
-  tailSlotStart: {
-    alignItems: 'flex-start',
-    paddingLeft: 40,
-  },
-  /** 순수 흰 다이아 — 테두리 없음(코랄/베이지 라인 오인 방지) */
-  tail: {
-    width: 12,
-    height: 12,
-    backgroundColor: Colors.surface,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -2,
-  },
-  tailUp: {
-    marginTop: 0,
-    marginBottom: -2,
   },
 })

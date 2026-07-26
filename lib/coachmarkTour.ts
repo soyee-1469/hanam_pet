@@ -1,4 +1,4 @@
-/** 코치마크 투어 스텝 (cm-01 환영 시트 이후) */
+/** 코치마크 투어 스텝 (cm-01 환영 시트 이후) — 영역별 설명 */
 
 export type PetTourHighlight =
   | 'care'
@@ -31,18 +31,16 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-02',
     badge: '나의 펫',
-    title: () => '나만의 펫을 돌봐 주세요',
-    body: (name) =>
-      `사료를 주고 놀아 주면 무럭무럭 자라요. ${name}를 돌보며 내 마음도 함께 챙겨요.`,
+    title: () => '여기서 펫을 돌봐요',
+    body: (name) => `사료·놀아 주기로 ${name}를 챙겨 주세요.`,
     highlight: 'care',
     route: 'pet',
   },
   {
     id: 'cm-02b',
     badge: '나의 펫',
-    title: () => '펫에게 선물하세요',
-    body: () =>
-      '위에서 사료와 장난감을 받을 수 있어요. 받은 선물은 아래에서 펫에게 줄 수 있어요.',
+    title: () => '선물은 위에서 받아요',
+    body: () => '사료·장난감을 받은 뒤, 아래에서 줄 수 있어요.',
     highlight: 'menu',
     route: 'pet',
     tail: 'up',
@@ -50,27 +48,24 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-03',
     badge: '대화',
-    title: () => '펫과 마음을 나눠요',
-    body: () =>
-      '여기에 오늘의 마음을 적어 보내면, 내 마음에 공감하며 따뜻하게 답해 줘요.',
+    title: () => '여기에 마음을 적어요',
+    body: () => '보내면 펫이 따뜻하게 답해 줘요.',
     highlight: 'composer',
     route: 'chat',
   },
   {
     id: 'cm-04',
     badge: '마음일기',
-    title: () => '오늘의 마음을 남겨요',
-    body: () =>
-      '하루의 감정을 이모지와 짧은 글로 기록해요. 나의 감정이 일기장에 차곡차곡 쌓여요.',
+    title: () => '오늘의 감정을 남겨요',
+    body: () => '이모지와 짧은 글로 하루를 기록해요.',
     highlight: 'writeCta',
     route: 'diary',
   },
   {
     id: 'cm-05',
     badge: '마음챙김',
-    title: () => '내 마음을 살펴봐요',
-    body: () =>
-      '간단한 설문으로 내 마음 상태를 알 수 있어요. 나조차 몰랐던 마음을 객관적으로 확인해요.',
+    title: () => '설문으로 마음을 살피요',
+    body: () => '간단한 평가로 상태를 객관적으로 봐요.',
     highlight: 'checkTool',
     route: 'mind',
     tail: 'up',
@@ -78,9 +73,8 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-06',
     badge: '시작하기',
-    title: () => '이제 준비가 끝났어요!',
-    body: () =>
-      '아래 메뉴에서 원하는 기능을 자유롭게 이용해 보세요. 시작해 볼까요?',
+    title: () => '아래 메뉴로 다녀보세요',
+    body: () => '원하는 기능을 골라 바로 시작해 볼까요?',
     highlight: 'tabs',
     route: 'pet',
     tail: 'none',

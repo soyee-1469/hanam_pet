@@ -493,9 +493,9 @@ export const PET_EXISTING: ExistingItem[] = [
     note: '홈 최초 투어 시작',
   },
   {
-    name: '코치마크 투어 카드 / CoachmarkTourCard',
+    name: '코치마크 영역 설명 / CoachmarkTourCard',
     path: 'components/CoachmarkTourCard.tsx',
-    note: '홈·일기·채팅·마음 step dots + CTA',
+    note: '딤 위 영역별 타이틀·본문·화살표 (모달 아님)',
   },
   {
     name: '코치마크 완료 시트 / CoachmarkCompleteSheet',

@@ -1648,7 +1648,10 @@ function PetHomeScreenBody() {
           <View style={styles.menuRow}>
             <View
               ref={claimMenuRef}
-              style={styles.claimMenuGroup}
+              style={[
+                styles.claimMenuGroup,
+                tourHighlightMenu && styles.tourLiftTarget,
+              ]}
               collapsable={false}
             >
               {HEADER_MENU.filter(
@@ -1831,7 +1834,10 @@ function PetHomeScreenBody() {
         >
           <View
             ref={actionRowRef}
-            style={styles.primaryBlock}
+            style={[
+              styles.primaryBlock,
+              tourHighlightCare && styles.tourLiftTarget,
+            ]}
             collapsable={false}
           >
             <LevelEnergyBlock
@@ -2698,6 +2704,12 @@ const styles = StyleSheet.create({
   },
   primaryBlock: {
     alignSelf: 'stretch',
+  },
+  /** 투어 구멍 타깃 — 딤(z20) 위로 올려 밝기 유지 */
+  tourLiftTarget: {
+    zIndex: 30,
+    elevation: 30,
+    position: 'relative',
   },
   actionRow: {
     width: '100%',

@@ -584,7 +584,11 @@ function DiaryScreenBody() {
         style={[styles.ctaWrap, { paddingBottom: tabBarSpace + 12 }]}
         collapsable={false}
       >
-        <View ref={writeCtaRef} collapsable={false}>
+        <View
+          ref={writeCtaRef}
+          collapsable={false}
+          style={tourHighlightWrite ? styles.tourLiftTarget : undefined}
+        >
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`+ ${ctaLabel}`}
@@ -886,6 +890,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.elevation,
+  },
+  tourLiftTarget: {
+    zIndex: 30,
+    elevation: 30,
+    position: 'relative',
   },
   ctaPressed: {
     opacity: 0.92,

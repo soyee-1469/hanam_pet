@@ -694,6 +694,10 @@ function ChatScreenBody() {
             <View
               ref={composerRef}
               collapsable={false}
+              style={styles.composerMeasure}
+            >
+            <View
+              collapsable={false}
               style={[
                 styles.composer,
                 inputFocused && styles.composerFocused,
@@ -752,6 +756,7 @@ function ChatScreenBody() {
                 />
               </Pressable>
             </View>
+            </View>
           )}
 
           {!showChatTour ? (
@@ -769,7 +774,7 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={28} />
+          <CoachScrimHole hole={tourHole} radius={26} pad={4} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -1198,6 +1203,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
   },
+  composerMeasure: {
+    alignSelf: 'stretch',
+  },
   composer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1213,7 +1221,7 @@ const styles = StyleSheet.create({
   composerFocused: {
     borderColor: Colors.selected,
   },
-  /** 투어 3단계 — 구멍·코코아 테두리는 CoachScrimHole이 담당 */
+  /** 투어 3단계 — 구멍·코코아 라인은 CoachScrimHole이 담당 */
   composerTour: {
     backgroundColor: Colors.surface,
   },

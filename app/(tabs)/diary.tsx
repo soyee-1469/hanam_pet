@@ -601,7 +601,7 @@ function DiaryScreenBody() {
 
       {showDiaryTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={20} />
+          <CoachScrimHole hole={tourHole} radius={18} pad={4} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}

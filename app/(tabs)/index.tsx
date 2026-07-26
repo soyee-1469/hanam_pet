@@ -1121,34 +1121,51 @@ function PetHomeScreenBody() {
   }, [coachTourStep])
 
   useEffect(() => {
-    if (!showPetTour || !homeFocused || tourHighlightTabs) {
-      setTourHole(null)
-      return
-    }
-    const target = tourHighlightCare
-      ? actionRowRef.current
-      : tourHighlightMenu
-        ? claimMenuRef.current
-        : null
-    if (!target) {
+    if (!showPetTour || !homeFocused) {
       setTourHole(null)
       return
     }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
+      screenRootRef.current?.measureInWindow((cx, cy, cw, ch) => {
+        if (!alive) return
+        const measuredH = ch > 0 ? Math.round(ch) : rootH || screenHeight
+        const measuredW = cw > 0 ? Math.round(cw) : screenWidth
+        if (ch > 0) setRootH(measuredH)
+
+        // 6단계 — 하단 탭바 영역만 둥글게 비움
+        if (tourHighlightTabs) {
+          setTourHole({
+            x: 10,
+            y: Math.max(0, measuredH - tabBarReserve - 2),
+            w: Math.max(0, measuredW - 20),
+            h: tabBarReserve + 10,
+          })
+          return
+        }
+
+        const target = tourHighlightCare
+          ? actionRowRef.current
+          : tourHighlightMenu
+            ? claimMenuRef.current
+            : null
+        if (!target) {
+          setTourHole(null)
+          return
+        }
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
           const localY = y - cy
-          const measuredH = ch > 0 ? Math.round(ch) : rootH
-          if (ch > 0) setRootH(measuredH)
-          // 케어·메뉴: 자연 크기 + 살짝 좌우 여유 (탭바까지 억지로 안 늘림)
           const padX = tourHighlightCare ? 4 : 2
+          // 케어: 탭바에 가려지지 않게 하단을 잘라 둥근 면이 보이게
+          const maxH = tourHighlightCare
+            ? Math.max(80, measuredH - localY - tabBarReserve - 8)
+            : h
           setTourHole({
             x: Math.max(0, x - cx - padX),
             y: localY,
             w: w + padX * 2,
-            h,
+            h: Math.min(h, maxH),
           })
         })
       })
@@ -1170,6 +1187,7 @@ function PetHomeScreenBody() {
     tourHighlightTabs,
     sheetH,
     rootH,
+    tabBarReserve,
     screenWidth,
     screenHeight,
     foodCount,
@@ -1872,8 +1890,11 @@ function PetHomeScreenBody() {
       {showPetTour && homeFocused && tourStep ? (
         <>
           <CoachScrimHole
-            hole={tourHighlightTabs ? null : tourHole}
-            radius={tourHighlightCare ? 24 : 22}
+            hole={tourHole}
+            radius={
+              tourHighlightTabs ? 20 : tourHighlightCare ? 22 : 20
+            }
+            pad={tourHighlightTabs ? 0 : tourHighlightMenu ? 8 : 5}
           />
           <CoachmarkTourCard
             step={tourStep}
@@ -1888,7 +1909,7 @@ function PetHomeScreenBody() {
                       headerTopPad + 8,
                       (tourHole?.y ?? headerTopPad + 100) +
                         (tourHole?.h ?? 0) +
-                        18,
+                        14,
                     ),
                     tailAlign: 'start' as const,
                   }
@@ -1897,7 +1918,7 @@ function PetHomeScreenBody() {
                     bottom: tourHole
                       ? Math.max(
                           tabBarReserve + 20,
-                          (rootH || screenHeight) - tourHole.y + 16,
+                          (rootH || screenHeight) - tourHole.y + 14,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +

@@ -217,19 +217,25 @@ export default function TabLayout() {
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            // 투어 중: 일반은 어둡게 / 6단계는 크림 면으로만 밝게 (떠 있는 테두리 없음)
+            // 투어 중: 일반은 어둡게 / 6단계는 크림 면 + 상단만 둥글게
             backgroundColor: mainMenuTour
               ? Colors.cardRecessed
               : tourHighlight
                 ? 'rgba(45, 28, 18, 0.94)'
                 : Colors.cardRecessed,
             borderTopWidth: mainMenuTour
-              ? StyleSheet.hairlineWidth
+              ? 1
               : tourHighlight
                 ? 0
                 : StyleSheet.hairlineWidth,
-            borderTopColor: mainMenuTour ? Colors.border : Colors.border,
-            borderRadius: 0,
+            borderTopColor: mainMenuTour
+              ? 'rgba(122, 91, 69, 0.28)'
+              : Colors.border,
+            borderTopLeftRadius: mainMenuTour ? 20 : 0,
+            borderTopRightRadius: mainMenuTour ? 20 : 0,
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+            marginHorizontal: mainMenuTour ? 10 : 0,
             overflow: 'hidden' as const,
             elevation: 0,
             shadowOpacity: 0,
@@ -347,16 +353,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      {tourHighlight?.mode === 'mainMenu' && !overlayLocked ? (
-        <View
-          pointerEvents="none"
-          style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 14 }]}
-        >
-          <View style={styles.mainMenuLabel}>
-            <Text style={styles.mainMenuLabelText}>메인 메뉴 탐색</Text>
-          </View>
-        </View>
-      ) : null}
     </>
   )
 }
@@ -395,24 +391,5 @@ const styles = StyleSheet.create({
   },
   tabPressed: {
     opacity: 0.88,
-  },
-  mainMenuLabelWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 60,
-    elevation: 0,
-    alignItems: 'center',
-  },
-  mainMenuLabel: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: Colors.selected,
-  },
-  mainMenuLabelText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.surface,
   },
 })

@@ -324,8 +324,9 @@ function ChatScreenBody() {
     usableStageH > 0 ? usableStageH - dialogueH : Math.round(windowH * 0.28)
   /** 질문 최대 — 2줄 본문 + 「더보기」가 잘리지 않게 여유 */
   const userMaxH = Math.max(88, Math.min(120, Math.round(dialogueH * 0.4)))
+  /** 답변 최소 — 4줄 본문 + 「더보기」가 잘리지 않게 여유 */
   const answerMaxH = Math.max(
-    64,
+    148,
     dialogueH - (latestUserMessage ? userMaxH : 0) - 8,
   )
   const petDisplaySize = Math.min(
@@ -646,7 +647,7 @@ function ChatScreenBody() {
                         text={latestPetReply.text}
                         textStyle={styles.petAnswerText}
                         align="left"
-                        collapsedLines={2}
+                        collapsedLines={4}
                         expandPlacement="below"
                         expandMode="popup"
                       />

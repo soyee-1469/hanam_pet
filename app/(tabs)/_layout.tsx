@@ -217,7 +217,7 @@ export default function TabLayout() {
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            // 투어 중: 일반은 어둡게 / 6단계는 크림 면 + 상단만 둥글게
+            // 투어 중: 일반은 어둡게 / 6단계는 크림 풀폭 + 상단만 둥글게
             backgroundColor: mainMenuTour
               ? Colors.cardRecessed
               : tourHighlight
@@ -235,7 +235,7 @@ export default function TabLayout() {
             borderTopRightRadius: mainMenuTour ? 20 : 0,
             borderBottomLeftRadius: 0,
             borderBottomRightRadius: 0,
-            marginHorizontal: mainMenuTour ? 10 : 0,
+            marginHorizontal: 0,
             overflow: 'hidden' as const,
             elevation: 0,
             shadowOpacity: 0,

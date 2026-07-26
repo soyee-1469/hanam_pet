@@ -5,7 +5,7 @@ import {
   type ViewStyle,
   useWindowDimensions,
 } from 'react-native'
-import Svg, { Defs, Mask, Rect, Path } from 'react-native-svg'
+import Svg, { Path } from 'react-native-svg'
 
 export type CoachHoleRect = {
   x: number
@@ -19,23 +19,41 @@ type CoachScrimHoleProps = {
   hole: CoachHoleRect | null
   /** 구멍 모서리 */
   radius?: number
-  /** 구멍 여백 (기본 6) */
+  /**
+   * 구멍 여백.
+   * 기본 0 — 여백이 크림/흰으로 보이면 두꺼운 링처럼 느껴짐.
+   */
   pad?: number
+  /** 상단만 둥글게 (하단 탭바 등) */
+  roundTopOnly?: boolean
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(22, 12, 8, 0.86)'
-const EDGE = 'rgba(122, 91, 69, 0.55)'
-const DEFAULT_PAD = 6
+const SCRIM = 'rgba(20, 10, 6, 0.88)'
+const EDGE = 'rgba(122, 91, 69, 0.35)'
+const DEFAULT_PAD = 0
 
-function roundedHolePath(
+/** 시계 방향 둥근 사각 */
+function roundedCw(
   x: number,
   y: number,
   w: number,
   h: number,
   r: number,
+  roundTopOnly = false,
 ): string {
   const rx = Math.min(r, w / 2, h / 2)
+  if (roundTopOnly) {
+    return [
+      `M ${x} ${y + h}`,
+      `V ${y + rx}`,
+      `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
+      `H ${x + w - rx}`,
+      `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
+      `V ${y + h}`,
+      'Z',
+    ].join(' ')
+  }
   return [
     `M ${x + rx} ${y}`,
     `H ${x + w - rx}`,
@@ -50,14 +68,49 @@ function roundedHolePath(
   ].join(' ')
 }
 
+/** 반시계 방향 둥근 사각 — evenodd 구멍용 */
+function roundedCcw(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  roundTopOnly = false,
+): string {
+  const rx = Math.min(r, w / 2, h / 2)
+  if (roundTopOnly) {
+    return [
+      `M ${x} ${y + h}`,
+      `H ${x + w}`,
+      `V ${y + rx}`,
+      `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
+      `H ${x + rx}`,
+      `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
+      'Z',
+    ].join(' ')
+  }
+  return [
+    `M ${x + rx} ${y}`,
+    `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
+    `V ${y + h - rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + rx} ${y + h}`,
+    `H ${x + w - rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + w} ${y + h - rx}`,
+    `V ${y + rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
+    'Z',
+  ].join(' ')
+}
+
 /**
- * 투어 딤 + 둥근 컷아웃.
- * 흰 링·후광 없이 얇은 코코아 헤어라인만.
+ * 투어 딤 + 타깃에 딱 맞는 둥근 컷아웃.
+ * Mask 대신 evenodd 패스 — 웹에서 마스크 AA로 생기는 흰 링을 피함.
  */
 export function CoachScrimHole({
   hole,
-  radius = 20,
+  radius = 18,
   pad = DEFAULT_PAD,
+  roundTopOnly = false,
   style,
 }: CoachScrimHoleProps) {
   const { width: winW, height: winH } = useWindowDimensions()
@@ -84,8 +137,8 @@ export function CoachScrimHole({
   const rx = Math.min(radius, w / 2, h / 2)
   const svgW = Math.max(winW, x + w + 24)
   const svgH = Math.max(winH, y + h + 24)
-  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}`
-  const holePath = roundedHolePath(x, y, w, h, rx)
+  const edgePath = roundedCw(x, y, w, h, rx, roundTopOnly)
+  const fillPath = `M 0 0 H ${svgW} V ${svgH} H 0 Z ${roundedCcw(x, y, w, h, rx, roundTopOnly)}`
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
@@ -95,30 +148,10 @@ export function CoachScrimHole({
         height={svgH}
         style={StyleSheet.absoluteFill}
       >
-        <Defs>
-          <Mask id={maskId}>
-            <Rect x={0} y={0} width={svgW} height={svgH} fill="#fff" />
-            <Path d={holePath} fill="#000" />
-          </Mask>
-        </Defs>
-        <Rect
-          x={0}
-          y={0}
-          width={svgW}
-          height={svgH}
-          fill={SCRIM}
-          mask={`url(#${maskId})`}
-        />
-        {/* 얇은 코코아 라인 — 흰 링/글로우 대체 */}
-        <Path
-          d={holePath}
-          fill="none"
-          stroke={EDGE}
-          strokeWidth={1.25}
-        />
+        <Path d={fillPath} fill={SCRIM} fillRule="evenodd" />
+        <Path d={edgePath} fill="none" stroke={EDGE} strokeWidth={1} />
       </Svg>
 
-      {/* 터치만 막음 */}
       <View
         pointerEvents="auto"
         style={{
@@ -127,7 +160,10 @@ export function CoachScrimHole({
           top: y,
           width: w,
           height: h,
-          borderRadius: rx,
+          borderTopLeftRadius: rx,
+          borderTopRightRadius: rx,
+          borderBottomLeftRadius: roundTopOnly ? 0 : rx,
+          borderBottomRightRadius: roundTopOnly ? 0 : rx,
         }}
       />
     </View>

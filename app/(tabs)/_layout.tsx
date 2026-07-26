@@ -217,7 +217,7 @@ export default function TabLayout() {
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            // 투어 중: 일반은 어둡게 / 6단계는 크림 풀폭 + 상단만 둥글게
+            // 투어 중: 일반은 어둡게 / 6단계는 크림 풀폭으로만 밝게
             backgroundColor: mainMenuTour
               ? Colors.cardRecessed
               : tourHighlight
@@ -229,12 +229,10 @@ export default function TabLayout() {
                 ? 0
                 : StyleSheet.hairlineWidth,
             borderTopColor: mainMenuTour
-              ? 'rgba(122, 91, 69, 0.28)'
+              ? 'rgba(122, 91, 69, 0.35)'
               : Colors.border,
-            borderTopLeftRadius: mainMenuTour ? 20 : 0,
-            borderTopRightRadius: mainMenuTour ? 20 : 0,
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: 0,
+            borderTopLeftRadius: mainMenuTour ? 16 : 0,
+            borderTopRightRadius: mainMenuTour ? 16 : 0,
             marginHorizontal: 0,
             overflow: 'hidden' as const,
             elevation: 0,

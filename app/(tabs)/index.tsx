@@ -1133,14 +1133,9 @@ function PetHomeScreenBody() {
         const measuredW = cw > 0 ? Math.round(cw) : screenWidth
         if (ch > 0) setRootH(measuredH)
 
-        // 6단계 — 하단 탭바를 풀폭으로 비움 (떠 있는 도크 아님)
+        // 6단계 — 탭바는 레이아웃 형제라 딤 밖. 화면은 전체 딤만.
         if (tourHighlightTabs) {
-          setTourHole({
-            x: 0,
-            y: Math.max(0, measuredH - tabBarReserve),
-            w: measuredW,
-            h: tabBarReserve + 8,
-          })
+          setTourHole(null)
           return
         }
 
@@ -1155,21 +1150,9 @@ function PetHomeScreenBody() {
         }
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
-          const localY = y - cy
-          // 케어: 시트 폭으로 잡고 하단은 탭바까지 이어 떠 있는 카드처럼 안 보이게
-          if (tourHighlightCare) {
-            const top = Math.max(0, localY - 10)
-            setTourHole({
-              x: 0,
-              y: top,
-              w: measuredW,
-              h: Math.max(80, measuredH - top),
-            })
-            return
-          }
           setTourHole({
             x: Math.max(0, x - cx),
-            y: localY,
+            y: y - cy,
             w,
             h,
           })
@@ -1897,11 +1880,8 @@ function PetHomeScreenBody() {
         <>
           <CoachScrimHole
             hole={tourHole}
-            radius={
-              tourHighlightTabs || tourHighlightCare ? 24 : 16
-            }
-            pad={0}
-            roundTopOnly={tourHighlightTabs || tourHighlightCare}
+            radius={tourHighlightCare ? 20 : 16}
+            pad={tourHighlightCare ? 4 : 2}
           />
           <CoachmarkTourCard
             step={tourStep}

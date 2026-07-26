@@ -580,7 +580,7 @@ function ChatScreenBody() {
             style={styles.flex}
             contentContainerStyle={[
               styles.depletedStage,
-              keyboardOpen && styles.stageKeyboard,
+              softKeyboardUp && styles.stageKeyboard,
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"

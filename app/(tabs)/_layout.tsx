@@ -26,8 +26,6 @@ import {
 
 type TourTabName = 'chat' | 'diary' | 'index' | 'mind' | 'more'
 
-const MAIN_MENU_TABS: TourTabName[] = ['chat', 'diary', 'index', 'mind']
-
 /** Soft tab button — navigation tab bar button props */
 type SoftTabButtonProps = {
   children: ReactNode
@@ -52,7 +50,8 @@ function isTourTabSpotlight(
   highlight: PetTourTabHighlight,
 ): boolean {
   if (highlight == null) return false
-  if (highlight.mode === 'mainMenu') return MAIN_MENU_TABS.includes(routeName)
+  // 6단계 — 하단 네비 전체를 하나의 프레임으로 (설정 포함)
+  if (highlight.mode === 'mainMenu') return true
   return highlight.route === routeName
 }
 
@@ -72,7 +71,6 @@ function SoftTabButton({
 }) {
   const spotlight = isTourTabSpotlight(routeName, highlightRoute)
   const dimmed = highlightRoute != null && !spotlight
-  const mainMenu = highlightRoute?.mode === 'mainMenu' && spotlight
 
   return (
     <Pressable
@@ -85,8 +83,8 @@ function SoftTabButton({
       android_ripple={{ color: 'transparent' }}
       style={({ pressed }) => [
         style,
-        spotlight && styles.tourTabSpotlight,
-        mainMenu && styles.tourTabMainMenu,
+        // 개별 탭 박스 테두리는 구멍 테두리와 안 맞아 제거.
+        // 비활성만 어둡게, 6단계 그룹 프레임이 테두리를 담당.
         dimmed && styles.tourTabDimmed,
         pressed && !dimmed && styles.tabPressed,
       ]}
@@ -202,6 +200,7 @@ export default function TabLayout() {
     [tourHighlight],
   )
 
+  const mainMenuTour = tourHighlight?.mode === 'mainMenu'
   const tabBarStyle = useMemo(
     () =>
       overlayLocked
@@ -212,23 +211,30 @@ export default function TabLayout() {
           }
         : {
             position: 'absolute' as const,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: mainMenuTour ? 6 : 0,
+            right: mainMenuTour ? 6 : 0,
+            bottom: mainMenuTour ? 6 : 0,
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            backgroundColor: Colors.cardRecessed,
-            borderTopWidth: StyleSheet.hairlineWidth,
+            // 투어 중에는 탭바 면도 같이 어둡게
+            backgroundColor: tourHighlight
+              ? 'rgba(45, 28, 18, 0.94)'
+              : Colors.cardRecessed,
+            borderTopWidth: tourHighlight && !mainMenuTour ? 0 : mainMenuTour ? 0 : StyleSheet.hairlineWidth,
             borderTopColor: Colors.border,
+            // 6단계 — 탭바 자체에 둥근 흰 테두리 (오버레이 프레임과 어긋남 방지)
+            borderWidth: mainMenuTour ? 2 : 0,
+            borderColor: mainMenuTour ? Colors.surface : 'transparent',
+            borderRadius: mainMenuTour ? 20 : 0,
+            overflow: 'hidden' as const,
             elevation: 0,
             shadowOpacity: 0,
             shadowRadius: 0,
             shadowOffset: { width: 0, height: 0 },
-            // 투어 중에도 탭바를 남겨 하이라이트(시안)를 보여 준다
             zIndex: tourHighlight ? 50 : undefined,
           },
-    [overlayLocked, tabHeight, tabBottomPad, tourHighlight],
+    [overlayLocked, tabHeight, tabBottomPad, tourHighlight, mainMenuTour],
   )
 
   return (
@@ -341,7 +347,7 @@ export default function TabLayout() {
       {tourHighlight?.mode === 'mainMenu' && !overlayLocked ? (
         <View
           pointerEvents="none"
-          style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 8 }]}
+          style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 14 }]}
         >
           <View style={styles.mainMenuLabel}>
             <Text style={styles.mainMenuLabelText}>메인 메뉴 탐색</Text>
@@ -355,7 +361,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabItem: {
     width: '100%',
-    minWidth: 68,
+    minWidth: 64,
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 0,
@@ -381,23 +387,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textDisabled,
   },
-  /** 투어 — 활성 탭 코코아 라운드 테두리 (코랄은 CTA만) */
-  tourTabSpotlight: {
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: Colors.cocoa,
-    backgroundColor: Colors.surface,
-    marginHorizontal: 2,
-    marginVertical: 2,
-  },
-  tourTabMainMenu: {
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: Colors.cocoa,
-  },
   tourTabDimmed: {
-    opacity: 0.28,
+    opacity: 0.32,
   },
   tabPressed: {
     opacity: 0.88,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   type StyleProp,
   type TextStyle,
   type ViewStyle,
-  type LayoutChangeEvent,
 } from 'react-native'
 import { Colors } from '../constants/Colors'
 import { Type } from '../constants/Typography'
@@ -29,9 +28,47 @@ type ExpandableBubbleTextProps = {
   style?: StyleProp<ViewStyle>
 }
 
+function readFontSize(textStyle?: StyleProp<TextStyle>, fallback = 15): number {
+  const flat = StyleSheet.flatten(textStyle) as TextStyle | undefined
+  return typeof flat?.fontSize === 'number' ? flat.fontSize : fallback
+}
+
+/** 줄바꿈 + 폭 기준 예상 줄 수 (웹 onTextLayout 없이도 동작) */
+function estimateLineCount(
+  text: string,
+  width: number,
+  fontSize: number,
+): number {
+  const parts = text.replace(/\r\n/g, '\n').split('\n')
+  if (width <= 0) return parts.length
+
+  let total = 0
+  for (const part of parts) {
+    if (part.length === 0) {
+      total += 1
+      continue
+    }
+    let used = 0
+    let lines = 1
+    for (const ch of part) {
+      // 한글·이모지 등 전각 ≈ fontSize, 영문/숫자 ≈ 0.55em
+      const code = ch.codePointAt(0) ?? 0
+      const w =
+        code > 0xff || (code >= 0x1100 && code <= 0x11ff) ? fontSize : fontSize * 0.55
+      if (used + w > width && used > 0) {
+        lines += 1
+        used = w
+      } else {
+        used += w
+      }
+    }
+    total += lines
+  }
+  return total
+}
+
 /**
- * 긴 말풍선 — 접힌 줄 수를 넘으면 작은 「더보기/접기」로 펼친다.
- * (웹에서도 동작하도록 높이 비교로 overflow 감지)
+ * 긴 말풍선 — 2줄 넘으면 「더보기/접기」.
  */
 export function ExpandableBubbleText({
   text,
@@ -43,35 +80,30 @@ export function ExpandableBubbleText({
   style,
 }: ExpandableBubbleTextProps) {
   const [expanded, setExpanded] = useState(false)
-  const [needsExpand, setNeedsExpand] = useState(false)
   const [measureWidth, setMeasureWidth] = useState(0)
-  const [fullH, setFullH] = useState(0)
-  const [collapsedH, setCollapsedH] = useState(0)
+
+  const fontSize = readFontSize(textStyle)
+
+  const hardLines = useMemo(
+    () => text.replace(/\r\n/g, '\n').split('\n').length,
+    [text],
+  )
+
+  const estimatedLines = useMemo(
+    () => estimateLineCount(text, measureWidth, fontSize),
+    [text, measureWidth, fontSize],
+  )
+
+  // 줄바꿈만으로도 바로 판별 + 폭 측정 후 줄바꿈 없는 긴 문장도 판별
+  const needsExpand =
+    hardLines > collapsedLines || estimatedLines > collapsedLines
 
   useEffect(() => {
     setExpanded(false)
-    setNeedsExpand(false)
-    setFullH(0)
-    setCollapsedH(0)
   }, [text])
-
-  useEffect(() => {
-    if (fullH <= 0 || collapsedH <= 0) return
-    setNeedsExpand(fullH > collapsedH + 2)
-  }, [fullH, collapsedH])
 
   const trailing = expandPlacement === 'trailing'
   const showFull = expanded || !needsExpand
-
-  const onFullLayout = (e: LayoutChangeEvent) => {
-    const h = Math.round(e.nativeEvent.layout.height)
-    if (h > 0 && h !== fullH) setFullH(h)
-  }
-
-  const onCollapsedLayout = (e: LayoutChangeEvent) => {
-    const h = Math.round(e.nativeEvent.layout.height)
-    if (h > 0 && h !== collapsedH) setCollapsedH(h)
-  }
 
   const body = (
     <Text
@@ -121,25 +153,6 @@ export function ExpandableBubbleText({
         if (w > 0 && w !== measureWidth) setMeasureWidth(w)
       }}
     >
-      {/* 높이 측정용 — 웹에서도 줄 수 판별 */}
-      {measureWidth > 0 ? (
-        <View
-          pointerEvents="none"
-          style={[styles.measureBox, { width: measureWidth }]}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <View onLayout={onFullLayout}>
-            <Text style={textStyle}>{text}</Text>
-          </View>
-          <View onLayout={onCollapsedLayout}>
-            <Text style={textStyle} numberOfLines={collapsedLines}>
-              {text}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-
       {trailing ? (
         <View style={styles.trailingRow}>
           <View style={styles.trailingText}>{textBlock}</View>
@@ -156,13 +169,6 @@ export function ExpandableBubbleText({
 }
 
 const styles = StyleSheet.create({
-  measureBox: {
-    position: 'absolute',
-    opacity: 0,
-    zIndex: -1,
-    left: 0,
-    top: 0,
-  },
   trailingRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',

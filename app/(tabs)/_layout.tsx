@@ -382,9 +382,10 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   tourTabSpotlight: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 2.5,
-    borderColor: Colors.selected,
+    /** 하이라이트 테두리 = cocoa (코랄은 아이콘·라벨 tint만) */
+    borderColor: Colors.cocoa,
     backgroundColor: Colors.cardRecessed,
     marginHorizontal: 2,
     marginVertical: 2,

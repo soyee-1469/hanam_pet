@@ -1607,7 +1607,10 @@ function PetHomeScreenBody() {
           <View style={styles.menuRow}>
             <View
               ref={claimMenuRef}
-              style={styles.claimMenuGroup}
+              style={[
+                styles.claimMenuGroup,
+                tourHighlightMenu && styles.claimMenuTourFrame,
+              ]}
               collapsable={false}
             >
               {HEADER_MENU.filter(
@@ -1812,33 +1815,38 @@ function PetHomeScreenBody() {
             ) : null}
             <View
               ref={actionRowRef}
-              style={styles.actionRow}
+              style={[
+                styles.careTourMeasure,
+                tourHighlightCare && styles.careTourFrame,
+              ]}
               collapsable={false}
             >
-              <CareStockCard
-                count={foodCount}
-                icon={
-                  foodCount <= 0
-                    ? require('../../assets/images/아이콘/빈사료.png')
-                    : require('../../assets/images/아이콘/사료.png')
-                }
-                useLabel="사료 주기"
-                acquireLabel="사료"
-                onUse={handleFeedPress}
-                onAcquire={handleAcquireFeed}
-                anchorRef={feedCardRef}
-              />
-              <View style={{ width: actionGap }} />
-              <CareStockCard
-                count={toyCount}
-                icon={require('../../assets/images/아이콘/공.png')}
-                useLabel="놀아 주기"
-                acquireLabel="장난감"
-                grayIconWhenEmpty
-                onUse={handlePlayPress}
-                onAcquire={handleAcquireToy}
-                anchorRef={toyCardRef}
-              />
+              <View style={styles.actionRow}>
+                <CareStockCard
+                  count={foodCount}
+                  icon={
+                    foodCount <= 0
+                      ? require('../../assets/images/아이콘/빈사료.png')
+                      : require('../../assets/images/아이콘/사료.png')
+                  }
+                  useLabel="사료 주기"
+                  acquireLabel="사료"
+                  onUse={handleFeedPress}
+                  onAcquire={handleAcquireFeed}
+                  anchorRef={feedCardRef}
+                />
+                <View style={{ width: actionGap }} />
+                <CareStockCard
+                  count={toyCount}
+                  icon={require('../../assets/images/아이콘/공.png')}
+                  useLabel="놀아 주기"
+                  acquireLabel="장난감"
+                  grayIconWhenEmpty
+                  onUse={handlePlayPress}
+                  onAcquire={handleAcquireToy}
+                  anchorRef={toyCardRef}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -1846,7 +1854,10 @@ function PetHomeScreenBody() {
 
       {showPetTour && homeFocused && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHighlightTabs ? null : tourHole} />
+          <CoachScrimHole
+            hole={tourHighlightTabs ? null : tourHole}
+            showRing={false}
+          />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={coachTourStep ?? 0}
@@ -2654,6 +2665,27 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
+  },
+  /** 측정용 — 투어 아닐 때 레이아웃 영향 없음 */
+  careTourMeasure: {
+    alignSelf: 'stretch',
+  },
+  /** 코치마크 케어 하이라이트 — 코코아 테두리(코랄 금지), 모서리 20 */
+  careTourFrame: {
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: Colors.cocoa,
+    padding: 4,
+    backgroundColor: Colors.surface,
+  },
+  claimMenuTourFrame: {
+    borderRadius: 20,
+    borderWidth: 2.5,
+    borderColor: Colors.cocoa,
+    paddingTop: 6,
+    paddingBottom: 4,
+    paddingHorizontal: 2,
+    backgroundColor: Colors.surface,
   },
   stockCardWrap: {
     flex: 1,

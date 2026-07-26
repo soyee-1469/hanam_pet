@@ -185,21 +185,24 @@ function DiaryScreenBody() {
     }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy) => {
+      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
+          if (ch > 0) setRootH(Math.round(ch))
           setTourHole({ x: x - cx, y: y - cy, w, h })
         })
       })
     }
     const t = requestAnimationFrame(measure)
-    const t2 = setTimeout(measure, 120)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 240)
     return () => {
       alive = false
       cancelAnimationFrame(t)
       clearTimeout(t2)
+      clearTimeout(t3)
     }
-  }, [tourHighlightWrite, tabBarSpace, rootH])
+  }, [tourHighlightWrite, tabBarSpace])
 
   const moods = useMemo(
     () => diaryMoodsForMonth(year, month + 1, today),
@@ -578,7 +581,6 @@ function DiaryScreenBody() {
       </ScrollView>
 
       <View
-        ref={writeCtaRef}
         style={[styles.ctaWrap, { paddingBottom: tabBarSpace + 12 }]}
         collapsable={false}
       >
@@ -588,7 +590,7 @@ function DiaryScreenBody() {
           onPress={openWriteForSelected}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
-          <View style={styles.cta} collapsable={false}>
+          <View ref={writeCtaRef} style={styles.cta} collapsable={false}>
             <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
             <Text style={styles.ctaText}>{ctaLabel}</Text>
           </View>
@@ -604,12 +606,9 @@ function DiaryScreenBody() {
             petName={petName}
             onNext={onPetTourNext}
             bottom={
-              tourHole
-                ? Math.max(
-                    tabBarSpace + 8,
-                    (rootH || 800) - tourHole.y + 18,
-                  )
-                : tabBarSpace + 72
+              tourHole && rootH > 0
+                ? Math.max(tabBarSpace + 8, rootH - tourHole.y + 22)
+                : tabBarSpace + 100
             }
           />
         </>

@@ -1804,7 +1804,11 @@ function PetHomeScreenBody() {
             if (h > 0 && Math.abs(h - sheetH) > 2) setSheetH(h)
           }}
         >
-          <View style={styles.primaryBlock}>
+          <View
+            ref={actionRowRef}
+            style={styles.primaryBlock}
+            collapsable={false}
+          >
             <LevelEnergyBlock
               energy={energy}
               energyMax={ENERGY_MAX}
@@ -1827,11 +1831,7 @@ function PetHomeScreenBody() {
                 </Pressable>
               </View>
             ) : null}
-            <View
-              ref={actionRowRef}
-              style={styles.actionRow}
-              collapsable={false}
-            >
+            <View style={styles.actionRow} collapsable={false}>
               <CareStockCard
                 count={foodCount}
                 icon={
@@ -1882,11 +1882,11 @@ function PetHomeScreenBody() {
                     tailAlign: 'start' as const,
                   }
                 : {
-                    // 케어 영역과 겹치지 않게 여유 두고 위에 배치
+                    // 케어(에너지+주기) 구멍 바로 위에 카드
                     bottom: tourHole
                       ? Math.max(
                           tabBarReserve + 16,
-                          (rootH || screenHeight) - tourHole.y + 28,
+                          (rootH || screenHeight) - tourHole.y + 20,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +

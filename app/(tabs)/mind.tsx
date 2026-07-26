@@ -166,13 +166,18 @@ function MindScreenBody() {
     }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy) => {
+      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
-          // 하단 투어 카드(꼬리 up)와 겹치지 않게 구멍 높이 제한
+          const measuredH = ch > 0 ? Math.round(ch) : rootH
+          if (ch > 0) setRootH(measuredH)
           const localY = y - cy
           const cardReserve = tabBarSpace + 210
-          const room = Math.max(140, (rootH || 800) - localY - cardReserve)
+          const room = Math.max(
+            140,
+            (measuredH || 0) - localY - cardReserve,
+          )
+          if ((measuredH || 0) <= 0) return
           setTourHole({
             x: x - cx,
             y: localY,
@@ -183,11 +188,13 @@ function MindScreenBody() {
       })
     }
     const t = requestAnimationFrame(measure)
-    const t2 = setTimeout(measure, 120)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 240)
     return () => {
       alive = false
       cancelAnimationFrame(t)
       clearTimeout(t2)
+      clearTimeout(t3)
     }
   }, [tourHighlightCheck, tab, results, rootH, tabBarSpace])
 

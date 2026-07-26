@@ -487,7 +487,7 @@ function MindScreenBody() {
 
       {showMindTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} />
+          <CoachScrimHole hole={tourHole} radius={18} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}

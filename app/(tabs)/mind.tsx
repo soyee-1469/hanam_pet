@@ -493,7 +493,12 @@ function MindScreenBody() {
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={tabBarSpace + 14}
+            top={
+              tourHole
+                ? tourHole.y + tourHole.h + 10
+                : undefined
+            }
+            bottom={tourHole ? undefined : tabBarSpace + 120}
           />
         </>
       ) : null}

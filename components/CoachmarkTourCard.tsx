@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
 import { Colors } from '../constants/Colors'
+import { tabBarReserveHeight } from '../constants/Layout'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
 type CoachmarkTourCardProps = {
@@ -8,15 +10,23 @@ type CoachmarkTourCardProps = {
   stepIndex: number
   petName: string
   onNext: () => void
+  /** 설명·화살표 — 구멍 근처 */
   bottom?: number
   top?: number
   center?: boolean
   tailAlign?: 'center' | 'start'
+  /**
+   * CTA·점 고정 하단 여백.
+   * 기본: 탭바 위 여유 (네비 구멍과 안 겹치게).
+   */
+  ctaBottom?: number
 }
 
+const CTA_DOCK_H = 52
+
 /**
- * 영역별 설명 콜아웃 (모달 카드 아님)
- * — 딤 위 타이틀·본문 + 화살표, CTA만 코랄
+ * 영역별 설명 콜아웃
+ * — 글·화살표는 구멍을 따라가고, 「다음」은 화면 하단에 고정
  */
 export function CoachmarkTourCard({
   step,
@@ -27,7 +37,13 @@ export function CoachmarkTourCard({
   top,
   center = false,
   tailAlign = 'center',
+  ctaBottom,
 }: CoachmarkTourCardProps) {
+  const insets = useSafeAreaInsets()
+  const tabReserve = tabBarReserveHeight(insets.bottom)
+  // 탭바·네비 구멍 위 — 단계마다 같은 손 위치
+  const dockBottom = ctaBottom ?? tabReserve + 168
+
   const page = stepIndex + 1
   const tailMode = step.tail ?? 'down'
   const showArrow = tailMode !== 'none'
@@ -35,44 +51,66 @@ export function CoachmarkTourCard({
   const ctaLabel = step.ctaLabel ?? '다음'
   const alignStart = tailAlign === 'start'
 
+  // 콜아웃이 고정 CTA와 겹치지 않게
+  const calloutBottom =
+    !center && top == null && bottom != null
+      ? Math.max(bottom, dockBottom + CTA_DOCK_H + 16)
+      : bottom
+
   return (
-    <View
-      pointerEvents="box-none"
-      style={[
-        styles.wrap,
-        center && styles.wrapCenter,
-        !center && (top != null ? { top } : { bottom: bottom ?? 0 }),
-      ]}
-    >
+    <>
       <View
-        style={[styles.unit, alignStart && styles.unitStart]}
         pointerEvents="box-none"
+        style={[
+          styles.calloutWrap,
+          center && styles.calloutCenter,
+          !center &&
+            (top != null
+              ? { top }
+              : { bottom: calloutBottom ?? dockBottom + CTA_DOCK_H + 16 }),
+        ]}
       >
-        {showArrow && arrowUp ? (
-          <View
-            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
-            accessibilityElementsHidden
-          >
-            <DashedArrow up />
-          </View>
-        ) : null}
-
-        <View style={[styles.copy, alignStart && styles.copyStart]}>
-          <Text style={styles.page}>
-            {page}/{PET_TOUR_TOTAL}
-          </Text>
-          <Text style={styles.title} numberOfLines={2}>
-            {step.title(petName)}
-          </Text>
-          <Text style={styles.body} numberOfLines={3}>
-            {step.body(petName)}
-          </Text>
-        </View>
-
         <View
-          style={[styles.footer, alignStart && styles.footerStart]}
+          style={[styles.unit, alignStart && styles.unitStart]}
           pointerEvents="box-none"
         >
+          {showArrow && arrowUp ? (
+            <View
+              style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
+              accessibilityElementsHidden
+            >
+              <DashedArrow up />
+            </View>
+          ) : null}
+
+          <View style={[styles.copy, alignStart && styles.copyStart]}>
+            <Text style={styles.page}>
+              {page}/{PET_TOUR_TOTAL}
+            </Text>
+            <Text style={styles.title} numberOfLines={2}>
+              {step.title(petName)}
+            </Text>
+            <Text style={styles.body} numberOfLines={3}>
+              {step.body(petName)}
+            </Text>
+          </View>
+
+          {showArrow && !arrowUp ? (
+            <View
+              style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
+              accessibilityElementsHidden
+            >
+              <DashedArrow />
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      <View
+        pointerEvents="box-none"
+        style={[styles.ctaDock, { bottom: dockBottom }]}
+      >
+        <View style={styles.footer} pointerEvents="box-none">
           <View style={styles.dots} accessibilityRole="progressbar">
             {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
               <View
@@ -93,17 +131,8 @@ export function CoachmarkTourCard({
             <Text style={styles.nextText}>{ctaLabel}</Text>
           </Pressable>
         </View>
-
-        {showArrow && !arrowUp ? (
-          <View
-            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
-            accessibilityElementsHidden
-          >
-            <DashedArrow />
-          </View>
-        ) : null}
       </View>
-    </View>
+    </>
   )
 }
 
@@ -135,15 +164,23 @@ function DashedArrow({ up = false }: { up?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  calloutWrap: {
     position: 'absolute',
     left: 20,
     right: 20,
     zIndex: 40,
     elevation: 40,
   },
-  wrapCenter: {
-    top: '28%',
+  calloutCenter: {
+    top: '26%',
+  },
+  ctaDock: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    zIndex: 45,
+    elevation: 45,
+    alignItems: 'center',
   },
   unit: {
     width: '100%',
@@ -156,7 +193,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     paddingHorizontal: 4,
-    marginBottom: 12,
   },
   copyStart: {
     paddingLeft: 8,
@@ -184,7 +220,7 @@ const styles = StyleSheet.create({
   },
   arrowSlot: {
     height: 36,
-    marginTop: 4,
+    marginVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -201,9 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     maxWidth: 320,
-  },
-  footerStart: {
-    paddingLeft: 8,
+    minHeight: CTA_DOCK_H,
   },
   dots: {
     flexDirection: 'row',

@@ -80,6 +80,10 @@ import { CoachmarkWelcomeSheet } from '../../components/CoachmarkWelcomeSheet'
 import { CoachmarkCompleteSheet } from '../../components/CoachmarkCompleteSheet'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
 import {
+  CoachScrimHole,
+  type CoachHoleRect,
+} from '../../components/CoachScrimHole'
+import {
   getCoachmarkWelcomeStatus,
   setCoachmarkWelcomeStatus,
 } from '../../lib/coachmarkStorage'
@@ -689,6 +693,11 @@ function PetHomeScreenBody() {
   const feedCardRef = useRef<View>(null)
   const toyCardRef = useRef<View>(null)
   const petStageRef = useRef<View>(null)
+  const screenRootRef = useRef<View>(null)
+  const actionRowRef = useRef<View>(null)
+  const claimMenuRef = useRef<View>(null)
+  const [tourHole, setTourHole] = useState<CoachHoleRect | null>(null)
+  const [rootH, setRootH] = useState(0)
 
   // 상단 헤더 · 중간 펫존(flex:1) · 하단 케어바 · 탭바 예약
   const tabBarReserve = tabBarReserveHeight(insets.bottom)
@@ -1094,6 +1103,54 @@ function PetHomeScreenBody() {
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
   const tourHighlightMenu = showPetTour && tourStep?.highlight === 'menu'
   const tourHighlightTabs = showPetTour && tourStep?.highlight === 'tabs'
+
+  useEffect(() => {
+    if (!showPetTour || !homeFocused || tourHighlightTabs) {
+      setTourHole(null)
+      return
+    }
+    const target = tourHighlightCare
+      ? actionRowRef.current
+      : tourHighlightMenu
+        ? claimMenuRef.current
+        : null
+    if (!target) {
+      setTourHole(null)
+      return
+    }
+    let alive = true
+    const measure = () => {
+      screenRootRef.current?.measureInWindow((cx, cy) => {
+        target.measureInWindow((x, y, w, h) => {
+          if (!alive || w <= 0 || h <= 0) return
+          setTourHole({
+            x: x - cx,
+            y: y - cy,
+            w,
+            h,
+          })
+        })
+      })
+    }
+    const t = requestAnimationFrame(measure)
+    const t2 = setTimeout(measure, 120)
+    return () => {
+      alive = false
+      cancelAnimationFrame(t)
+      clearTimeout(t2)
+    }
+  }, [
+    showPetTour,
+    homeFocused,
+    tourHighlightCare,
+    tourHighlightMenu,
+    tourHighlightTabs,
+    sheetH,
+    screenWidth,
+    screenHeight,
+    foodCount,
+    toyCount,
+  ])
   const showGuideTips =
     tipsReady && !coachWelcomeOpen && !showPetTour && !coachCompleteOpen
   const showStockTip = showGuideTips && stockTipOn
@@ -1479,9 +1536,18 @@ function PetHomeScreenBody() {
         : DogExpr.soft
 
   return (
+    <View
+      ref={screenRootRef}
+      style={styles.screen}
+      collapsable={false}
+      onLayout={(e) => {
+        const h = Math.round(e.nativeEvent.layout.height)
+        if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
+      }}
+    >
     <ImageBackground
       source={require('../../assets/images/pet_bg.png')}
-      style={styles.screen}
+      style={styles.screenFill}
       resizeMode="cover"
       imageStyle={styles.petBgImage}
     >
@@ -1491,62 +1557,57 @@ function PetHomeScreenBody() {
           style={[
             styles.headerLayer,
             { paddingTop: headerTopPad },
-            tourHighlightMenu && styles.headerLayerTour,
           ]}
         >
-          <View style={tourHighlightMenu ? styles.headerTourMuted : null}>
-            <View style={styles.nicknameRow}>
-              {tabWelcome ? (
-                <View style={styles.headerCopy}>
-                  <Text style={styles.nicknameText} numberOfLines={1}>
-                    {TAB_WELCOME.title}
-                  </Text>
-                </View>
-              ) : (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
-                  accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
-                  hitSlop={8}
-                  onPress={openNameEdit}
-                  style={({ pressed }) => [
-                    styles.petTitleBtn,
-                    pressed && styles.headerIconPressed,
-                  ]}
-                >
-                  <Text style={styles.nicknameText} numberOfLines={1}>
-                    {`나의 펫 ${petName}`}
-                  </Text>
-                  <PencilSimple
-                    size={18}
-                    color={Colors.textPrimary}
-                    weight="regular"
-                  />
-                </Pressable>
-              )}
-              <View style={styles.headerActions}>
-                <Pressable
-                  style={styles.bellBtn}
-                  onPress={() => router.push('/notifications')}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="알림"
-                >
-                  <View>
-                    <Bell size={24} color={Colors.textPrimary} weight="light" />
-                    <View style={styles.notifDot} />
-                  </View>
-                </Pressable>
+          <View style={styles.nicknameRow}>
+            {tabWelcome ? (
+              <View style={styles.headerCopy}>
+                <Text style={styles.nicknameText} numberOfLines={1}>
+                  {TAB_WELCOME.title}
+                </Text>
               </View>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`나의 펫 ${petName}, 이름 수정`}
+                accessibilityHint="탭하면 펫 이름을 바꿀 수 있어요"
+                hitSlop={8}
+                onPress={openNameEdit}
+                style={({ pressed }) => [
+                  styles.petTitleBtn,
+                  pressed && styles.headerIconPressed,
+                ]}
+              >
+                <Text style={styles.nicknameText} numberOfLines={1}>
+                  {`나의 펫 ${petName}`}
+                </Text>
+                <PencilSimple
+                  size={18}
+                  color={Colors.textPrimary}
+                  weight="regular"
+                />
+              </Pressable>
+            )}
+            <View style={styles.headerActions}>
+              <Pressable
+                style={styles.bellBtn}
+                onPress={() => router.push('/notifications')}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="알림"
+              >
+                <View>
+                  <Bell size={24} color={Colors.textPrimary} weight="light" />
+                  <View style={styles.notifDot} />
+                </View>
+              </Pressable>
             </View>
           </View>
 
           <View style={styles.menuRow}>
             <View
-              style={[
-                styles.claimMenuGroup,
-                tourHighlightMenu && styles.claimMenuTour,
-              ]}
+              ref={claimMenuRef}
+              style={styles.claimMenuGroup}
               collapsable={false}
             >
               {HEADER_MENU.filter(
@@ -1592,12 +1653,7 @@ function PetHomeScreenBody() {
                 />
               ))}
             </View>
-            <View
-              style={[
-                styles.menuRestGroup,
-                tourHighlightMenu && styles.headerTourMuted,
-              ]}
-            >
+            <View style={styles.menuRestGroup}>
               {HEADER_MENU.filter(
                 (item) => item.id !== 'feed' && item.id !== 'toy',
               ).map((item) => (
@@ -1725,24 +1781,18 @@ function PetHomeScreenBody() {
 
         {/* 하단 케어 패널 — 에너지 + 사료/장난감 CTA */}
         <View
-          style={[
-            styles.sheet,
-            { maxHeight: sheetMaxHeight },
-            tourHighlightCare && styles.sheetTour,
-          ]}
+          style={[styles.sheet, { maxHeight: sheetMaxHeight }]}
           onLayout={(e) => {
             const h = Math.round(e.nativeEvent.layout.height)
             if (h > 0 && Math.abs(h - sheetH) > 2) setSheetH(h)
           }}
         >
           <View style={styles.primaryBlock}>
-            <View style={tourHighlightCare ? styles.energyTourMuted : null}>
-              <LevelEnergyBlock
-                energy={energy}
-                energyMax={ENERGY_MAX}
-                onPressStorage={openStorage}
-              />
-            </View>
+            <LevelEnergyBlock
+              energy={energy}
+              energyMax={ENERGY_MAX}
+              onPressStorage={openStorage}
+            />
             {showStockTip ? (
               <View style={styles.stockTip}>
                 <Text style={styles.stockTipText}>{HOME_STOCK_TIP}</Text>
@@ -1761,10 +1811,8 @@ function PetHomeScreenBody() {
               </View>
             ) : null}
             <View
-              style={[
-                styles.actionRow,
-                tourHighlightCare && styles.actionRowTour,
-              ]}
+              ref={actionRowRef}
+              style={styles.actionRow}
               collapsable={false}
             >
               <CareStockCard
@@ -1798,9 +1846,7 @@ function PetHomeScreenBody() {
 
       {showPetTour && homeFocused && tourStep ? (
         <>
-          <View style={styles.coachScrimLayer} pointerEvents="auto">
-            <View style={styles.coachScrim} />
-          </View>
+          <CoachScrimHole hole={tourHighlightTabs ? null : tourHole} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={coachTourStep ?? 0}
@@ -1810,12 +1856,24 @@ function PetHomeScreenBody() {
               ? { center: true as const }
               : tourHighlightMenu
                 ? {
-                    top: headerTopPad + 118,
+                    top: Math.max(
+                      headerTopPad + 8,
+                      (tourHole?.y ?? headerTopPad + 100) +
+                        (tourHole?.h ?? 0) +
+                        14,
+                    ),
                     tailAlign: 'start' as const,
                   }
                 : {
-                    bottom:
-                      tabBarReserve + Math.min(sheetH, sheetMaxHeight) * 0.38,
+                    // 케어 버튼 구멍 바로 위에 카드
+                    bottom: tourHole
+                      ? Math.max(
+                          tabBarReserve + 12,
+                          (rootH || screenHeight) - tourHole.y + 14,
+                        )
+                      : tabBarReserve +
+                        Math.min(sheetH, sheetMaxHeight) +
+                        12,
                   })}
           />
         </>
@@ -2024,6 +2082,7 @@ function PetHomeScreenBody() {
         resizeMode="contain"
       />
     </ImageBackground>
+    </View>
   )
 }
 
@@ -2032,6 +2091,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
     overflow: 'visible',
+  },
+  screenFill: {
+    flex: 1,
   },
   body: {
     flex: 1,
@@ -2135,26 +2197,6 @@ const styles = StyleSheet.create({
     flex: 3,
     flexDirection: 'row',
     alignItems: 'flex-start',
-  },
-  headerLayerTour: {
-    position: 'relative',
-    zIndex: 30,
-    elevation: 0,
-  },
-  headerTourMuted: {
-    opacity: 0.45,
-  },
-  claimMenuTour: {
-    position: 'relative',
-    zIndex: 30,
-    elevation: 0,
-    borderRadius: 20,
-    borderWidth: 2.5,
-    borderColor: Colors.selected,
-    paddingTop: 6,
-    paddingBottom: 4,
-    paddingHorizontal: 2,
-    backgroundColor: Colors.surface,
   },
   helpHeader: {
     flexDirection: 'row',
@@ -2608,29 +2650,10 @@ const styles = StyleSheet.create({
   primaryBlock: {
     alignSelf: 'stretch',
   },
-  sheetTour: {
-    position: 'relative',
-    zIndex: 30,
-    elevation: 0,
-  },
-  energyTourMuted: {
-    opacity: 0.45,
-  },
   actionRow: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'stretch',
-  },
-  /** Above scrim (spotlight); below CoachmarkTourCard (zIndex 40). */
-  actionRowTour: {
-    position: 'relative',
-    zIndex: 30,
-    elevation: 0,
-    borderRadius: 20,
-    borderWidth: 2.5,
-    borderColor: Colors.selected,
-    padding: 4,
-    backgroundColor: Colors.surface,
   },
   stockCardWrap: {
     flex: 1,
@@ -2654,15 +2677,6 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: Colors.selected,
     backgroundColor: Colors.surface,
-  },
-  coachScrimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    elevation: 0,
-  },
-  coachScrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
   },
   stockActionLabel: {
     fontSize: 13,

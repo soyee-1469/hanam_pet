@@ -42,6 +42,10 @@ import { setEnergyCareNudge } from '../../lib/careNudge'
 import { getOnboardingProfile } from '../../lib/onboardingStorage'
 import { getPetName } from '../../lib/petProfile'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import {
+  CoachScrimHole,
+  type CoachHoleRect,
+} from '../../components/CoachScrimHole'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
   finishPetTourWithComplete,
@@ -144,6 +148,10 @@ function ChatScreenBody() {
   const showChatTour = tourStep?.route === 'chat'
   const tourHighlightComposer =
     showChatTour && tourStep?.highlight === 'composer'
+  const screenRootRef = useRef<View>(null)
+  const composerRef = useRef<View>(null)
+  const [tourHole, setTourHole] = useState<CoachHoleRect | null>(null)
+  const [rootH, setRootH] = useState(0)
 
   useEffect(() => {
     return subscribePetTour(() => {
@@ -154,6 +162,34 @@ function ChatScreenBody() {
   useEffect(() => {
     if (showChatTour) setNoticeDone(true)
   }, [showChatTour])
+
+  useEffect(() => {
+    if (!tourHighlightComposer) {
+      setTourHole(null)
+      return
+    }
+    const target = composerRef.current
+    if (!target) {
+      setTourHole(null)
+      return
+    }
+    let alive = true
+    const measure = () => {
+      screenRootRef.current?.measureInWindow((cx, cy) => {
+        target.measureInWindow((x, y, w, h) => {
+          if (!alive || w <= 0 || h <= 0) return
+          setTourHole({ x: x - cx, y: y - cy, w, h })
+        })
+      })
+    }
+    const t = requestAnimationFrame(measure)
+    const t2 = setTimeout(measure, 120)
+    return () => {
+      alive = false
+      cancelAnimationFrame(t)
+      clearTimeout(t2)
+    }
+  }, [tourHighlightComposer, depleted, inputH, windowH])
 
   const finishPetTour = async () => {
     finishPetTourWithComplete()
@@ -413,7 +449,15 @@ function ChatScreenBody() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView
+      ref={screenRootRef}
+      style={styles.safe}
+      edges={['top']}
+      onLayout={(e) => {
+        const h = Math.round(e.nativeEvent.layout.height)
+        if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
+      }}
+    >
       <KeyboardAvoidingView
         style={[
           styles.flex,
@@ -629,11 +673,12 @@ function ChatScreenBody() {
         )}
 
         <View
+          ref={composerRef}
           style={[
             styles.composerWrap,
             { paddingBottom: composerBottomPad },
-            tourHighlightComposer && styles.composerWrapTour,
           ]}
+          collapsable={false}
         >
           {depleted ? (
             <View style={styles.energyInsufficient}>
@@ -648,7 +693,6 @@ function ChatScreenBody() {
               style={[
                 styles.composer,
                 inputFocused && styles.composerFocused,
-                tourHighlightComposer && styles.composerTour,
                 typing && styles.composerLocked,
               ]}
               pointerEvents={typing ? 'none' : 'auto'}
@@ -718,15 +762,20 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <View style={styles.coachScrimLayer} pointerEvents="auto">
-            <View style={styles.coachScrim} />
-          </View>
+          <CoachScrimHole hole={tourHole} radius={22} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={Math.max(insets.bottom, 12) + tabBarSpace + 64}
+            bottom={
+              tourHole
+                ? Math.max(
+                    tabBarSpace + 12,
+                    (rootH || windowH) - tourHole.y + 14,
+                  )
+                : Math.max(insets.bottom, 12) + tabBarSpace + 64
+            }
           />
         </>
       ) : null}
@@ -1073,26 +1122,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     letterSpacing: -0.2,
     paddingHorizontal: 4,
-  },
-  composerWrapTour: {
-    position: 'relative',
-    zIndex: 30,
-    elevation: 0,
-    backgroundColor: 'transparent',
-  },
-  coachScrimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    elevation: 0,
-  },
-  coachScrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
-  },
-  composerTour: {
-    borderWidth: 2.5,
-    borderColor: Colors.selected,
-    backgroundColor: Colors.surface,
   },
   depletedBubble: {
     alignSelf: 'stretch',

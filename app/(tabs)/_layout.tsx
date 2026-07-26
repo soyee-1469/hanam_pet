@@ -78,11 +78,6 @@ function SoftTabButton({
 }) {
   const spotlight = isTourTabSpotlight(routeName, highlightRoute)
   const dimmed = highlightRoute != null && !spotlight
-  /** 메인메뉴(6단계)는 개별 박스 대신 그룹 프레임을 씀 */
-  const singleSpotlight =
-    spotlight && highlightRoute?.mode === 'single'
-  const mainMenuLift =
-    spotlight && highlightRoute?.mode === 'mainMenu'
 
   return (
     <Pressable
@@ -95,16 +90,13 @@ function SoftTabButton({
       android_ripple={{ color: 'transparent' }}
       style={({ pressed }) => [
         style,
+        // 개별 탭 박스 테두리는 구멍 테두리와 안 맞아 제거.
+        // 비활성만 어둡게, 6단계 그룹 프레임이 테두리를 담당.
         dimmed && styles.tourTabDimmed,
-        mainMenuLift && styles.tourTabMainMenuLift,
         pressed && !dimmed && styles.tabPressed,
       ]}
     >
-      {singleSpotlight ? (
-        <View style={styles.tourTabSpotlight}>{children}</View>
-      ) : (
-        children
-      )}
+      {children}
     </Pressable>
   )
 }
@@ -364,10 +356,12 @@ export default function TabLayout() {
             style={[
               styles.mainMenuFrame,
               {
-                left: mainMenuFramePad,
-                width: mainMenuFrameW - mainMenuFramePad * 2,
-                height: Math.max(52, tabHeight - tabBottomPad - 2),
-                bottom: tabBottomPad,
+                // 탭바 안쪽에 여백 두고 메인 4탭을 한 번에 감쌈
+                left: 6,
+                width: mainMenuFrameW - 8,
+                top: undefined,
+                height: 58,
+                bottom: Math.max(bottom, 6) + 4,
               },
             ]}
           />
@@ -387,11 +381,10 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabItem: {
-    minWidth: 52,
-    maxWidth: 72,
+    width: '100%',
+    minWidth: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
     paddingTop: 0,
   },
   tabIconWrap: {
@@ -401,6 +394,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabLabel: {
+    width: '100%',
     marginTop: 2,
     fontSize: 13,
     lineHeight: 16,
@@ -414,40 +408,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textDisabled,
   },
-  /**
-   * 투어 단일 탭 — 아이콘+라벨에 맞는 코코아 라운드 테두리
-   * (탭 슬롯 전체 폭에 그리면 안 맞음)
-   */
-  tourTabSpotlight: {
-    alignSelf: 'center',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.cocoa,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 10,
-    paddingTop: 6,
-    paddingBottom: 4,
-    minWidth: 58,
-  },
-  /** 6단계 — 그룹 프레임이 테두리 담당 */
-  tourTabMainMenuLift: {
-    backgroundColor: 'transparent',
-  },
   tourTabDimmed: {
-    opacity: 0.35,
+    opacity: 0.32,
   },
   tabPressed: {
     opacity: 0.88,
   },
-  /** 6단계 메인 4탭 — 하나의 둥근 테두리 + 밝은 면 */
+  /** 6단계 메인 4탭 — 구멍과 같은 코코아 2px 라운드 */
   mainMenuFrame: {
     position: 'absolute',
     zIndex: 55,
     elevation: 0,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: Colors.cocoa,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'transparent',
   },
   mainMenuLabelWrap: {
     position: 'absolute',

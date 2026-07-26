@@ -20,6 +20,7 @@ const ROWS: (string | 'back' | 'next' | 'empty')[][] = [
 
 /**
  * 기록 가져오기 번호 등 — 인앱 숫자 키패드 (시스템 키패드 대체 표현)
+ * 색은 MockSoftKeyboard(한글 패드)와 동일 톤
  */
 export function NumberKeypad({
   onDigit,
@@ -53,7 +54,11 @@ export function NumberKeypad({
                     disabled && styles.keyDisabled,
                   ]}
                 >
-                  <Backspace size={22} color="#FFFFFF" weight="bold" />
+                  <Backspace
+                    size={22}
+                    color={Colors.textSecondary}
+                    weight="bold"
+                  />
                 </Pressable>
               )
             }
@@ -68,7 +73,7 @@ export function NumberKeypad({
                   style={({ pressed }) => [
                     styles.keySlot,
                     styles.key,
-                    styles.keyNext,
+                    styles.keyAction,
                     pressed && !disabled && !nextDisabled && styles.keyPressed,
                     (disabled || nextDisabled) && styles.keyDisabled,
                   ]}
@@ -103,7 +108,8 @@ export function NumberKeypad({
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#2C2C2E',
+    /** MockSoftKeyboard wrap과 동일 */
+    backgroundColor: '#D6D0C8',
     paddingHorizontal: 6,
     paddingTop: 8,
     paddingBottom: 10,
@@ -118,19 +124,17 @@ const styles = StyleSheet.create({
     minHeight: 46,
   },
   key: {
-    borderRadius: 8,
-    backgroundColor: '#636366',
+    borderRadius: 7,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /** 지우기·다음 — MockSoftKeyboard keyAction/keyWide와 동일 */
   keyAction: {
-    backgroundColor: '#48484A',
-  },
-  keyNext: {
-    backgroundColor: Colors.selected,
+    backgroundColor: Colors.sand,
   },
   keyPressed: {
-    opacity: 0.82,
+    opacity: 0.72,
   },
   keyDisabled: {
     opacity: 0.45,
@@ -138,11 +142,11 @@ const styles = StyleSheet.create({
   digit: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: Colors.textPrimary,
   },
   nextText: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
 })

@@ -5,8 +5,7 @@ import {
   type ViewStyle,
   useWindowDimensions,
 } from 'react-native'
-import Svg, { Rect } from 'react-native-svg'
-import { Colors } from '../constants/Colors'
+import Svg, { Path } from 'react-native-svg'
 
 export type CoachHoleRect = {
   x: number
@@ -16,35 +15,103 @@ export type CoachHoleRect = {
 }
 
 type CoachScrimHoleProps = {
-  /** 부모(absoluteFill) 기준 하이라이트 영역. null이면 전체 딤만 */
+  /** 부모(absoluteFill) 기준 구멍. null이면 전체 딤 */
   hole: CoachHoleRect | null
-  /** 모서리 */
+  /** 구멍 모서리 */
   radius?: number
-  /** 여백 (기본 4) */
+  /** 구멍 여백 (기본 2) */
   pad?: number
-  /** 호환용 — 미사용 */
+  /** 상단만 둥글게 (탭바 등) */
   roundTopOnly?: boolean
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(20, 10, 6, 0.78)'
-const RING = Colors.cocoa
-const LIFT = 'rgba(255, 248, 240, 0.14)'
-const DEFAULT_PAD = 4
+const SCRIM = 'rgba(20, 10, 6, 0.86)'
+/** 웹 AA 흰 번짐 가림 — 흰 링이 아닌 어두운 코코아 */
+const EDGE = '#2A1A12'
+const DEFAULT_PAD = 2
+
+function roundedCw(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  roundTopOnly = false,
+): string {
+  const rx = Math.min(r, w / 2, h / 2)
+  if (roundTopOnly) {
+    return [
+      `M ${x} ${y + h}`,
+      `V ${y + rx}`,
+      `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
+      `H ${x + w - rx}`,
+      `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
+      `V ${y + h}`,
+      'Z',
+    ].join(' ')
+  }
+  return [
+    `M ${x + rx} ${y}`,
+    `H ${x + w - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
+    `V ${y + h - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + w - rx} ${y + h}`,
+    `H ${x + rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x} ${y + h - rx}`,
+    `V ${y + rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
+    'Z',
+  ].join(' ')
+}
+
+function roundedCcw(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  roundTopOnly = false,
+): string {
+  const rx = Math.min(r, w / 2, h / 2)
+  if (roundTopOnly) {
+    return [
+      `M ${x} ${y + h}`,
+      `H ${x + w}`,
+      `V ${y + rx}`,
+      `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
+      `H ${x + rx}`,
+      `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
+      'Z',
+    ].join(' ')
+  }
+  return [
+    `M ${x + rx} ${y}`,
+    `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
+    `V ${y + h - rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + rx} ${y + h}`,
+    `H ${x + w - rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + w} ${y + h - rx}`,
+    `V ${y + rx}`,
+    `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
+    'Z',
+  ].join(' ')
+}
 
 /**
- * 투어 딤 + 영역 프레임.
- * 구멍을 뚫지 않고, 코코아 라인과 옅은 리프트로만 가리킨다.
+ * 투어 딤 + 진짜 구멍 컷아웃.
+ * evenodd 패스 + 어두운 가장자리로 웹 AA 흰 링을 피한다.
  */
 export function CoachScrimHole({
   hole,
   radius = 18,
   pad = DEFAULT_PAD,
+  roundTopOnly = false,
   style,
 }: CoachScrimHoleProps) {
   const { width: winW, height: winH } = useWindowDimensions()
 
-  const frame = useMemo(() => {
+  const cut = useMemo(() => {
     if (!hole || hole.w <= 0 || hole.h <= 0) return null
     return {
       x: Math.max(0, hole.x - pad),
@@ -54,32 +121,48 @@ export function CoachScrimHole({
     }
   }, [hole, pad])
 
-  const rx = frame ? Math.min(radius, frame.w / 2, frame.h / 2) : 0
+  if (!cut) {
+    return (
+      <View pointerEvents="auto" style={[styles.layer, style]}>
+        <View style={[styles.fill, styles.scrim]} />
+      </View>
+    )
+  }
+
+  const { x, y, w, h } = cut
+  const rx = Math.min(radius, w / 2, h / 2)
+  const svgW = Math.max(winW, x + w + 24)
+  const svgH = Math.max(winH, y + h + 24)
+  const edgePath = roundedCw(x, y, w, h, rx, roundTopOnly)
+  const fillPath = `M 0 0 H ${svgW} V ${svgH} H 0 Z ${roundedCcw(x, y, w, h, rx, roundTopOnly)}`
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
-      <View pointerEvents="auto" style={[styles.fill, styles.scrim]} />
+      <Svg
+        pointerEvents="none"
+        width={svgW}
+        height={svgH}
+        style={StyleSheet.absoluteFill}
+      >
+        <Path d={fillPath} fill={SCRIM} fillRule="evenodd" />
+        <Path d={edgePath} fill="none" stroke={EDGE} strokeWidth={1.5} />
+      </Svg>
 
-      {frame ? (
-        <Svg
-          pointerEvents="none"
-          width={Math.max(winW, frame.x + frame.w + 8)}
-          height={Math.max(winH, frame.y + frame.h + 8)}
-          style={StyleSheet.absoluteFill}
-        >
-          <Rect
-            x={frame.x}
-            y={frame.y}
-            width={frame.w}
-            height={frame.h}
-            rx={rx}
-            ry={rx}
-            fill={LIFT}
-            stroke={RING}
-            strokeWidth={2}
-          />
-        </Svg>
-      ) : null}
+      {/* 구멍 위 터치 차단 */}
+      <View
+        pointerEvents="auto"
+        style={{
+          position: 'absolute',
+          left: x,
+          top: y,
+          width: w,
+          height: h,
+          borderTopLeftRadius: rx,
+          borderTopRightRadius: rx,
+          borderBottomLeftRadius: roundTopOnly ? 0 : rx,
+          borderBottomRightRadius: roundTopOnly ? 0 : rx,
+        }}
+      />
     </View>
   )
 }

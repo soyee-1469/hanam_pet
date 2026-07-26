@@ -673,12 +673,10 @@ function ChatScreenBody() {
         )}
 
         <View
-          ref={composerRef}
           style={[
             styles.composerWrap,
             { paddingBottom: composerBottomPad },
           ]}
-          collapsable={false}
         >
           {depleted ? (
             <View style={styles.energyInsufficient}>
@@ -690,9 +688,12 @@ function ChatScreenBody() {
             </View>
           ) : (
             <View
+              ref={composerRef}
+              collapsable={false}
               style={[
                 styles.composer,
                 inputFocused && styles.composerFocused,
+                tourHighlightComposer && styles.composerTour,
                 typing && styles.composerLocked,
               ]}
               pointerEvents={typing ? 'none' : 'auto'}
@@ -749,9 +750,11 @@ function ChatScreenBody() {
             </View>
           )}
 
-          <Text style={styles.aiDisclaimer}>
-            {`${petName}의 대화는 AI가 생성해요.\n전문 치료는 아니어도 포근한 마음으로 함께 할게요.`}
-          </Text>
+          {!showChatTour ? (
+            <Text style={styles.aiDisclaimer}>
+              {`${petName}의 대화는 AI가 생성해요.\n전문 치료는 아니어도 포근한 마음으로 함께 할게요.`}
+            </Text>
+          ) : null}
         </View>
 
         <HelpFloatingFab
@@ -762,7 +765,7 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} />
+          <CoachScrimHole hole={tourHole} radius={24} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -771,10 +774,10 @@ function ChatScreenBody() {
             bottom={
               tourHole
                 ? Math.max(
-                    tabBarSpace + 12,
-                    (rootH || windowH) - tourHole.y + 14,
+                    tabBarSpace + 8,
+                    (rootH || windowH) - tourHole.y + 18,
                   )
-                : Math.max(insets.bottom, 12) + tabBarSpace + 64
+                : Math.max(insets.bottom, 12) + tabBarSpace + 72
             }
           />
         </>

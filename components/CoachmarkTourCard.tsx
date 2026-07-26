@@ -58,7 +58,9 @@ export function CoachmarkTourCard({
 
         <View style={styles.card}>
           <View style={styles.topRow}>
-            <Text style={styles.badgeText}>{step.badge}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{step.badge}</Text>
+            </View>
             <Text style={styles.page}>
               {page} / {PET_TOUR_TOTAL}
             </Text>
@@ -140,10 +142,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: Colors.peach,
+  },
   badgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.textSecondary,
+    color: Colors.cocoa,
   },
   page: {
     fontSize: 12,

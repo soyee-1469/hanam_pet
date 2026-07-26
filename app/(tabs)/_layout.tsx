@@ -235,14 +235,16 @@ export default function TabLayout() {
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            backgroundColor: Colors.cardRecessed,
-            borderTopWidth: StyleSheet.hairlineWidth,
+            // 투어 중에는 탭바 면도 같이 어둡게 — 하이라이트 테두리만 밝게
+            backgroundColor: tourHighlight
+              ? 'rgba(45, 28, 18, 0.92)'
+              : Colors.cardRecessed,
+            borderTopWidth: tourHighlight ? 0 : StyleSheet.hairlineWidth,
             borderTopColor: Colors.border,
             elevation: 0,
             shadowOpacity: 0,
             shadowRadius: 0,
             shadowOffset: { width: 0, height: 0 },
-            // 투어 중에도 탭바를 남겨 하이라이트(시안)를 보여 준다
             zIndex: tourHighlight ? 50 : undefined,
           },
     [overlayLocked, tabHeight, tabBottomPad, tourHighlight],
@@ -413,39 +415,39 @@ const styles = StyleSheet.create({
     color: Colors.textDisabled,
   },
   /**
-   * 투어 단일 탭 — Pressable 전체 폭이 아니라
-   * 아이콘+라벨에 딱 맞게 코코아 라운드 테두리
+   * 투어 단일 탭 — 아이콘+라벨에 맞는 코코아 라운드 테두리
+   * (탭 슬롯 전체 폭에 그리면 안 맞음)
    */
   tourTabSpotlight: {
     alignSelf: 'center',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: Colors.cocoa,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 8,
-    paddingTop: 4,
-    paddingBottom: 2,
-    minWidth: 56,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 4,
+    minWidth: 58,
   },
-  /** 6단계 — 개별 테두리 없이 면만 살림 (그룹 프레임이 담당) */
+  /** 6단계 — 그룹 프레임이 테두리 담당 */
   tourTabMainMenuLift: {
     backgroundColor: 'transparent',
   },
   tourTabDimmed: {
-    opacity: 0.22,
+    opacity: 0.35,
   },
   tabPressed: {
     opacity: 0.88,
   },
-  /** 6단계 메인 4탭을 하나의 둥근 테두리로 */
+  /** 6단계 메인 4탭 — 하나의 둥근 테두리 + 밝은 면 */
   mainMenuFrame: {
     position: 'absolute',
     zIndex: 55,
     elevation: 0,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 2,
     borderColor: Colors.cocoa,
-    backgroundColor: 'transparent',
+    backgroundColor: Colors.surface,
   },
   mainMenuLabelWrap: {
     position: 'absolute',

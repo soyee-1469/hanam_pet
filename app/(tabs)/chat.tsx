@@ -514,12 +514,15 @@ function ChatScreenBody() {
               bounces={false}
             >
               <View style={styles.greetWrap}>
-                <View style={styles.greetBubble}>
+                <ChatBubble
+                  variant="pet"
+                  style={styles.greetBubbleWrap}
+                  contentStyle={styles.greetBubble}
+                >
                   <EojeolText style={styles.greetText}>
                     {'오늘 마음은 어떤가요?\n편하게 이야기를 들려주세요.'}
                   </EojeolText>
-                </View>
-                <View style={styles.greetTail} />
+                </ChatBubble>
               </View>
               <Image
                 source={petImage}
@@ -850,34 +853,31 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: Layout.contentPaddingBottom,
   },
+  /** 빈 화면 인사 = 답변 펫 말풍선과 동일 좌측 */
   greetWrap: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    alignSelf: 'stretch',
+    paddingLeft: 4,
+    paddingRight: '12%',
     marginBottom: 4,
-    maxWidth: 280,
+  },
+  greetBubbleWrap: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
   },
   greetBubble: {
     backgroundColor: Colors.surface,
-    borderRadius: 22,
+    borderRadius: 24,
     paddingHorizontal: 22,
     paddingVertical: 18,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  greetTail: {
-    width: 14,
-    height: 14,
-    backgroundColor: Colors.surface,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
-    transform: [{ rotate: '45deg' }],
-    marginTop: -8,
-  },
   greetText: {
     ...TypeStyle.bubble,
     lineHeight: 24,
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   petIdle: {
     width: 240,

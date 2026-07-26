@@ -26,7 +26,10 @@ type CoachScrimHoleProps = {
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(20, 10, 6, 0.88)'
+/** 비치는 딤 */
+const SCRIM = 'rgba(20, 10, 6, 0.9)'
+/** 가장자리 AA 흰 번짐 가림 + 코코아 프레임 */
+const EDGE = '#3D2A1F'
 const DEFAULT_PAD = 0
 
 function roundedCw(
@@ -97,8 +100,8 @@ function roundedCcw(
 }
 
 /**
- * 투어 딤 + 부드러운 컷아웃.
- * 딱딱한 흰 링/테두리 없이, 가장자리만 살짝 어두워지는 소프트 페이드.
+ * 투어 딤 + 둥근 컷아웃.
+ * evenodd 컷 + 불투명 코코아 가장자리로 웹 AA 흰 번짐을 가린다.
  */
 export function CoachScrimHole({
   hole,
@@ -131,14 +134,8 @@ export function CoachScrimHole({
   const rx = Math.min(radius, w / 2, h / 2)
   const svgW = Math.max(winW, x + w + 24)
   const svgH = Math.max(winH, y + h + 24)
+  const edgePath = roundedCw(x, y, w, h, rx, roundTopOnly)
   const fillPath = `M 0 0 H ${svgW} V ${svgH} H 0 Z ${roundedCcw(x, y, w, h, rx, roundTopOnly)}`
-
-  // 구멍 안쪽으로 어두운 스트로크를 겹쳐 가장자리를 부드럽게
-  const softRings = [1, 2, 4, 7, 10].map((sw, i) => ({
-    d: roundedCw(x, y, w, h, rx, roundTopOnly),
-    strokeWidth: sw * 2,
-    opacity: 0.14 - i * 0.022,
-  }))
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
@@ -149,15 +146,12 @@ export function CoachScrimHole({
         style={StyleSheet.absoluteFill}
       >
         <Path d={fillPath} fill={SCRIM} fillRule="evenodd" />
-        {softRings.map((ring, i) => (
-          <Path
-            key={i}
-            d={ring.d}
-            fill="none"
-            stroke={`rgba(20, 10, 6, ${ring.opacity})`}
-            strokeWidth={ring.strokeWidth}
-          />
-        ))}
+        <Path
+          d={edgePath}
+          fill="none"
+          stroke={EDGE}
+          strokeWidth={2}
+        />
       </Svg>
 
       <View

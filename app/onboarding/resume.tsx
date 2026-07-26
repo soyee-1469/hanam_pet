@@ -33,8 +33,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
-import { PrimaryButton, ScreenHeader } from '../../components/ui'
-import { BottomSheet } from '../../components/ui/AppOverlay'
+import { PrimaryButton, ScreenHeader, ConfirmDialog } from '../../components/ui'
 import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -265,34 +264,17 @@ export default function OnboardingResume() {
   }
 
   const restartConfirmSheet = (
-    <BottomSheet visible={restartOpen} onRequestClose={closeRestartConfirm}>
-      <Text style={styles.restartConfirmTitle}>
-        {copy.lost.restartConfirm.title}
-      </Text>
-      <Text style={styles.restartConfirmBody}>
-        {copy.lost.restartConfirm.body}
-      </Text>
-      <View style={styles.restartConfirmActions}>
-        <PrimaryButton
-          label={copy.lost.restartConfirm.cta}
-          emphasized
-          onPress={confirmRestartFresh}
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={copy.lost.restartConfirm.back}
-          onPress={closeRestartConfirm}
-          style={({ pressed }) => [
-            styles.restartLink,
-            pressed && styles.restartLinkPressed,
-          ]}
-        >
-          <Text style={styles.restartLinkText}>
-            {copy.lost.restartConfirm.back}
-          </Text>
-        </Pressable>
-      </View>
-    </BottomSheet>
+    <ConfirmDialog
+      visible={restartOpen}
+      tone="warning"
+      title={copy.lost.restartConfirm.title}
+      body={copy.lost.restartConfirm.body}
+      cancelLabel={copy.lost.restartConfirm.back}
+      confirmLabel={copy.lost.restartConfirm.cta}
+      onCancel={closeRestartConfirm}
+      onConfirm={confirmRestartFresh}
+      onBackdropPress={closeRestartConfirm}
+    />
   )
 
   const pressNext = () => {

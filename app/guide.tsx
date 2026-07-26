@@ -55,7 +55,7 @@ export default function GuideScreen() {
         </View>
 
         <View style={styles.card}>
-          {DOC_ROWS.map((row, i) => (
+          {DOC_ROWS.map((row) => (
             <Pressable
               key={row.id}
               accessibilityRole="button"
@@ -68,7 +68,6 @@ export default function GuideScreen() {
               }
               style={({ pressed }) => [
                 styles.row,
-                i < DOC_ROWS.length - 1 && styles.rowDivider,
                 pressed && styles.rowPressed,
               ]}
             >
@@ -162,10 +161,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     gap: 12,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
   },
   rowPressed: {
     opacity: 0.9,

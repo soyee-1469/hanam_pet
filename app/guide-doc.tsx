@@ -53,14 +53,8 @@ export default function GuideDocScreen() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator
       >
-        {doc.sections.map((section, i) => (
-          <View
-            key={section.title}
-            style={[
-              styles.section,
-              i < doc.sections.length - 1 && styles.sectionDivider,
-            ]}
-          >
+        {doc.sections.map((section) => (
+          <View key={section.title} style={styles.section}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Text style={styles.sectionBody}>{section.body}</Text>
           </View>
@@ -105,11 +99,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   section: {
-    paddingVertical: 18,
-  },
-  sectionDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
+    paddingVertical: 14,
   },
   sectionTitle: {
     fontSize: 16,

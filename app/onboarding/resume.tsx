@@ -573,7 +573,7 @@ export default function OnboardingResume() {
             <View style={styles.footer}>
               <PrimaryButton
                 label={copy.code.cta}
-                disabled={!codeOk}
+                unselected={!codeOk}
                 emphasized={codeOk}
                 onPress={() => {
                   void submitCode()

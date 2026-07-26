@@ -3,8 +3,10 @@
  * 시안 변수표 기준 — 브라운·크림 베이스, 코랄은 CTA 버튼만
  *
  * 옵션 선택 = cocoa / selected(=cocoa)
+ * 옵션 미선택 = unselected(=border)
  * CTA 활성 = primary 코랄
- * CTA 비활성 = inactive + inactiveText
+ * CTA 미선택(번호 미입력 등) = unselected 테두리 + textSecondary
+ * CTA 비활성(로딩 등) = inactive + inactiveText
  * 에너지 = accent 옐로
  */
 

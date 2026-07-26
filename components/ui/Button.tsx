@@ -11,6 +11,11 @@ type ButtonProps = {
   style?: ViewStyle
   /** Primary만 — CTA 주목도 강화 */
   emphasized?: boolean
+  /**
+   * Primary만 — 미선택(옵션 미선택과 동일 톤)
+   * Colors.unselected(=border) 테두리, inactive 비활성과 구분
+   */
+  unselected?: boolean
 }
 
 export function PrimaryButton({
@@ -20,7 +25,9 @@ export function PrimaryButton({
   disabled,
   style,
   emphasized,
+  unselected,
 }: ButtonProps) {
+  const showUnselected = !!unselected && !disabled
   return (
     <Pressable
       accessibilityRole="button"
@@ -43,12 +50,19 @@ export function PrimaryButton({
       <View
         style={[
           styles.primaryInner,
-          emphasized && styles.primaryEmphasized,
+          emphasized && !showUnselected && styles.primaryEmphasized,
+          showUnselected && styles.primaryUnselected,
           disabled && styles.primaryDisabled,
         ]}
         collapsable={false}
       >
-        <Text style={[styles.primaryText, disabled && styles.primaryTextDisabled]}>
+        <Text
+          style={[
+            styles.primaryText,
+            showUnselected && styles.primaryTextUnselected,
+            disabled && styles.primaryTextDisabled,
+          ]}
+        >
           {label}
         </Text>
       </View>
@@ -132,14 +146,26 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: Colors.primary,
   },
+  /** 미선택 — 면·테두리 Colors.unselected(=border), 글자 textSecondary */
+  primaryUnselected: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.unselected,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   primaryDisabled: {
     backgroundColor: Colors.inactive,
+    borderWidth: 0,
     shadowOpacity: 0,
     elevation: 0,
   },
   primaryText: {
     ...TypeStyle.button,
     color: Colors.buttonPrimaryText,
+  },
+  primaryTextUnselected: {
+    color: Colors.textSecondary,
   },
   primaryTextDisabled: {
     color: Colors.inactiveText,

@@ -6,6 +6,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
+import { onboardingFooterStyle } from '../../components/ui'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().gate
@@ -52,7 +53,9 @@ export default function OnboardingGate() {
         </View>
 
         <Text style={styles.headline}>{copy.title}</Text>
+      </View>
 
+      <View style={styles.footer}>
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
@@ -82,9 +85,9 @@ export default function OnboardingGate() {
             </View>
           </Pressable>
         </View>
-      </View>
 
-      {copy.hint ? <Text style={styles.hint}>{copy.hint}</Text> : null}
+        {copy.hint ? <Text style={styles.hint}>{copy.hint}</Text> : null}
+      </View>
     </SafeAreaView>
   )
 }
@@ -99,6 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: 16,
   },
   brand: {
     alignItems: 'center',
@@ -153,8 +157,10 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: -0.4,
     textAlign: 'center',
-    marginBottom: 28,
     lineHeight: 32,
+  },
+  footer: {
+    ...onboardingFooterStyle,
   },
   actions: {
     alignSelf: 'stretch',
@@ -208,8 +214,8 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   hint: {
-    paddingHorizontal: Layout.screenPaddingH + 8,
-    paddingBottom: Layout.sectionGapLg,
+    marginTop: 14,
+    paddingHorizontal: 8,
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,

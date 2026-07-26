@@ -20,20 +20,21 @@ type CoachScrimHoleProps = {
   hole: CoachHoleRect | null
   /** 모서리 */
   radius?: number
-  /** 여백 (기본 3) */
+  /** 여백 (기본 4) */
   pad?: number
-  /** 호환용 — 아웃라인 모드에서는 무시 */
+  /** 호환용 — 미사용 */
   roundTopOnly?: boolean
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(20, 10, 6, 0.72)'
+const SCRIM = 'rgba(20, 10, 6, 0.78)'
 const RING = Colors.cocoa
-const DEFAULT_PAD = 3
+const LIFT = 'rgba(255, 248, 240, 0.14)'
+const DEFAULT_PAD = 4
 
 /**
- * 투어 딤 + 영역 아웃라인.
- * 구멍을 뚫지 않아 흰 카드가 떠 보이는 느낌을 없앤다.
+ * 투어 딤 + 영역 프레임.
+ * 구멍을 뚫지 않고, 코코아 라인과 옅은 리프트로만 가리킨다.
  */
 export function CoachScrimHole({
   hole,
@@ -73,25 +74,11 @@ export function CoachScrimHole({
             height={frame.h}
             rx={rx}
             ry={rx}
-            fill="none"
+            fill={LIFT}
             stroke={RING}
-            strokeWidth={2.5}
+            strokeWidth={2}
           />
         </Svg>
-      ) : null}
-
-      {frame ? (
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: frame.x,
-            top: frame.y,
-            width: frame.w,
-            height: frame.h,
-            borderRadius: rx,
-          }}
-        />
       ) : null}
     </View>
   )

@@ -315,9 +315,17 @@ function ChatScreenBody() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)
   }, [])
 
-  /** 키보드 열림 → 펫·말풍선이 가려지지 않도록 레이아웃/스크롤 조정 */
+  /**
+   * 빈 화면(인사)·에너지 소진: 키보드가 올라오면 말풍선이 위로 보이도록
+   * 스크롤을 맨 위로 — scrollToEnd 하면 캐릭터가 말풍선을 가림.
+   */
+  const keepBubbleVisible = useCallback(() => {
+    setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
+  }, [])
+
+  /** 키보드 열림 → 대화 중이면 하단, 빈 화면이면 말풍선 우선 */
   const { keyboardOpen, webKeyboardInset } = useKeyboardAvoidInset({
-    onOpen: scrollToEnd,
+    onOpen: chatting ? scrollToEnd : keepBubbleVisible,
   })
 
   const showMockKeyboard =
@@ -351,26 +359,29 @@ function ChatScreenBody() {
   }, [])
 
   /**
-   * 무대 반반:
-   * - 위 50% = 질문+답변 (질문은 상한, 답변이 나머지)
-   * - 아래 50% = 캐릭터
+   * 무대 반반 (키보드 열리면 말풍선 쪽을 더 줌):
+   * - 위 = 질문+답변
+   * - 아래 = 캐릭터
    */
   const stampBandH = stamp ? 28 : 0
   const usableStageH = Math.max(0, stageH - stampBandH)
+  const dialogueRatio = softKeyboardUp ? 0.62 : 0.5
   const dialogueH =
-    usableStageH > 0 ? Math.round(usableStageH * 0.5) : Math.round(windowH * 0.28)
+    usableStageH > 0
+      ? Math.round(usableStageH * dialogueRatio)
+      : Math.round(windowH * 0.28)
   const characterH =
     usableStageH > 0 ? usableStageH - dialogueH : Math.round(windowH * 0.28)
   /** 질문 최대 — 2줄 본문 + 「더보기」가 잘리지 않게 여유 */
   const userMaxH = Math.max(88, Math.min(120, Math.round(dialogueH * 0.4)))
   /** 답변 최소 — 4줄 본문 + 「더보기」가 잘리지 않게 여유 */
   const answerMaxH = Math.max(
-    148,
+    softKeyboardUp ? 120 : 148,
     dialogueH - (latestUserMessage ? userMaxH : 0) - 8,
   )
   const petDisplaySize = Math.min(
-    softKeyboardUp ? 140 : 200,
-    Math.max(96, characterH - 20),
+    softKeyboardUp ? 112 : 200,
+    Math.max(softKeyboardUp ? 72 : 96, characterH - 16),
   )
 
   const composerBottomPad = softKeyboardUp ? 0 : tabBarSpace + 8
@@ -773,7 +784,9 @@ function ChatScreenBody() {
                   if (typing) return
                   if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
                   setInputFocused(true)
-                  scrollToEnd()
+                  // 빈 화면은 말풍선 우선, 대화 중만 하단으로
+                  if (chatting) scrollToEnd()
+                  else keepBubbleVisible()
                 }}
                 onBlur={() => {
                   if (!USE_MOCK_SOFT_KEYBOARD) {
@@ -915,10 +928,13 @@ const styles = StyleSheet.create({
     paddingTop: Layout.sectionGap,
     paddingBottom: Layout.contentPaddingBottom,
   },
+  /** 키보드 열림 — 말풍선을 위에 두고 캐릭터는 아래로 축소 */
   stageKeyboard: {
-    justifyContent: 'flex-end',
-    paddingTop: 8,
-    paddingBottom: Layout.sectionGap,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 4,
+    paddingBottom: 4,
+    gap: 2,
   },
   depletedStage: {
     flexGrow: 1,
@@ -933,7 +949,9 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     paddingLeft: 4,
     paddingRight: '12%',
-    marginBottom: 4,
+    marginBottom: 2,
+    flexShrink: 0,
+    zIndex: 2,
   },
   greetBubbleWrap: {
     alignSelf: 'flex-start',
@@ -957,9 +975,11 @@ const styles = StyleSheet.create({
     width: 240,
     height: 240,
   },
+  /** 키보드 열림 시 말풍선과 겹치지 않게 더 작게 */
   petIdleKeyboard: {
-    width: 160,
-    height: 160,
+    width: 108,
+    height: 108,
+    flexShrink: 1,
   },
   chatContent: {
     paddingHorizontal: Layout.screenPaddingH,
@@ -977,6 +997,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'flex-end',
     gap: 6,
+    zIndex: 2,
   },
   answerBand: {
     width: '100%',
@@ -989,8 +1010,10 @@ const styles = StyleSheet.create({
   characterBand: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     overflow: 'hidden',
+    zIndex: 0,
+    paddingBottom: 4,
   },
   userStackScroll: {
     flexGrow: 0,

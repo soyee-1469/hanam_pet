@@ -23,9 +23,9 @@ type CoachScrimHoleProps = {
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(28, 14, 10, 0.8)'
+const SCRIM = 'rgba(22, 12, 8, 0.84)'
 /** 하이라이트 여백 — 카드처럼 숨 쉬게 */
-const CUT_PAD = 10
+const CUT_PAD = 12
 
 function roundedHolePath(
   x: number,
@@ -109,34 +109,45 @@ export function CoachScrimHole({
         />
       </Svg>
 
-      {/* 소프트 글로우 판 */}
+      {/* 소프트 후광만 — 딱딱한 흰 테두리 링 없음 */}
       <View
         pointerEvents="none"
         style={[
-          styles.glow,
+          styles.glowOuter,
           {
-            left: x - 6,
-            top: y - 6,
-            width: w + 12,
-            height: h + 12,
-            borderRadius: rx + 6,
+            left: x - 10,
+            top: y - 10,
+            width: w + 20,
+            height: h + 20,
+            borderRadius: rx + 10,
+          },
+        ]}
+      />
+      <View
+        pointerEvents="none"
+        style={[
+          styles.glowInner,
+          {
+            left: x - 3,
+            top: y - 3,
+            width: w + 6,
+            height: h + 6,
+            borderRadius: rx + 3,
           },
         ]}
       />
 
-      {/* 터치 차단 + 얇은 크림 링 */}
+      {/* 구멍 위 터치만 막음 */}
       <View
         pointerEvents="auto"
-        style={[
-          styles.ring,
-          {
-            left: x,
-            top: y,
-            width: w,
-            height: h,
-            borderRadius: rx,
-          },
-        ]}
+        style={{
+          position: 'absolute',
+          left: x,
+          top: y,
+          width: w,
+          height: h,
+          borderRadius: rx,
+        }}
       />
     </View>
   )
@@ -155,29 +166,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: SCRIM,
   },
-  glow: {
+  glowOuter: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 248, 240, 0.28)',
+    backgroundColor: 'rgba(255, 248, 240, 0.16)',
   },
-  ring: {
+  glowInner: {
     position: 'absolute',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.95)',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     ...Platform.select({
       ios: {
-        shadowColor: '#1A0E08',
-        shadowOpacity: 0.28,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 6 },
+        shadowColor: '#FFF8F0',
+        shadowOpacity: 0.55,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 0 },
       },
-      android: { elevation: 8 },
+      android: { elevation: 6 },
       default: {
-        // web
-        shadowColor: '#1A0E08',
-        shadowOpacity: 0.22,
-        shadowRadius: 16,
-        shadowOffset: { width: 0, height: 6 },
+        shadowColor: '#FFF8F0',
+        shadowOpacity: 0.45,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 0 },
       },
     }),
   },

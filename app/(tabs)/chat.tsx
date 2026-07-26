@@ -61,6 +61,14 @@ import {
 } from '../../lib/useKeyboardAvoidInset'
 import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { formatDateTime } from '../../lib/dateFormat'
+import { MockSoftKeyboard } from '../../components/MockSoftKeyboard'
+import {
+  acquireTabBarOverlay,
+  releaseTabBarOverlay,
+} from '../../lib/tabBarOverlay'
+
+/** 웹 미리보기용 — OS 키패드 대신 올라오는 소프트 키패드 */
+const USE_MOCK_SOFT_KEYBOARD = Platform.OS === 'web'
 
 const TYPING_MS = 1800
 
@@ -111,6 +119,7 @@ function ChatScreenBody() {
   const [stageH, setStageH] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
   const inputRef = useRef<RNTextInput>(null)
+  const inputBlurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const replyIndex = useRef(0)
   const [message, setMessage] = useState('')
@@ -311,6 +320,36 @@ function ChatScreenBody() {
     onOpen: scrollToEnd,
   })
 
+  const showMockKeyboard =
+    USE_MOCK_SOFT_KEYBOARD && inputFocused && !depleted && !typing
+  const softKeyboardUp = keyboardOpen || showMockKeyboard
+
+  useEffect(() => {
+    if (!showMockKeyboard) return
+    acquireTabBarOverlay()
+    return () => releaseTabBarOverlay()
+  }, [showMockKeyboard])
+
+  useEffect(() => {
+    return () => {
+      if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
+    }
+  }, [])
+
+  const insertMessage = useCallback((ch: string) => {
+    setMessage((prev) => prev + ch)
+  }, [])
+
+  const backspaceMessage = useCallback(() => {
+    setMessage((prev) => prev.slice(0, -1))
+  }, [])
+
+  const hideMockKeyboard = useCallback(() => {
+    if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
+    setInputFocused(false)
+    inputRef.current?.blur()
+  }, [])
+
   /**
    * 무대 반반:
    * - 위 50% = 질문+답변 (질문은 상한, 답변이 나머지)
@@ -330,18 +369,19 @@ function ChatScreenBody() {
     dialogueH - (latestUserMessage ? userMaxH : 0) - 8,
   )
   const petDisplaySize = Math.min(
-    keyboardOpen ? 140 : 200,
+    softKeyboardUp ? 140 : 200,
     Math.max(96, characterH - 20),
   )
 
-  const composerBottomPad = keyboardOpen ? 0 : tabBarSpace + 8
-  const petIdleStyle = keyboardOpen ? styles.petIdleKeyboard : styles.petIdle
+  const composerBottomPad = softKeyboardUp ? 0 : tabBarSpace + 8
+  const petIdleStyle = softKeyboardUp ? styles.petIdleKeyboard : styles.petIdle
   const petChatStyle = {
     width: petDisplaySize,
     height: petDisplaySize,
   }
-  /** 입력창 위 우측 고정 — 긴박 시 바로 누를 수 있게 키보드·타이핑 중에도 노출 */
-  const showHelpFab = !depleted && !showChatTour && noticeDone
+  /** 입력창 위 우측 고정 — 키패드가 열려 있을 땐 가리지 않게 숨김 */
+  const showHelpFab =
+    !depleted && !showChatTour && noticeDone && !softKeyboardUp
 
   const sendMessage = async () => {
     const trimmed = message.trim()
@@ -366,6 +406,7 @@ function ChatScreenBody() {
     setMessages((prev) => [...prev, next])
     setMessage('')
     setInputH(22)
+    if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
     setInputFocused(false)
     inputRef.current?.blur()
     Keyboard.dismiss()
@@ -467,7 +508,8 @@ function ChatScreenBody() {
         style={[
           styles.flex,
           Platform.OS === 'web' &&
-            webKeyboardInset > 0 && { paddingBottom: webKeyboardInset },
+            webKeyboardInset > 0 &&
+            !showMockKeyboard && { paddingBottom: webKeyboardInset },
         ]}
         behavior={keyboardAvoidingBehavior()}
         keyboardVerticalOffset={keyboardVerticalOffset}
@@ -508,7 +550,7 @@ function ChatScreenBody() {
               style={styles.flex}
               contentContainerStyle={[
                 styles.stage,
-                keyboardOpen && styles.stageKeyboard,
+                softKeyboardUp && styles.stageKeyboard,
               ]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -726,12 +768,23 @@ function ChatScreenBody() {
                   const h = Math.ceil(e.nativeEvent.contentSize.height)
                   setInputH(Math.min(88, Math.max(22, h)))
                 }}
+                showSoftInputOnFocus={!USE_MOCK_SOFT_KEYBOARD}
                 onFocus={() => {
                   if (typing) return
+                  if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
                   setInputFocused(true)
                   scrollToEnd()
                 }}
-                onBlur={() => setInputFocused(false)}
+                onBlur={() => {
+                  if (!USE_MOCK_SOFT_KEYBOARD) {
+                    setInputFocused(false)
+                    return
+                  }
+                  // 키패드 키 누를 때 blur → 바로 닫히지 않게 지연
+                  inputBlurTimer.current = setTimeout(() => {
+                    setInputFocused(false)
+                  }, 180)
+                }}
                 placeholder={
                   typing ? '대답을 듣고 있어요…' : '마음을 들려주세요.'
                 }
@@ -766,12 +819,32 @@ function ChatScreenBody() {
             </View>
           )}
 
-          {!showChatTour ? (
+          {!showChatTour && !softKeyboardUp ? (
             <Text style={styles.aiDisclaimer}>
               {`${petName}의 대화는 AI가 생성해요.\n전문 치료는 아니어도 포근한 마음으로 함께 할게요.`}
             </Text>
           ) : null}
         </View>
+
+        {USE_MOCK_SOFT_KEYBOARD ? (
+          <MockSoftKeyboard
+            visible={showMockKeyboard}
+            bottomInset={insets.bottom}
+            onInsert={(ch) => {
+              if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
+              setInputFocused(true)
+              insertMessage(ch)
+              inputRef.current?.focus()
+            }}
+            onBackspace={() => {
+              if (inputBlurTimer.current) clearTimeout(inputBlurTimer.current)
+              setInputFocused(true)
+              backspaceMessage()
+              inputRef.current?.focus()
+            }}
+            onHide={hideMockKeyboard}
+          />
+        ) : null}
 
         <HelpFloatingFab
           visible={showHelpFab}

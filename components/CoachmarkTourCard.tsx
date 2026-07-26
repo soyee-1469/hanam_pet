@@ -69,15 +69,6 @@ export function CoachmarkTourCard({
           </Text>
         </View>
 
-        {showArrow && !arrowUp ? (
-          <View
-            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
-            accessibilityElementsHidden
-          >
-            <DashedArrow />
-          </View>
-        ) : null}
-
         <View
           style={[styles.footer, alignStart && styles.footerStart]}
           pointerEvents="box-none"
@@ -102,6 +93,15 @@ export function CoachmarkTourCard({
             <Text style={styles.nextText}>{ctaLabel}</Text>
           </Pressable>
         </View>
+
+        {showArrow && !arrowUp ? (
+          <View
+            style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
+            accessibilityElementsHidden
+          >
+            <DashedArrow />
+          </View>
+        ) : null}
       </View>
     </View>
   )
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     paddingHorizontal: 4,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   copyStart: {
     paddingLeft: 8,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   arrowSlot: {
     height: 36,
-    marginVertical: 2,
+    marginTop: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '180deg' }],
   },
   footer: {
-    marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -224,10 +223,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.35)',
   },
   nextBtn: {
-    minWidth: 84,
-    height: 40,
-    paddingHorizontal: 18,
-    borderRadius: 12,
+    minWidth: 88,
+    height: 44,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

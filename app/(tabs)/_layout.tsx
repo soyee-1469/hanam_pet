@@ -381,21 +381,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textDisabled,
   },
+  /** 정리된 투어 — 테두리 대신 옅은 면만 */
   tourTabSpotlight: {
-    borderRadius: 16,
-    borderWidth: 2.5,
-    /** 하이라이트 테두리 = cocoa (코랄은 아이콘·라벨 tint만) */
-    borderColor: Colors.cocoa,
-    backgroundColor: Colors.cardRecessed,
+    borderRadius: 14,
+    backgroundColor: Colors.surface,
     marginHorizontal: 2,
     marginVertical: 2,
   },
   tourTabMainMenu: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 14,
   },
   tourTabDimmed: {
-    opacity: 0.4,
+    opacity: 0.28,
   },
   tabPressed: {
     opacity: 0.88,

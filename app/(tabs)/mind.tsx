@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
+    backgroundColor: 'rgba(91, 57, 39, 0.22)',
   },
   checkListTourHidden: {
     opacity: 0,
@@ -928,13 +928,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 30,
     elevation: 0,
-    borderRadius: 20,
-    borderWidth: 2.5,
-    borderColor: Colors.cocoa,
+    borderRadius: 18,
     backgroundColor: Colors.surface,
     padding: 6,
     gap: 10,
-    ...Shadows.elevation,
   },
   pressed: {
     opacity: 0.9,

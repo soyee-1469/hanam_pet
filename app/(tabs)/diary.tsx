@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   },
   coachScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.35)',
+    backgroundColor: 'rgba(91, 57, 39, 0.22)',
   },
   monthRow: {
     flexDirection: 'row',
@@ -900,15 +900,11 @@ const styles = StyleSheet.create({
     ...Shadows.elevation,
   },
   ctaTourRing: {
-    borderRadius: 20,
-    borderWidth: 2.5,
-    borderColor: Colors.cocoa,
-    padding: 3,
+    borderRadius: 18,
+    padding: 2,
     backgroundColor: Colors.surface,
   },
   dayTourRing: {
-    borderWidth: 2.5,
-    borderColor: Colors.cocoa,
     borderRadius: 14,
     backgroundColor: Colors.surface,
   },
@@ -917,8 +913,6 @@ const styles = StyleSheet.create({
     zIndex: 30,
     elevation: 0,
     borderRadius: 14,
-    borderWidth: 2.5,
-    borderColor: Colors.cocoa,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

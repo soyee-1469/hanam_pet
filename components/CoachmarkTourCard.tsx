@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Layout } from '../constants/Layout'
-import { Colors, Shadows } from '../constants/Colors'
+import { Colors } from '../constants/Colors'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
 
 type CoachmarkTourCardProps = {
@@ -18,7 +18,7 @@ type CoachmarkTourCardProps = {
   tailAlign?: 'center' | 'start'
 }
 
-/** cm-02+ — 중앙 카드형 코치마크 */
+/** 6단계 투어 카드 — 옅은 면 + 꼬리만, 장식 최소화 */
 export function CoachmarkTourCard({
   step,
   stepIndex,
@@ -52,9 +52,7 @@ export function CoachmarkTourCard({
       {showTail && tailUp ? <View style={tailStyle} /> : null}
       <View style={styles.card}>
         <View style={styles.topRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{step.badge}</Text>
-          </View>
+          <Text style={styles.badgeText}>{step.badge}</Text>
           <Text style={styles.page}>
             {page} / {PET_TOUR_TOTAL}
           </Text>
@@ -104,52 +102,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wrapCenter: {
-    top: '28%',
+    top: '30%',
   },
   card: {
     width: '100%',
     backgroundColor: Colors.surface,
-    borderRadius: 20,
+    borderRadius: 18,
     paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: Layout.blockGap,
-    paddingBottom: Layout.blockGap,
-    ...Shadows.elevation,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: Colors.creamyBeige,
+    marginBottom: 10,
   },
   badgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.cocoa,
+    color: Colors.textSecondary,
   },
   page: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.textDisabled,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: Colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 6,
     letterSpacing: -0.3,
   },
   body: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
-    lineHeight: 22,
-    marginBottom: 18,
+    lineHeight: 21,
+    marginBottom: 16,
   },
   footer: {
     flexDirection: 'row',
@@ -159,31 +152,31 @@ const styles = StyleSheet.create({
   dots: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   dotOn: {
-    width: 22,
-    height: 8,
+    width: 16,
+    height: 6,
     borderRadius: 999,
-    backgroundColor: Colors.selected,
+    backgroundColor: Colors.cocoa,
   },
   dotOff: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     borderRadius: 999,
-    backgroundColor: Colors.creamyBeige,
+    backgroundColor: Colors.sand,
   },
   nextBtn: {
-    minWidth: 88,
-    height: 40,
-    paddingHorizontal: Layout.screenPaddingH,
+    minWidth: 80,
+    height: 38,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   nextText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.surface,
   },
@@ -191,20 +184,26 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   tail: {
-    width: 14,
-    height: 14,
+    width: 12,
+    height: 12,
     backgroundColor: Colors.surface,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
     transform: [{ rotate: '45deg' }],
-    marginTop: -7,
-    ...Shadows.elevation,
+    marginTop: -6,
   },
   tailUp: {
     marginTop: 0,
-    marginBottom: -7,
+    marginBottom: -6,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 1,
+    borderTopWidth: 1,
     zIndex: 1,
   },
   tailStart: {
     alignSelf: 'flex-start',
-    marginLeft: 36,
+    marginLeft: 40,
   },
 })

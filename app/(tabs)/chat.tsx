@@ -762,7 +762,7 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={24} />
+          <CoachScrimHole hole={tourHole} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}

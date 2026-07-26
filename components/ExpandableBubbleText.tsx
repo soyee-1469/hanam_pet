@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import { Colors } from '../constants/Colors'
 import { Type } from '../constants/Typography'
+import { eojeolTextStyle, eojeolWrap } from '../lib/eojeolText'
 
 type ExpandableBubbleTextProps = {
   text: string
@@ -107,10 +108,10 @@ export function ExpandableBubbleText({
 
   const body = (
     <Text
-      style={textStyle}
+      style={[eojeolTextStyle, textStyle]}
       numberOfLines={showFull ? undefined : collapsedLines}
     >
-      {text}
+      {eojeolWrap(text)}
     </Text>
   )
 

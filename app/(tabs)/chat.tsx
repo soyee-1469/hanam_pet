@@ -26,6 +26,7 @@ import { CatExpr } from '../../constants/OnboardingMascot'
 import { ChatAiNotice } from '../../components/ChatAiNotice'
 import { HelpFloatingFab } from '../../components/HelpFloatingFab'
 import { ExpandableBubbleText } from '../../components/ExpandableBubbleText'
+import { EojeolText } from '../../components/EojeolText'
 import { ChatBubble } from '../../components/ChatBubble'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { EnergyIcon } from '../../components/EnergyIcon'
@@ -375,11 +376,11 @@ function ChatScreenBody() {
           <EnergyIcon size={18} />
           <Text style={styles.depletedTitle}>에너지를 다 썼어요</Text>
         </View>
-        <Text style={styles.depletedBody}>
+        <EojeolText style={styles.depletedBody}>
           {chatUsesToday >= CHAT_USE_MAX_PER_DAY
             ? '오늘은 대화를 50번 모두 나눴어요. 내일 다시 이야기해요.'
             : '사료를 주거나 놀아 주면 에너지가 다시 차올라요.'}
-        </Text>
+        </EojeolText>
         {chatUsesToday < CHAT_USE_MAX_PER_DAY ? (
           <Pressable
             accessibilityRole="button"
@@ -466,9 +467,9 @@ function ChatScreenBody() {
             >
               <View style={styles.greetWrap}>
                 <View style={styles.greetBubble}>
-                  <Text style={styles.greetText}>
+                  <EojeolText style={styles.greetText}>
                     {'오늘 마음은 어떤가요?\n편하게 이야기를 들려주세요.'}
-                  </Text>
+                  </EojeolText>
                 </View>
                 <View style={styles.greetTail} />
               </View>
@@ -567,9 +568,9 @@ function ChatScreenBody() {
                 ) : showComposeTip && userMessages.length === 0 ? (
                   <View style={styles.tipWrap}>
                     <View style={styles.tipBubble}>
-                      <Text style={styles.tipText}>
+                      <EojeolText style={styles.tipText}>
                         내가 마음을 보낼 때마다 대답 내용이 바뀌어요
-                      </Text>
+                      </EojeolText>
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="안내 닫기"

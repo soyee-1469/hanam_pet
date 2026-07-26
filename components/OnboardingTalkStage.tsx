@@ -1,7 +1,8 @@
-import { View, Text, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
+import { View, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
 import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import { TypeStyle } from '../constants/Typography'
+import { EojeolText } from './EojeolText'
 
 type OnboardingTalkStageProps = {
   image: ImageSourcePropType
@@ -26,7 +27,7 @@ export function OnboardingTalkStage({
     <View style={styles.wrap}>
       <View style={styles.stage}>
         <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>{bubble}</Text>
+          <EojeolText style={styles.bubbleText}>{bubble}</EojeolText>
         </View>
 
         <Image
@@ -37,8 +38,8 @@ export function OnboardingTalkStage({
       </View>
 
       <View style={styles.intro}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.body}>{body}</Text>
+        <EojeolText style={styles.title}>{title}</EojeolText>
+        <EojeolText style={styles.body}>{body}</EojeolText>
       </View>
     </View>
   )

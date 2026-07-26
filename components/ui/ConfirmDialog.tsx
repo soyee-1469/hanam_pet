@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import type { Icon } from 'phosphor-react-native'
 import { Colors } from '../../constants/Colors'
 import { TypeStyle } from '../../constants/Typography'
+import { EojeolText } from '../EojeolText'
 import { CenterDialog } from './AppOverlay'
 import {
   DialogIconBadge,
@@ -97,8 +98,8 @@ export function ConfirmDialog({
       cardStyle={styles.cardAlign}
     >
       <DialogIconBadge tone={tone} Icon={Icon} />
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.body}>{body}</Text>
+      <EojeolText style={styles.title}>{title}</EojeolText>
+      <EojeolText style={styles.body}>{body}</EojeolText>
       <View style={styles.actions}>
         {confirmFirst ? (
           <>

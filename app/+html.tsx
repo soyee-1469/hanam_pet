@@ -36,6 +36,10 @@ html, body, #root {
   height: 100%;
   margin: 0;
 }
+html {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
 body {
   background-color: #F8F4EF;
   overflow: hidden;

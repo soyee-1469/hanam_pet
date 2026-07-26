@@ -535,7 +535,7 @@ function ChatScreenBody() {
                         align="left"
                         collapsedLines={2}
                         expandPlacement="below"
-                        maxExpandedHeight={Math.max(48, userMaxH - 56)}
+                        expandMode="popup"
                       />
                     </ChatBubble>
                   </View>
@@ -597,7 +597,7 @@ function ChatScreenBody() {
                         align="left"
                         collapsedLines={2}
                         expandPlacement="below"
-                        maxExpandedHeight={Math.max(72, answerMaxH - 40)}
+                        expandMode="popup"
                       />
                     </ChatBubble>
                   </View>

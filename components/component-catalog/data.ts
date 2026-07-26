@@ -726,7 +726,8 @@ export const SETTINGS_CANDIDATES: CandidateItem[] = [
   },
   {
     name: '가이드 문서 섹션 / LegalDocSection',
-    note: 'title + body + divider',
+    note: '시행일 드롭다운 + 장/조 본문 · guide-doc',
+    _legacyNote: 'title + body + divider',
     paths: ['app/guide-doc.tsx'],
   },
 ]

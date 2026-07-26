@@ -22,6 +22,7 @@ import {
   User,
   WarningCircle,
   X,
+  XCircle,
 } from 'phosphor-react-native'
 import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
@@ -288,12 +289,32 @@ function MockSelectionChips() {
   )
 }
 
-function MockTextInput({ focused }: { focused?: boolean }) {
+function MockTextInput({
+  focused,
+  filled,
+}: {
+  focused?: boolean
+  /** 입력됨 — 글자수 + 지우기 */
+  filled?: boolean
+}) {
+  const showFilled = filled || focused
   return (
-    <View style={[pv.inputShell, focused && pv.inputShellFocus]}>
-      <Text style={focused ? pv.inputText : pv.inputPlaceholder}>
-        {focused ? '하남이' : '닉네임을 입력해 주세요'}
+    <View style={[pv.inputShell, showFilled && pv.inputShellFocus]}>
+      <Text
+        style={[
+          showFilled ? pv.inputText : pv.inputPlaceholder,
+          showFilled && pv.inputTextFlex,
+        ]}
+        numberOfLines={1}
+      >
+        {showFilled ? '닉네임닉네임' : '닉네임을 입력해 주세요'}
       </Text>
+      {showFilled ? (
+        <>
+          <Text style={pv.inputCounter}>6 / 8</Text>
+          <XCircle size={22} color={Colors.cocoa} weight="fill" />
+        </>
+      ) : null}
     </View>
   )
 }
@@ -687,7 +708,7 @@ export function FormsPreviews() {
         <Text style={[pv.sectionLabel, pv.gapTop]}>닉네임</Text>
         <MockTextInput />
         <View style={pv.gapTop}>
-          <MockTextInput focused />
+          <MockTextInput filled />
         </View>
       </PreviewSection>
       <PreviewSection label="ChatComposer · PrevNextFooter · DangerLink">
@@ -1253,7 +1274,9 @@ const pv = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     paddingHorizontal: 14,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   inputShellFocus: {
     borderColor: Colors.selected,
@@ -1267,6 +1290,16 @@ const pv = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.textPrimary,
+  },
+  inputTextFlex: {
+    flex: 1,
+    minWidth: 0,
+  },
+  inputCounter: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textDisabled,
+    flexShrink: 0,
   },
   prevNext: {
     flexDirection: 'row',

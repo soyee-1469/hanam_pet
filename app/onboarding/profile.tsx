@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
+import { XCircle } from 'phosphor-react-native'
 import { Layout } from '../../constants/Layout'
 import { Colors, Shadows } from '../../constants/Colors'
 import { DogExpr } from '../../constants/DogExpr'
@@ -62,8 +63,8 @@ export default function OnboardingProfile() {
 
   const trimmed = nickname.trim()
   const tooShort = trimmed.length > 0 && trimmed.length < 2
-  const atMax = trimmed.length >= NICKNAME_MAX
-  const showCounter = atMax || tooShort
+  const atMax = nickname.length >= NICKNAME_MAX
+  const hasText = nickname.length > 0
   const valid =
     trimmed.length >= 2 &&
     trimmed.length <= NICKNAME_MAX &&
@@ -131,7 +132,7 @@ export default function OnboardingProfile() {
                 onSubmitEditing={goNext}
                 selectionColor={Colors.selected}
               />
-              {showCounter ? (
+              {hasText ? (
                 <Text
                   style={[
                     styles.counter,
@@ -139,8 +140,22 @@ export default function OnboardingProfile() {
                     tooShort && styles.counterError,
                   ]}
                 >
-                  {trimmed.length} / {NICKNAME_MAX}
+                  {nickname.length} / {NICKNAME_MAX}
                 </Text>
+              ) : null}
+              {hasText ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="입력 지우기"
+                  hitSlop={8}
+                  onPress={() => setNickname('')}
+                  style={({ pressed }) => [
+                    styles.clearBtn,
+                    pressed && styles.clearBtnPressed,
+                  ]}
+                >
+                  <XCircle size={22} color={Colors.cocoa} weight="fill" />
+                </Pressable>
               ) : null}
             </View>
             {tooShort ? (
@@ -290,12 +305,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textDisabled,
+    flexShrink: 0,
   },
   counterMax: {
     color: Colors.textSecondary,
   },
   counterError: {
     color: Colors.error,
+  },
+  clearBtn: {
+    marginLeft: 6,
+    flexShrink: 0,
+    padding: 2,
+  },
+  clearBtnPressed: {
+    opacity: 0.7,
   },
   hintError: {
     marginTop: 8,

@@ -198,6 +198,17 @@ export default function AccountScreen() {
                     selectionColor={Colors.selected}
                   />
                   {nickname.length > 0 ? (
+                    <Text
+                      style={[
+                        styles.counter,
+                        atMax && styles.counterMax,
+                        tooShort && styles.counterError,
+                      ]}
+                    >
+                      {nickname.length} / {NICKNAME_MAX}
+                    </Text>
+                  ) : null}
+                  {nickname.length > 0 ? (
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel="입력 지우기"
@@ -210,7 +221,7 @@ export default function AccountScreen() {
                     >
                       <XCircle
                         size={22}
-                        color={Colors.textDisabled}
+                        color={Colors.cocoa}
                         weight="fill"
                       />
                     </Pressable>
@@ -317,6 +328,18 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? 8 : 6,
     paddingHorizontal: 0,
+  },
+  counter: {
+    flexShrink: 0,
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textDisabled,
+  },
+  counterMax: {
+    color: Colors.textSecondary,
+  },
+  counterError: {
+    color: Colors.error,
   },
   clearBtn: {
     flexShrink: 0,

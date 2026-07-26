@@ -150,7 +150,6 @@ export default function TabLayout() {
   const tourHighlight = useTourTabHighlight()
   /** 메인 4탭(설정 제외) 묶음 프레임 */
   const mainMenuFrameW = (windowW * MAIN_MENU_TABS.length) / 5
-  const mainMenuFramePad = 4
 
   useHideTabBarWhileKeyboard()
 

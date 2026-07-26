@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
-import { View, StyleSheet, type ViewStyle, useWindowDimensions } from 'react-native'
-import Svg, { Defs, Mask, Rect } from 'react-native-svg'
+import {
+  View,
+  StyleSheet,
+  type ViewStyle,
+  useWindowDimensions,
+} from 'react-native'
+import Svg, { Defs, Mask, Rect, Path } from 'react-native-svg'
 import { Colors } from '../constants/Colors'
 
 export type CoachHoleRect = {
@@ -11,17 +16,48 @@ export type CoachHoleRect = {
 }
 
 type CoachScrimHoleProps = {
-  /** 부모(absoluteFill) 기준 구멍. null이면 전체 옅은 딤 */
+  /** 부모(absoluteFill) 기준 구멍. null이면 전체 진한 딤 */
   hole: CoachHoleRect | null
   /** 구멍·테두리 모서리 — 대상 UI와 맞춤 */
   radius?: number
+  /** 탭바 바로 위일 때 하단 모서리를 직각으로 */
+  flatBottom?: boolean
   style?: ViewStyle
 }
 
 /** 네이버식 투어처럼 배경을 충분히 눌러 구멍을 살린다 */
-const SCRIM = 'rgba(45, 28, 18, 0.68)'
+const SCRIM = 'rgba(40, 24, 16, 0.72)'
 const CUT_PAD = 4
 const BORDER = 2
+
+function roundedHolePath(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  flatBottom: boolean,
+): string {
+  const rt = Math.min(r, w / 2, h / 2)
+  const rb = flatBottom ? 0 : rt
+  // 시계방향 둥근 사각 (하단 직각 가능)
+  return [
+    `M ${x + rt} ${y}`,
+    `H ${x + w - rt}`,
+    `A ${rt} ${rt} 0 0 1 ${x + w} ${y + rt}`,
+    `V ${y + h - rb}`,
+    rb > 0
+      ? `A ${rb} ${rb} 0 0 1 ${x + w - rb} ${y + h}`
+      : `L ${x + w} ${y + h}`,
+    `H ${x + rb}`,
+    rb > 0
+      ? `A ${rb} ${rb} 0 0 1 ${x} ${y + h - rb}`
+      : `L ${x} ${y + h}`,
+    `V ${y + rt}`,
+    `A ${rt} ${rt} 0 0 1 ${x + rt} ${y}`,
+    'Z',
+  ].join(' ')
+}
 
 /**
  * 6단계 투어용 딤.
@@ -30,6 +66,7 @@ const BORDER = 2
 export function CoachScrimHole({
   hole,
   radius = 20,
+  flatBottom = false,
   style,
 }: CoachScrimHoleProps) {
   const { width: winW, height: winH } = useWindowDimensions()
@@ -54,10 +91,18 @@ export function CoachScrimHole({
 
   const { x, y, w, h } = cut
   const rx = Math.min(radius, w / 2, h / 2)
-  // 레이어가 화면보다 클 수 있어 여유분
   const svgW = Math.max(winW, x + w + 8)
   const svgH = Math.max(winH, y + h + 8)
-  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}`
+  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}-${flatBottom ? 1 : 0}`
+  const holePath = roundedHolePath(x, y, w, h, rx, flatBottom)
+  const borderRadiusStyle = flatBottom
+    ? {
+        borderTopLeftRadius: rx,
+        borderTopRightRadius: rx,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+      }
+    : { borderRadius: rx }
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
@@ -70,7 +115,7 @@ export function CoachScrimHole({
         <Defs>
           <Mask id={maskId}>
             <Rect x={0} y={0} width={svgW} height={svgH} fill="#fff" />
-            <Rect x={x} y={y} width={w} height={h} rx={rx} ry={rx} fill="#000" />
+            <Path d={holePath} fill="#000" />
           </Mask>
         </Defs>
         <Rect
@@ -83,7 +128,6 @@ export function CoachScrimHole({
         />
       </Svg>
 
-      {/* 구멍 위 터치 차단 */}
       <View
         pointerEvents="auto"
         style={{
@@ -92,11 +136,10 @@ export function CoachScrimHole({
           top: y,
           width: w,
           height: h,
-          borderRadius: rx,
+          ...borderRadiusStyle,
         }}
       />
 
-      {/* 둥근 코코아 테두리 */}
       <View
         pointerEvents="none"
         style={{
@@ -105,9 +148,9 @@ export function CoachScrimHole({
           top: y,
           width: w,
           height: h,
-          borderRadius: rx,
           borderWidth: BORDER,
           borderColor: Colors.cocoa,
+          ...borderRadiusStyle,
         }}
       />
     </View>

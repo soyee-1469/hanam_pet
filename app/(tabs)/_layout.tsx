@@ -410,14 +410,14 @@ const styles = StyleSheet.create({
   tabPressed: {
     opacity: 0.88,
   },
-  /** 6단계 메인 4탭 — 구멍과 같은 코코아 2px 라운드 */
+  /** 6단계 네비 전체 — 어두운 탭바 위에서 보이는 밝은 라운드 테두리 */
   mainMenuFrame: {
     position: 'absolute',
     zIndex: 55,
     elevation: 0,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: Colors.cocoa,
+    borderColor: Colors.surface,
     backgroundColor: 'transparent',
   },
   mainMenuLabelWrap: {

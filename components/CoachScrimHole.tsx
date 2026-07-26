@@ -26,7 +26,7 @@ type CoachScrimHoleProps = {
 }
 
 /** 네이버식 투어처럼 배경을 충분히 눌러 구멍을 살린다 */
-const SCRIM = 'rgba(40, 24, 16, 0.72)'
+const SCRIM = 'rgba(32, 18, 12, 0.78)'
 const CUT_PAD = 4
 const BORDER = 2
 

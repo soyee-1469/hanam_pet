@@ -1130,7 +1130,6 @@ function PetHomeScreenBody() {
       screenRootRef.current?.measureInWindow((cx, cy, cw, ch) => {
         if (!alive) return
         const measuredH = ch > 0 ? Math.round(ch) : rootH || screenHeight
-        const measuredW = cw > 0 ? Math.round(cw) : screenWidth
         if (ch > 0) setRootH(measuredH)
 
         // 6단계 — 탭바는 레이아웃 형제라 딤 밖. 화면은 전체 딤만.

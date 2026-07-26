@@ -1121,37 +1121,39 @@ function PetHomeScreenBody() {
   }, [coachTourStep])
 
   useEffect(() => {
-    if (!showPetTour || !homeFocused || tourHighlightTabs) {
-      setTourHole(null)
-      return
-    }
-    const target = tourHighlightCare
-      ? actionRowRef.current
-      : tourHighlightMenu
-        ? claimMenuRef.current
-        : null
-    if (!target) {
+    if (!showPetTour || !homeFocused) {
       setTourHole(null)
       return
     }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
+      screenRootRef.current?.measureInWindow((cx, cy, cw, ch) => {
+        if (!alive) return
+        const measuredH = ch > 0 ? Math.round(ch) : rootH || screenHeight
+        if (ch > 0) setRootH(measuredH)
+
+        // 6단계 — 탭바는 레이아웃 형제라 딤 밖. 화면은 전체 딤만.
+        if (tourHighlightTabs) {
+          setTourHole(null)
+          return
+        }
+
+        const target = tourHighlightCare
+          ? actionRowRef.current
+          : tourHighlightMenu
+            ? claimMenuRef.current
+            : null
+        if (!target) {
+          setTourHole(null)
+          return
+        }
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
-          const localY = y - cy
-          const measuredH = ch > 0 ? Math.round(ch) : rootH
-          if (ch > 0) setRootH(measuredH)
-          // 케어: 탭바까지 구멍을 내려 딤 틈을 없앰
-          const holeH =
-            tourHighlightCare && measuredH > 0
-              ? Math.max(h, measuredH - localY)
-              : h
           setTourHole({
-            x: x - cx,
-            y: localY,
+            x: Math.max(0, x - cx),
+            y: y - cy,
             w,
-            h: holeH,
+            h,
           })
         })
       })
@@ -1173,6 +1175,7 @@ function PetHomeScreenBody() {
     tourHighlightTabs,
     sheetH,
     rootH,
+    tabBarReserve,
     screenWidth,
     screenHeight,
     foodCount,
@@ -1875,9 +1878,9 @@ function PetHomeScreenBody() {
       {showPetTour && homeFocused && tourStep ? (
         <>
           <CoachScrimHole
-            hole={tourHighlightTabs ? null : tourHole}
-            flatBottom={tourHighlightCare}
-            radius={tourHighlightCare ? 22 : 20}
+            hole={tourHole}
+            radius={tourHighlightCare ? 20 : 16}
+            pad={tourHighlightCare ? 4 : 2}
           />
           <CoachmarkTourCard
             step={tourStep}
@@ -1897,11 +1900,11 @@ function PetHomeScreenBody() {
                     tailAlign: 'start' as const,
                   }
                 : {
-                    // 케어(에너지+주기) 구멍 바로 위에 카드
+                    // 케어 영역 바로 위
                     bottom: tourHole
                       ? Math.max(
-                          tabBarReserve + 16,
-                          (rootH || screenHeight) - tourHole.y + 20,
+                          tabBarReserve + 20,
+                          (rootH || screenHeight) - tourHole.y + 14,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +

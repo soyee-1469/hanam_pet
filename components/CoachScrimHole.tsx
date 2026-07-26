@@ -150,6 +150,8 @@ export function CoachScrimHole({
           height: h,
           borderWidth: BORDER,
           borderColor: Colors.cocoa,
+          // 탭바 바로 위면 하단 선은 빼서 네비와 맞붙게
+          ...(flatBottom ? { borderBottomWidth: 0 } : null),
           ...borderRadiusStyle,
         }}
       />

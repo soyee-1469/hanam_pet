@@ -1136,24 +1136,34 @@ function PetHomeScreenBody() {
     }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy) => {
+      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
+          const localY = y - cy
+          const measuredH = ch > 0 ? Math.round(ch) : rootH
+          if (ch > 0) setRootH(measuredH)
+          // 케어: 탭바까지 구멍을 내려 딤 틈을 없앰
+          const holeH =
+            tourHighlightCare && measuredH > 0
+              ? Math.max(h, measuredH - localY)
+              : h
           setTourHole({
             x: x - cx,
-            y: y - cy,
+            y: localY,
             w,
-            h,
+            h: holeH,
           })
         })
       })
     }
     const t = requestAnimationFrame(measure)
-    const t2 = setTimeout(measure, 120)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 220)
     return () => {
       alive = false
       cancelAnimationFrame(t)
       clearTimeout(t2)
+      clearTimeout(t3)
     }
   }, [
     showPetTour,
@@ -1162,6 +1172,7 @@ function PetHomeScreenBody() {
     tourHighlightMenu,
     tourHighlightTabs,
     sheetH,
+    rootH,
     screenWidth,
     screenHeight,
     foodCount,

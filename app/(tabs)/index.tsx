@@ -366,6 +366,8 @@ type MenuQuickItemProps = {
    */
   cooldownProgress?: number
   highlighted?: boolean
+  /** 코치마크 중 — 받기 코랄 띠/뱃지 숨김(투어 테두리로 오인 방지) */
+  quietClaimChrome?: boolean
   circleSize: number
   iconSize: number
   labelSize: number
@@ -440,6 +442,7 @@ function MenuQuickItem({
   cooldownLabel,
   cooldownProgress,
   highlighted,
+  quietClaimChrome = false,
   circleSize,
   iconSize,
   labelSize,
@@ -449,10 +452,13 @@ function MenuQuickItem({
   const [hovered, setHovered] = useState(false)
   /** 받기 가능 — 코랄 원형 띠 + 「받기」 뱃지 */
   const claimable = !complete && (ready || done)
+  /** 투어 중에는 코랄 크롬만 끄고, 탭 동작은 유지 */
+  const showClaimChrome = claimable && !quietClaimChrome
   const lift = ((claimable || complete) && hovered) || highlighted
-  const showCooldownRing = !complete && cooling && cooldownProgress != null
+  const showCooldownRing =
+    !complete && cooling && cooldownProgress != null && !quietClaimChrome
   /** 띠/링이 있을 때 안쪽 원을 줄여 바깥 지름 = 일반 메뉴와 동일 */
-  const framed = claimable || showCooldownRing
+  const framed = showClaimChrome || showCooldownRing
   const bandOutset = menuRingOutset()
   const outerSize = circleSize
   const innerSize = framed ? Math.max(1, circleSize - bandOutset * 2) : circleSize
@@ -498,7 +504,7 @@ function MenuQuickItem({
               progress={cooldownProgress ?? 0}
             />
           ) : null}
-          {claimable && !showCooldownRing ? (
+          {showClaimChrome && !showCooldownRing ? (
             <View
               pointerEvents="none"
               style={[
@@ -522,11 +528,11 @@ function MenuQuickItem({
                 borderRadius: innerSize / 2,
                 backgroundColor: bgColor,
               },
-              claimable && styles.menuCircleClaimable,
+              showClaimChrome && styles.menuCircleClaimable,
               complete && styles.menuCircleComplete,
               showCooldownRing && styles.menuCircleCooldown,
               highlighted &&
-                !claimable &&
+                !showClaimChrome &&
                 !complete &&
                 !cooling &&
                 styles.menuCircleNudge,
@@ -566,7 +572,7 @@ function MenuQuickItem({
               </View>
             ) : null}
           </View>
-          {claimable ? (
+          {showClaimChrome ? (
             <View style={styles.menuReadyBadge} pointerEvents="none">
               <Text style={styles.menuReadyBadgeText} allowFontScaling={false}>
                 받기
@@ -1613,11 +1619,12 @@ function PetHomeScreenBody() {
               {HEADER_MENU.filter(
                 (item) => item.id === 'feed' || item.id === 'toy',
               ).map((item) => (
-                                <MenuQuickItem
+                <MenuQuickItem
                   key={item.id}
                   label={item.label}
                   image={item.image}
                   bgColor={item.bgColor}
+                  quietClaimChrome={tourHighlightMenu}
                   ready={
                     item.id === 'feed'
                       ? feedClaimStatus.kind === 'ready'

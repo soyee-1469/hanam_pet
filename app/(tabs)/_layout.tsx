@@ -1,13 +1,7 @@
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tabs } from 'expo-router'
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  useWindowDimensions,
-} from 'react-native'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   FlowerLotus,
@@ -142,13 +136,10 @@ function TabIcon({
 
 export default function TabLayout() {
   const { bottom } = useSafeAreaInsets()
-  const { width: windowW } = useWindowDimensions()
   const tabBottomPad = Math.max(bottom, 8) + Layout.tabBarExtraBottom
   const tabHeight = tabBarReserveHeight(bottom)
   const [overlayLocked, setOverlayLocked] = useState(isTabBarOverlayLocked)
   const tourHighlight = useTourTabHighlight()
-  /** 하단 네비 전체 프레임 */
-  const mainMenuFrameW = windowW - 12
 
   useHideTabBarWhileKeyboard()
 
@@ -209,6 +200,7 @@ export default function TabLayout() {
     [tourHighlight],
   )
 
+  const mainMenuTour = tourHighlight?.mode === 'mainMenu'
   const tabBarStyle = useMemo(
     () =>
       overlayLocked
@@ -219,25 +211,30 @@ export default function TabLayout() {
           }
         : {
             position: 'absolute' as const,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: mainMenuTour ? 6 : 0,
+            right: mainMenuTour ? 6 : 0,
+            bottom: mainMenuTour ? 6 : 0,
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            // 투어 중에는 탭바 면도 같이 어둡게 — 하이라이트 테두리만 밝게
+            // 투어 중에는 탭바 면도 같이 어둡게
             backgroundColor: tourHighlight
-              ? 'rgba(45, 28, 18, 0.92)'
+              ? 'rgba(45, 28, 18, 0.94)'
               : Colors.cardRecessed,
-            borderTopWidth: tourHighlight ? 0 : StyleSheet.hairlineWidth,
+            borderTopWidth: tourHighlight && !mainMenuTour ? 0 : mainMenuTour ? 0 : StyleSheet.hairlineWidth,
             borderTopColor: Colors.border,
+            // 6단계 — 탭바 자체에 둥근 흰 테두리 (오버레이 프레임과 어긋남 방지)
+            borderWidth: mainMenuTour ? 2 : 0,
+            borderColor: mainMenuTour ? Colors.surface : 'transparent',
+            borderRadius: mainMenuTour ? 20 : 0,
+            overflow: 'hidden' as const,
             elevation: 0,
             shadowOpacity: 0,
             shadowRadius: 0,
             shadowOffset: { width: 0, height: 0 },
             zIndex: tourHighlight ? 50 : undefined,
           },
-    [overlayLocked, tabHeight, tabBottomPad, tourHighlight],
+    [overlayLocked, tabHeight, tabBottomPad, tourHighlight, mainMenuTour],
   )
 
   return (
@@ -348,28 +345,14 @@ export default function TabLayout() {
         />
       </Tabs>
       {tourHighlight?.mode === 'mainMenu' && !overlayLocked ? (
-        <>
-          <View
-            pointerEvents="none"
-            style={[
-              styles.mainMenuFrame,
-              {
-                left: 6,
-                width: mainMenuFrameW,
-                height: Math.max(56, tabHeight - Math.max(bottom, 8) - 4),
-                bottom: Math.max(bottom, 8),
-              },
-            ]}
-          />
-          <View
-            pointerEvents="none"
-            style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 8 }]}
-          >
-            <View style={styles.mainMenuLabel}>
-              <Text style={styles.mainMenuLabelText}>메인 메뉴 탐색</Text>
-            </View>
+        <View
+          pointerEvents="none"
+          style={[styles.mainMenuLabelWrap, { bottom: tabHeight + 14 }]}
+        >
+          <View style={styles.mainMenuLabel}>
+            <Text style={styles.mainMenuLabelText}>메인 메뉴 탐색</Text>
           </View>
-        </>
+        </View>
       ) : null}
     </>
   )
@@ -409,16 +392,6 @@ const styles = StyleSheet.create({
   },
   tabPressed: {
     opacity: 0.88,
-  },
-  /** 6단계 네비 전체 — 어두운 탭바 위에서 보이는 밝은 라운드 테두리 */
-  mainMenuFrame: {
-    position: 'absolute',
-    zIndex: 55,
-    elevation: 0,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: Colors.surface,
-    backgroundColor: 'transparent',
   },
   mainMenuLabelWrap: {
     position: 'absolute',

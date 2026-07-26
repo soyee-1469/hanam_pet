@@ -31,6 +31,10 @@ import {
 import { EmptyRecordsCard } from '../../components/EmptyRecordsCard'
 import { TabSceneGate } from '../../components/TabSceneGate'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import {
+  CoachScrimHole,
+  type CoachHoleRect,
+} from '../../components/CoachScrimHole'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
   finishPetTourWithComplete,
@@ -116,13 +120,10 @@ function DiaryScreenBody() {
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
   )
-  const selectedDayRef = useRef<View>(null)
-  const [daySpot, setDaySpot] = useState<{
-    x: number
-    y: number
-    w: number
-    h: number
-  } | null>(null)
+  const screenRootRef = useRef<View>(null)
+  const writeCtaRef = useRef<View>(null)
+  const [tourHole, setTourHole] = useState<CoachHoleRect | null>(null)
+  const [rootH, setRootH] = useState(0)
 
   const tourStep =
     tourIndex != null ? PET_TOUR_STEPS[tourIndex] : undefined
@@ -174,16 +175,34 @@ function DiaryScreenBody() {
 
   useEffect(() => {
     if (!tourHighlightWrite) {
-      setDaySpot(null)
+      setTourHole(null)
       return
     }
-    const t = requestAnimationFrame(() => {
-      selectedDayRef.current?.measureInWindow((x, y, w, h) => {
-        if (w > 0 && h > 0) setDaySpot({ x, y, w, h })
+    const target = writeCtaRef.current
+    if (!target) {
+      setTourHole(null)
+      return
+    }
+    let alive = true
+    const measure = () => {
+      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
+        target.measureInWindow((x, y, w, h) => {
+          if (!alive || w <= 0 || h <= 0) return
+          if (ch > 0) setRootH(Math.round(ch))
+          setTourHole({ x: x - cx, y: y - cy, w, h })
+        })
       })
-    })
-    return () => cancelAnimationFrame(t)
-  }, [tourHighlightWrite, selectedDay, year, month])
+    }
+    const t = requestAnimationFrame(measure)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 240)
+    return () => {
+      alive = false
+      cancelAnimationFrame(t)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [tourHighlightWrite, tabBarSpace])
 
   const moods = useMemo(
     () => diaryMoodsForMonth(year, month + 1, today),
@@ -305,6 +324,15 @@ function DiaryScreenBody() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View
+        ref={screenRootRef}
+        style={styles.flex}
+        collapsable={false}
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height)
+          if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
+        }}
+      >
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>마음 일기</Text>
@@ -391,7 +419,6 @@ function DiaryScreenBody() {
                     return (
                       <View
                         key={`d-${day}`}
-                        ref={selected ? selectedDayRef : undefined}
                         collapsable={false}
                         style={styles.dayCell}
                       >
@@ -418,9 +445,6 @@ function DiaryScreenBody() {
                               styles.dayInner,
                               selected && styles.daySelected,
                               isToday && styles.dayToday,
-                              selected &&
-                                tourHighlightWrite &&
-                                styles.dayTourRing,
                             ]}
                           >
                             <Text
@@ -557,11 +581,7 @@ function DiaryScreenBody() {
       </ScrollView>
 
       <View
-        style={[
-          styles.ctaWrap,
-          { paddingBottom: tabBarSpace + 12 },
-          tourHighlightWrite && styles.ctaWrapTour,
-        ]}
+        style={[styles.ctaWrap, { paddingBottom: tabBarSpace + 12 }]}
         collapsable={false}
       >
         <Pressable
@@ -570,50 +590,30 @@ function DiaryScreenBody() {
           onPress={openWriteForSelected}
           style={({ pressed }) => [pressed && styles.ctaPressed]}
         >
-          <View
-            style={[
-              tourHighlightWrite && styles.ctaTourRing,
-            ]}
-            collapsable={false}
-          >
-            <View style={styles.cta} collapsable={false}>
-              <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-              <Text style={styles.ctaText}>{ctaLabel}</Text>
-            </View>
+          <View ref={writeCtaRef} style={styles.cta} collapsable={false}>
+            <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
+            <Text style={styles.ctaText}>{ctaLabel}</Text>
           </View>
         </Pressable>
       </View>
 
       {showDiaryTour && tourStep ? (
         <>
-          <View style={styles.coachScrimLayer} pointerEvents="auto">
-            <View style={styles.coachScrim} />
-          </View>
-          {daySpot ? (
-            <View
-              pointerEvents="none"
-              style={[
-                styles.dayTourSpot,
-                {
-                  left: daySpot.x - 3,
-                  top: daySpot.y - 3,
-                  width: daySpot.w + 6,
-                  height: daySpot.h + 6,
-                },
-              ]}
-            >
-              <Text style={styles.dayTourSpotNum}>{selectedDay}</Text>
-            </View>
-          ) : null}
+          <CoachScrimHole hole={tourHole} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={tabBarSpace + 72}
+            bottom={
+              tourHole && rootH > 0
+                ? Math.max(tabBarSpace + 8, rootH - tourHole.y + 22)
+                : tabBarSpace + 100
+            }
           />
         </>
       ) : null}
+      </View>
     </SafeAreaView>
   )
 }
@@ -662,20 +662,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.screenPaddingH,
     paddingTop: 10,
     backgroundColor: Colors.background,
-  },
-  /** Above scrim (spotlight); below CoachmarkTourCard (zIndex 40). */
-  ctaWrapTour: {
-    zIndex: 30,
-    elevation: 0,
-  },
-  coachScrimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    elevation: 0,
-  },
-  coachScrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.22)',
   },
   monthRow: {
     flexDirection: 'row',
@@ -898,29 +884,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.elevation,
-  },
-  ctaTourRing: {
-    borderRadius: 18,
-    padding: 2,
-    backgroundColor: Colors.surface,
-  },
-  dayTourRing: {
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-  },
-  dayTourSpot: {
-    position: 'absolute',
-    zIndex: 30,
-    elevation: 0,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayTourSpotNum: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.textPrimary,
   },
   ctaPressed: {
     opacity: 0.92,

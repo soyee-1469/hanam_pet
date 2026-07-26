@@ -1021,12 +1021,16 @@ function PetHomeScreenBody() {
           showSpeech(getOnboardingCopy().resume.restored.homeBubble, 3600)
           return
         }
+        // 투어 진행 중에는 웰컴 시트를 다시 열지 않음 (다른 탭→홈 복귀)
+        if (getPetTourStepIndex() != null) return
         // cm-01-welcome: 홈 탭 포커스일 때만
         const coach = await getCoachmarkWelcomeStatus()
         if (cancelled) return
         if (coach === 'pending') {
           coachTimer = setTimeout(() => {
-            if (!cancelled) setCoachWelcomeOpen(true)
+            if (!cancelled && getPetTourStepIndex() == null) {
+              setCoachWelcomeOpen(true)
+            }
           }, 450)
           return
         }
@@ -1081,6 +1085,8 @@ function PetHomeScreenBody() {
 
   const startPetTour = () => {
     setCoachWelcomeOpen(false)
+    // 수락 즉시 저장 — 탭 이동 후 홈 복귀 시 웰컴이 다시 뜨지 않게
+    void setCoachmarkWelcomeStatus('accepted')
     startPetTourFromWelcome()
   }
 
@@ -1109,6 +1115,10 @@ function PetHomeScreenBody() {
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
   const tourHighlightMenu = showPetTour && tourStep?.highlight === 'menu'
   const tourHighlightTabs = showPetTour && tourStep?.highlight === 'tabs'
+
+  useEffect(() => {
+    if (coachTourStep != null) setCoachWelcomeOpen(false)
+  }, [coachTourStep])
 
   useEffect(() => {
     if (!showPetTour || !homeFocused || tourHighlightTabs) {
@@ -1794,7 +1804,11 @@ function PetHomeScreenBody() {
             if (h > 0 && Math.abs(h - sheetH) > 2) setSheetH(h)
           }}
         >
-          <View style={styles.primaryBlock}>
+          <View
+            ref={actionRowRef}
+            style={styles.primaryBlock}
+            collapsable={false}
+          >
             <LevelEnergyBlock
               energy={energy}
               energyMax={ENERGY_MAX}
@@ -1817,11 +1831,7 @@ function PetHomeScreenBody() {
                 </Pressable>
               </View>
             ) : null}
-            <View
-              ref={actionRowRef}
-              style={styles.actionRow}
-              collapsable={false}
-            >
+            <View style={styles.actionRow} collapsable={false}>
               <CareStockCard
                 count={foodCount}
                 icon={
@@ -1872,11 +1882,11 @@ function PetHomeScreenBody() {
                     tailAlign: 'start' as const,
                   }
                 : {
-                    // 케어 영역과 겹치지 않게 여유 두고 위에 배치
+                    // 케어(에너지+주기) 구멍 바로 위에 카드
                     bottom: tourHole
                       ? Math.max(
                           tabBarReserve + 16,
-                          (rootH || screenHeight) - tourHole.y + 28,
+                          (rootH || screenHeight) - tourHole.y + 20,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +

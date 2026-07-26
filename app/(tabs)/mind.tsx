@@ -46,6 +46,10 @@ import {
   youtubeWatchUrl,
 } from '../../lib/youtube'
 import { CoachmarkTourCard } from '../../components/CoachmarkTourCard'
+import {
+  CoachScrimHole,
+  type CoachHoleRect,
+} from '../../components/CoachScrimHole'
 import { PET_TOUR_STEPS, petTourHref } from '../../lib/coachmarkTour'
 import {
   finishPetTourWithComplete,
@@ -110,13 +114,10 @@ function MindScreenBody() {
   const [tourIndex, setTourIndex] = useState<number | null>(
     getPetTourStepIndex(),
   )
+  const screenRootRef = useRef<View>(null)
   const checkListRef = useRef<View>(null)
-  const [checkSpot, setCheckSpot] = useState<{
-    x: number
-    y: number
-    w: number
-    h: number
-  } | null>(null)
+  const [tourHole, setTourHole] = useState<CoachHoleRect | null>(null)
+  const [rootH, setRootH] = useState(0)
   const [playing, setPlaying] = useState<MindContent | null>(null)
   const [menuContent, setMenuContent] = useState<MindContent | null>(null)
 
@@ -155,16 +156,47 @@ function MindScreenBody() {
 
   useEffect(() => {
     if (!tourHighlightCheck) {
-      setCheckSpot(null)
+      setTourHole(null)
       return
     }
-    const t = requestAnimationFrame(() => {
-      checkListRef.current?.measureInWindow((x, y, w, h) => {
-        if (w > 0 && h > 0) setCheckSpot({ x, y, w, h })
+    const target = checkListRef.current
+    if (!target) {
+      setTourHole(null)
+      return
+    }
+    let alive = true
+    const measure = () => {
+      screenRootRef.current?.measureInWindow((cx, cy, _cw, ch) => {
+        target.measureInWindow((x, y, w, h) => {
+          if (!alive || w <= 0 || h <= 0) return
+          const measuredH = ch > 0 ? Math.round(ch) : rootH
+          if (ch > 0) setRootH(measuredH)
+          const localY = y - cy
+          const cardReserve = tabBarSpace + 210
+          const room = Math.max(
+            140,
+            (measuredH || 0) - localY - cardReserve,
+          )
+          if ((measuredH || 0) <= 0) return
+          setTourHole({
+            x: x - cx,
+            y: localY,
+            w,
+            h: Math.min(h, room),
+          })
+        })
       })
-    })
-    return () => cancelAnimationFrame(t)
-  }, [tourHighlightCheck, tab, results])
+    }
+    const t = requestAnimationFrame(measure)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 240)
+    return () => {
+      alive = false
+      cancelAnimationFrame(t)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [tourHighlightCheck, tab, results, rootH, tabBarSpace])
 
   const finishPetTour = async () => {
     finishPetTourWithComplete()
@@ -214,6 +246,15 @@ function MindScreenBody() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <View
+        ref={screenRootRef}
+        style={styles.flex}
+        collapsable={false}
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height)
+          if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
+        }}
+      >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>마음챙김</Text>
         <View style={styles.tabs}>
@@ -386,10 +427,7 @@ function MindScreenBody() {
             <View
               ref={checkListRef}
               collapsable={false}
-              style={[
-                styles.checkList,
-                tourHighlightCheck && styles.checkListTourHidden,
-              ]}
+              style={styles.checkList}
             >
               {MIND_CHECKS.map((check) => {
                 const IconComp = CHECK_ICON[check.icon]
@@ -449,79 +487,17 @@ function MindScreenBody() {
 
       {showMindTour && tourStep ? (
         <>
-          <View style={styles.coachScrimLayer} pointerEvents="auto">
-            <View style={styles.coachScrim} />
-          </View>
-          {checkSpot ? (
-            <View
-              pointerEvents="box-none"
-              style={[
-                styles.checkTourSpot,
-                {
-                  left: checkSpot.x - 4,
-                  top: checkSpot.y - 4,
-                  width: checkSpot.w + 8,
-                },
-              ]}
-            >
-              {MIND_CHECKS.map((check) => {
-                const IconComp = CHECK_ICON[check.icon]
-                const latest = latestForCheck(results, check.id)
-                return (
-                  <Pressable
-                    key={`tour-${check.id}`}
-                    accessibilityRole="button"
-                    accessibilityLabel={check.title}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/mind-check-intro',
-                        params: { id: check.id },
-                      })
-                    }
-                    style={({ pressed }) => [
-                      styles.checkCard,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <View style={styles.checkIconWrap}>
-                      <IconComp
-                        size={22}
-                        color={Colors.cocoa}
-                        weight="regular"
-                      />
-                    </View>
-                    <View style={styles.rowCopy}>
-                      <Text style={styles.rowTitle}>{check.title}</Text>
-                      <Text style={styles.rowMeta}>
-                        {check.code} · {check.questions}문항 · 약{' '}
-                        {check.minutes}분
-                      </Text>
-                      <Text
-                        style={[
-                          styles.checkHistory,
-                          !latest && styles.checkHistoryEmpty,
-                        ]}
-                      >
-                        {latest
-                          ? `최근 평가 ${formatResultDateYmd(latest.at)}`
-                          : '검사 이력 없음'}
-                      </Text>
-                    </View>
-                    <CaretRight size={18} color={Colors.taupe} weight="bold" />
-                  </Pressable>
-                )
-              })}
-            </View>
-          ) : null}
+          <CoachScrimHole hole={tourHole} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
             petName={petName}
             onNext={onPetTourNext}
-            bottom={tabBarSpace + 16}
+            bottom={tabBarSpace + 12}
           />
         </>
       ) : null}
+      </View>
 
       <YouTubeVideoModal
         visible={playing != null}
@@ -608,6 +584,9 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  flex: {
+    flex: 1,
   },
   header: {
     paddingTop: Layout.headerPaddingTop,
@@ -769,6 +748,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: Colors.textDisabled,
+    flexShrink: 1,
   },
   checkHistoryEmpty: {
     color: Colors.taupe,
@@ -911,27 +891,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: Colors.textSecondary,
-  },
-  coachScrimLayer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    elevation: 0,
-  },
-  coachScrim: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(91, 57, 39, 0.22)',
-  },
-  checkListTourHidden: {
-    opacity: 0,
-  },
-  checkTourSpot: {
-    position: 'absolute',
-    zIndex: 30,
-    elevation: 0,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
-    padding: 6,
-    gap: 10,
   },
   pressed: {
     opacity: 0.9,

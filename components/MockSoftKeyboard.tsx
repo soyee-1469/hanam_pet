@@ -10,8 +10,21 @@ import {
 } from 'react-native'
 import { Colors } from '../constants/Colors'
 
+/** 윗줄 — 실제 한글 키패드처럼 키 위에 1–0 숫자 표기 */
+const TOP_ROW: { key: string; digit: string }[] = [
+  { key: 'ㅂ', digit: '1' },
+  { key: 'ㅈ', digit: '2' },
+  { key: 'ㄷ', digit: '3' },
+  { key: 'ㄱ', digit: '4' },
+  { key: 'ㅅ', digit: '5' },
+  { key: 'ㅛ', digit: '6' },
+  { key: 'ㅕ', digit: '7' },
+  { key: 'ㅑ', digit: '8' },
+  { key: 'ㅐ', digit: '9' },
+  { key: 'ㅔ', digit: '0' },
+]
+
 const ROWS = [
-  ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'],
   ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
   ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ'],
 ] as const
@@ -60,9 +73,26 @@ export function MockSoftKeyboard({
     >
       <View style={[styles.wrap, { paddingBottom: padBottom }]}>
         <View style={styles.handle} />
+        <View style={styles.row}>
+          {TOP_ROW.map(({ key, digit }) => (
+            <Pressable
+              key={key}
+              accessibilityRole="button"
+              accessibilityLabel={`${key} ${digit}`}
+              onPress={() => onInsert?.(key)}
+              style={({ pressed }) => [
+                styles.key,
+                pressed && styles.keyPressed,
+              ]}
+            >
+              <Text style={styles.keyDigit}>{digit}</Text>
+              <Text style={styles.keyText}>{key}</Text>
+            </Pressable>
+          ))}
+        </View>
         {ROWS.map((row, ri) => (
           <View key={`r-${ri}`} style={styles.row}>
-            {ri === 2 ? <View style={styles.sideSpacer} /> : null}
+            {ri === 1 ? <View style={styles.sideSpacer} /> : null}
             {row.map((key) => (
               <Pressable
                 key={key}
@@ -77,7 +107,7 @@ export function MockSoftKeyboard({
                 <Text style={styles.keyText}>{key}</Text>
               </Pressable>
             ))}
-            {ri === 2 ? (
+            {ri === 1 ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="지우기"
@@ -210,10 +240,23 @@ const styles = StyleSheet.create({
   keyPressed: {
     opacity: 0.72,
   },
+  /** 윗줄 키 위쪽 — 1–0 (iOS 한글 키패드형) */
+  keyDigit: {
+    position: 'absolute',
+    top: 2,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 12,
+    color: Colors.textSecondary,
+  },
   keyText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
+    marginTop: 6,
   },
   keyTextMuted: {
     fontSize: 13,

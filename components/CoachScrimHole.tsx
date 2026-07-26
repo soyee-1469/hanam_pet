@@ -149,8 +149,8 @@ export function CoachScrimHole({
           width: w,
           height: h,
           borderWidth: BORDER,
-          borderColor: Colors.cocoa,
-          // 탭바 바로 위면 하단 선은 빼서 네비와 맞붙게
+          // 영역 강조 — 흰 라운드 프레임 (모달 카드와 구분)
+          borderColor: Colors.surface,
           ...(flatBottom ? { borderBottomWidth: 0 } : null),
           ...borderRadiusStyle,
         }}

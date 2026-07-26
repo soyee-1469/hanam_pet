@@ -646,7 +646,7 @@ function ChatScreenBody() {
                         text={latestPetReply.text}
                         textStyle={styles.petAnswerText}
                         align="left"
-                        collapsedLines={2}
+                        collapsedLines={4}
                         expandPlacement="below"
                         expandMode="popup"
                       />

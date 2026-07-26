@@ -79,7 +79,7 @@ function estimateLineCount(
 }
 
 /**
- * 긴 말풍선 — 2줄 넘으면 「더보기」.
+ * 긴 말풍선 — collapsedLines 넘으면 「더보기」.
  * 대화 무대는 높이 고정이라 인라인 펼침이 잘라서, 기본은 팝업+스크롤.
  */
 export function ExpandableBubbleText({

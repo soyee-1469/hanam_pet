@@ -694,7 +694,10 @@ function ChatScreenBody() {
             <View
               ref={composerRef}
               collapsable={false}
-              style={styles.composerMeasure}
+              style={[
+                styles.composerMeasure,
+                tourHighlightComposer && styles.tourLiftTarget,
+              ]}
             >
             <View
               collapsable={false}
@@ -1205,6 +1208,11 @@ const styles = StyleSheet.create({
   },
   composerMeasure: {
     alignSelf: 'stretch',
+  },
+  tourLiftTarget: {
+    zIndex: 30,
+    elevation: 30,
+    position: 'relative',
   },
   composer: {
     flexDirection: 'row',

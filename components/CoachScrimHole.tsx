@@ -26,81 +26,70 @@ type CoachScrimHoleProps = {
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(20, 10, 6, 0.86)'
-/** 웹 AA 흰 번짐 가림 — 흰 링이 아닌 어두운 코코아 */
-const EDGE = '#2A1A12'
+/** 바깥 딤 — 구멍 안에는 절대 칠하지 않음 */
+const SCRIM = 'rgba(18, 10, 6, 0.82)'
+const EDGE = 'rgba(122, 91, 69, 0.45)'
 const DEFAULT_PAD = 2
 
-function roundedCw(
-  x: number,
-  y: number,
+function roundedEdgePath(
   w: number,
   h: number,
   r: number,
-  roundTopOnly = false,
+  roundTopOnly: boolean,
 ): string {
   const rx = Math.min(r, w / 2, h / 2)
   if (roundTopOnly) {
     return [
-      `M ${x} ${y + h}`,
-      `V ${y + rx}`,
-      `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
-      `H ${x + w - rx}`,
-      `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
-      `V ${y + h}`,
-      'Z',
+      `M 0 ${h}`,
+      `V ${rx}`,
+      `A ${rx} ${rx} 0 0 1 ${rx} 0`,
+      `H ${w - rx}`,
+      `A ${rx} ${rx} 0 0 1 ${w} ${rx}`,
+      `V ${h}`,
     ].join(' ')
   }
   return [
-    `M ${x + rx} ${y}`,
-    `H ${x + w - rx}`,
-    `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
-    `V ${y + h - rx}`,
-    `A ${rx} ${rx} 0 0 1 ${x + w - rx} ${y + h}`,
-    `H ${x + rx}`,
-    `A ${rx} ${rx} 0 0 1 ${x} ${y + h - rx}`,
-    `V ${y + rx}`,
-    `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
-    'Z',
+    `M ${rx} 0`,
+    `H ${w - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${w} ${rx}`,
+    `V ${h - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${w - rx} ${h}`,
+    `H ${rx}`,
+    `A ${rx} ${rx} 0 0 1 0 ${h - rx}`,
+    `V ${rx}`,
+    `A ${rx} ${rx} 0 0 1 ${rx} 0`,
   ].join(' ')
 }
 
-function roundedCcw(
-  x: number,
-  y: number,
+/** 사각 구멍 네 모서리 — 둥근 구멍 밖·사각 안 쐐기만 딤 */
+function cornerWedgePaths(
   w: number,
   h: number,
   r: number,
-  roundTopOnly = false,
-): string {
+  roundTopOnly: boolean,
+): string[] {
   const rx = Math.min(r, w / 2, h / 2)
-  if (roundTopOnly) {
-    return [
-      `M ${x} ${y + h}`,
-      `H ${x + w}`,
-      `V ${y + rx}`,
-      `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
-      `H ${x + rx}`,
-      `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
-      'Z',
-    ].join(' ')
+  if (rx <= 0) return []
+  const paths = [
+    // TL
+    `M 0 0 H ${rx} A ${rx} ${rx} 0 0 0 0 ${rx} Z`,
+    // TR
+    `M ${w} 0 H ${w - rx} A ${rx} ${rx} 0 0 1 ${w} ${rx} Z`,
+  ]
+  if (!roundTopOnly) {
+    paths.push(
+      // BL
+      `M 0 ${h} H ${rx} A ${rx} ${rx} 0 0 1 0 ${h - rx} Z`,
+      // BR
+      `M ${w} ${h} H ${w - rx} A ${rx} ${rx} 0 0 0 ${w} ${h - rx} Z`,
+    )
   }
-  return [
-    `M ${x + rx} ${y}`,
-    `A ${rx} ${rx} 0 0 0 ${x} ${y + rx}`,
-    `V ${y + h - rx}`,
-    `A ${rx} ${rx} 0 0 0 ${x + rx} ${y + h}`,
-    `H ${x + w - rx}`,
-    `A ${rx} ${rx} 0 0 0 ${x + w} ${y + h - rx}`,
-    `V ${y + rx}`,
-    `A ${rx} ${rx} 0 0 0 ${x + w - rx} ${y}`,
-    'Z',
-  ].join(' ')
+  return paths
 }
 
 /**
- * 투어 딤 + 진짜 구멍 컷아웃.
- * evenodd 패스 + 어두운 가장자리로 웹 AA 흰 링을 피한다.
+ * 투어 딤 + 완전 투명 구멍.
+ * evenodd/마스크 대신 상하좌우 View로 뚫어 구멍 안이 절대 어두워지지 않게 한다.
  */
 export function CoachScrimHole({
   hole,
@@ -131,24 +120,62 @@ export function CoachScrimHole({
 
   const { x, y, w, h } = cut
   const rx = Math.min(radius, w / 2, h / 2)
-  const svgW = Math.max(winW, x + w + 24)
-  const svgH = Math.max(winH, y + h + 24)
-  const edgePath = roundedCw(x, y, w, h, rx, roundTopOnly)
-  const fillPath = `M 0 0 H ${svgW} V ${svgH} H 0 Z ${roundedCcw(x, y, w, h, rx, roundTopOnly)}`
+  const wedges = cornerWedgePaths(w, h, rx, roundTopOnly)
+  const edge = roundedEdgePath(w, h, rx, roundTopOnly)
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
+      {/* 상 */}
+      <View
+        pointerEvents="auto"
+        style={[styles.scrim, { left: 0, right: 0, top: 0, height: y }]}
+      />
+      {/* 하 */}
+      <View
+        pointerEvents="auto"
+        style={[
+          styles.scrim,
+          { left: 0, right: 0, top: y + h, height: Math.max(0, winH - (y + h)) },
+        ]}
+      />
+      {/* 좌 */}
+      <View
+        pointerEvents="auto"
+        style={[styles.scrim, { left: 0, top: y, width: x, height: h }]}
+      />
+      {/* 우 */}
+      <View
+        pointerEvents="auto"
+        style={[
+          styles.scrim,
+          {
+            left: x + w,
+            top: y,
+            width: Math.max(0, winW - (x + w)),
+            height: h,
+          },
+        ]}
+      />
+
+      {/* 둥근 모서리 쐐기만 — 구멍 중앙은 비움 */}
       <Svg
         pointerEvents="none"
-        width={svgW}
-        height={svgH}
-        style={StyleSheet.absoluteFill}
+        width={w}
+        height={h}
+        style={{ position: 'absolute', left: x, top: y }}
       >
-        <Path d={fillPath} fill={SCRIM} fillRule="evenodd" />
-        <Path d={edgePath} fill="none" stroke={EDGE} strokeWidth={1.5} />
+        {wedges.map((d, i) => (
+          <Path key={i} d={d} fill={SCRIM} />
+        ))}
+        <Path
+          d={edge}
+          fill="none"
+          stroke={EDGE}
+          strokeWidth={1.25}
+        />
       </Svg>
 
-      {/* 구멍 위 터치 차단 */}
+      {/* 구멍 위 터치만 막음 (배경 없음 → 밝기 유지) */}
       <View
         pointerEvents="auto"
         style={{
@@ -161,6 +188,7 @@ export function CoachScrimHole({
           borderTopRightRadius: rx,
           borderBottomLeftRadius: roundTopOnly ? 0 : rx,
           borderBottomRightRadius: roundTopOnly ? 0 : rx,
+          backgroundColor: 'transparent',
         }}
       />
     </View>

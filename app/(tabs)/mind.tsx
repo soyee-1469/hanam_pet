@@ -427,7 +427,10 @@ function MindScreenBody() {
             <View
               ref={checkListRef}
               collapsable={false}
-              style={styles.checkList}
+              style={[
+                styles.checkList,
+                tourHighlightCheck && styles.tourLiftTarget,
+              ]}
             >
               {MIND_CHECKS.map((check) => {
                 const IconComp = CHECK_ICON[check.icon]

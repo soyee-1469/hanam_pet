@@ -571,7 +571,8 @@ function ChatScreenBody() {
                         text={latestPetReply.text}
                         textStyle={styles.petAnswerText}
                         align="left"
-                        collapsedLines={5}
+                        collapsedLines={4}
+                        expandPlacement="below"
                         maxExpandedHeight={Math.max(72, answerMaxH - 40)}
                       />
                     </ChatBubble>

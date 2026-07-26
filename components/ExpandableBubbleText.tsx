@@ -9,27 +9,30 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
-import { ArrowsInSimple, ArrowsOutSimple, CaretDown, CaretUp } from 'phosphor-react-native'
 import { Colors } from '../constants/Colors'
+import { Type } from '../constants/Typography'
 
 type ExpandableBubbleTextProps = {
   text: string
   textStyle?: StyleProp<TextStyle>
   /** 접힌 상태 최대 줄 수 */
   collapsedLines?: number
-  /** 펼친 상태 최대 높이 — 넘치면 내부 스크롤 */
+  /** 펼친 상태 최대 높이 — 말풍선 대역을 넘기면 내부 스크롤 */
   maxExpandedHeight?: number
   align?: 'left' | 'center' | 'right'
   /**
-   * below — 텍스트 아래 화살표 (기본)
-   * trailing — 텍스트 우측 확대/접기 아이콘 (질문 말풍선)
+   * below — 텍스트 아래 「더보기/접기」(기본, 답변)
+   * trailing — 텍스트 우측 「더보기/접기」(질문)
    */
   expandPlacement?: 'below' | 'trailing'
   style?: StyleProp<ViewStyle>
 }
 
+/** trailing 라벨 폭 여유 (측정용) */
+const TRAILING_LABEL_RESERVE = 44
+
 /**
- * 긴 말풍선 — 접기/펼치기. 다른 페이지로 이동하지 않음.
+ * 긴 말풍선 — 2줄 이상이면 접고, 작은 「더보기/접기」로 펼친다.
  */
 export function ExpandableBubbleText({
   text,
@@ -69,20 +72,12 @@ export function ExpandableBubbleText({
       onPress={() => setExpanded((v) => !v)}
       style={({ pressed }) => [
         trailing ? styles.expandTrailing : styles.expandBelow,
+        align === 'right' && !trailing && styles.expandBelowRight,
+        align === 'center' && !trailing && styles.expandBelowCenter,
         pressed && styles.expandPressed,
       ]}
     >
-      {trailing ? (
-        expanded ? (
-          <ArrowsInSimple size={18} color={Colors.cocoa} weight="bold" />
-        ) : (
-          <ArrowsOutSimple size={18} color={Colors.cocoa} weight="bold" />
-        )
-      ) : expanded ? (
-        <CaretUp size={16} color={Colors.cocoa} weight="bold" />
-      ) : (
-        <CaretDown size={16} color={Colors.cocoa} weight="bold" />
-      )}
+      <Text style={styles.expandLabel}>{expanded ? '접기' : '더보기'}</Text>
     </Pressable>
   ) : null
 
@@ -115,7 +110,7 @@ export function ExpandableBubbleText({
             styles.measure,
             {
               width: trailing
-                ? Math.max(0, measureWidth - 28)
+                ? Math.max(0, measureWidth - TRAILING_LABEL_RESERVE)
                 : measureWidth,
             },
           ]}
@@ -161,20 +156,27 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   expandBelow: {
-    marginTop: 6,
-    minWidth: 28,
-    minHeight: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 4,
+    paddingVertical: 2,
     alignSelf: 'flex-start',
   },
+  expandBelowRight: {
+    alignSelf: 'flex-end',
+  },
+  expandBelowCenter: {
+    alignSelf: 'center',
+  },
   expandTrailing: {
-    width: 28,
-    height: 28,
+    paddingVertical: 2,
     marginBottom: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     flexShrink: 0,
+  },
+  expandLabel: {
+    fontSize: Type.micro,
+    lineHeight: 14,
+    fontWeight: '600',
+    color: Colors.cocoa,
+    opacity: 0.72,
   },
   expandPressed: {
     opacity: 0.7,

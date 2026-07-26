@@ -1156,15 +1156,22 @@ function PetHomeScreenBody() {
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
           const localY = y - cy
-          // 케어: 탭바에 가려지지 않게 하단을 잘라 둥근 면이 보이게
-          const maxH = tourHighlightCare
-            ? Math.max(80, measuredH - localY - tabBarReserve - 8)
-            : h
+          // 케어: 시트 폭으로 잡고 하단은 탭바까지 이어 떠 있는 카드처럼 안 보이게
+          if (tourHighlightCare) {
+            const top = Math.max(0, localY - 10)
+            setTourHole({
+              x: 0,
+              y: top,
+              w: measuredW,
+              h: Math.max(80, measuredH - top),
+            })
+            return
+          }
           setTourHole({
             x: Math.max(0, x - cx),
             y: localY,
             w,
-            h: Math.min(h, maxH),
+            h,
           })
         })
       })
@@ -1891,10 +1898,10 @@ function PetHomeScreenBody() {
           <CoachScrimHole
             hole={tourHole}
             radius={
-              tourHighlightTabs ? 20 : tourHighlightCare ? 20 : 16
+              tourHighlightTabs || tourHighlightCare ? 24 : 16
             }
-            pad={tourHighlightMenu ? 2 : 0}
-            roundTopOnly={tourHighlightTabs}
+            pad={0}
+            roundTopOnly={tourHighlightTabs || tourHighlightCare}
           />
           <CoachmarkTourCard
             step={tourStep}

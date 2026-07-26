@@ -19,21 +19,16 @@ type CoachScrimHoleProps = {
   hole: CoachHoleRect | null
   /** 구멍 모서리 */
   radius?: number
-  /**
-   * 구멍 여백.
-   * 기본 0 — 여백이 크림/흰으로 보이면 두꺼운 링처럼 느껴짐.
-   */
+  /** 구멍 여백 (기본 0) */
   pad?: number
-  /** 상단만 둥글게 (하단 탭바 등) */
+  /** 상단만 둥글게 (하단 탭바·케어 패널 등) */
   roundTopOnly?: boolean
   style?: ViewStyle
 }
 
 const SCRIM = 'rgba(20, 10, 6, 0.88)'
-const EDGE = 'rgba(122, 91, 69, 0.35)'
 const DEFAULT_PAD = 0
 
-/** 시계 방향 둥근 사각 */
 function roundedCw(
   x: number,
   y: number,
@@ -68,7 +63,6 @@ function roundedCw(
   ].join(' ')
 }
 
-/** 반시계 방향 둥근 사각 — evenodd 구멍용 */
 function roundedCcw(
   x: number,
   y: number,
@@ -103,8 +97,8 @@ function roundedCcw(
 }
 
 /**
- * 투어 딤 + 타깃에 딱 맞는 둥근 컷아웃.
- * Mask 대신 evenodd 패스 — 웹에서 마스크 AA로 생기는 흰 링을 피함.
+ * 투어 딤 + 부드러운 컷아웃.
+ * 딱딱한 흰 링/테두리 없이, 가장자리만 살짝 어두워지는 소프트 페이드.
  */
 export function CoachScrimHole({
   hole,
@@ -137,8 +131,14 @@ export function CoachScrimHole({
   const rx = Math.min(radius, w / 2, h / 2)
   const svgW = Math.max(winW, x + w + 24)
   const svgH = Math.max(winH, y + h + 24)
-  const edgePath = roundedCw(x, y, w, h, rx, roundTopOnly)
   const fillPath = `M 0 0 H ${svgW} V ${svgH} H 0 Z ${roundedCcw(x, y, w, h, rx, roundTopOnly)}`
+
+  // 구멍 안쪽으로 어두운 스트로크를 겹쳐 가장자리를 부드럽게
+  const softRings = [1, 2, 4, 7, 10].map((sw, i) => ({
+    d: roundedCw(x, y, w, h, rx, roundTopOnly),
+    strokeWidth: sw * 2,
+    opacity: 0.14 - i * 0.022,
+  }))
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
@@ -149,7 +149,15 @@ export function CoachScrimHole({
         style={StyleSheet.absoluteFill}
       >
         <Path d={fillPath} fill={SCRIM} fillRule="evenodd" />
-        <Path d={edgePath} fill="none" stroke={EDGE} strokeWidth={1} />
+        {softRings.map((ring, i) => (
+          <Path
+            key={i}
+            d={ring.d}
+            fill="none"
+            stroke={`rgba(20, 10, 6, ${ring.opacity})`}
+            strokeWidth={ring.strokeWidth}
+          />
+        ))}
       </Svg>
 
       <View

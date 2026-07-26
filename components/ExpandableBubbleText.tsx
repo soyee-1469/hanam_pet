@@ -5,27 +5,37 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
 import { Colors } from '../constants/Colors'
-import { Type } from '../constants/Typography'
+import { Layout } from '../constants/Layout'
+import { Type, TypeStyle } from '../constants/Typography'
 import { eojeolTextStyle, eojeolWrap } from '../lib/eojeolText'
+import { CenterDialog } from './ui/AppOverlay'
 
 type ExpandableBubbleTextProps = {
   text: string
   textStyle?: StyleProp<TextStyle>
   /** 접힌 상태 최대 줄 수 */
   collapsedLines?: number
-  /** 펼친 상태 최대 높이 — 말풍선 대역을 넘기면 내부 스크롤 */
+  /**
+   * @deprecated 팝업 모드에서는 사용하지 않음. 호환용으로만 유지.
+   */
   maxExpandedHeight?: number
   align?: 'left' | 'center' | 'right'
   /**
-   * below — 텍스트 아래 「더보기/접기」(기본)
-   * trailing — 텍스트 우측 「더보기/접기」
+   * below — 텍스트 아래 「더보기」(기본)
+   * trailing — 텍스트 우측 「더보기」
    */
   expandPlacement?: 'below' | 'trailing'
+  /**
+   * popup — 더보기 시 가운데 팝업+스크롤 (대화 무대 기본)
+   * inline — 같은 자리에서 펼침 (목록·상세처럼 공간이 넉넉할 때)
+   */
+  expandMode?: 'popup' | 'inline'
   style?: StyleProp<ViewStyle>
 }
 
@@ -69,21 +79,25 @@ function estimateLineCount(
 }
 
 /**
- * 긴 말풍선 — 2줄 넘으면 「더보기/접기」.
+ * 긴 말풍선 — 2줄 넘으면 「더보기」.
+ * 대화 무대는 높이 고정이라 인라인 펼침이 잘라서, 기본은 팝업+스크롤.
  */
 export function ExpandableBubbleText({
   text,
   textStyle,
   collapsedLines = 2,
-  maxExpandedHeight = 160,
+  maxExpandedHeight = 220,
   align = 'left',
   expandPlacement = 'below',
+  expandMode = 'popup',
   style,
 }: ExpandableBubbleTextProps) {
+  const { height: windowH } = useWindowDimensions()
   const [expanded, setExpanded] = useState(false)
   const [measureWidth, setMeasureWidth] = useState(0)
 
   const fontSize = readFontSize(textStyle)
+  const popupScrollMaxH = Math.round(windowH * 0.55)
 
   const hardLines = useMemo(
     () => text.replace(/\r\n/g, '\n').split('\n').length,
@@ -104,23 +118,35 @@ export function ExpandableBubbleText({
   }, [text])
 
   const trailing = expandPlacement === 'trailing'
-  const showFull = expanded || !needsExpand
+  const usePopup = expandMode === 'popup'
+  const showInlineFull = !usePopup && (expanded || !needsExpand)
 
-  const body = (
+  const collapsedBody = (
     <Text
       style={[eojeolTextStyle, textStyle]}
-      numberOfLines={showFull ? undefined : collapsedLines}
+      numberOfLines={needsExpand ? collapsedLines : undefined}
     >
       {eojeolWrap(text)}
     </Text>
   )
 
+  const inlineExpandedBody = (
+    <ScrollView
+      style={{ maxHeight: maxExpandedHeight }}
+      nestedScrollEnabled
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
+      <Text style={[eojeolTextStyle, textStyle]}>{eojeolWrap(text)}</Text>
+    </ScrollView>
+  )
+
   const expandControl = needsExpand ? (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={expanded ? '접기' : '더보기'}
+      accessibilityLabel={expanded && !usePopup ? '접기' : '더보기'}
       hitSlop={10}
-      onPress={() => setExpanded((v) => !v)}
+      onPress={() => setExpanded((v) => (usePopup ? true : !v))}
       style={({ pressed }) => [
         trailing ? styles.expandTrailing : styles.expandBelow,
         align === 'right' && !trailing && styles.expandBelowRight,
@@ -128,23 +154,16 @@ export function ExpandableBubbleText({
         pressed && styles.expandPressed,
       ]}
     >
-      <Text style={styles.expandLabel}>{expanded ? '접기' : '더보기'}</Text>
+      <Text style={styles.expandLabel}>
+        {expanded && !usePopup ? '접기' : '더보기'}
+      </Text>
     </Pressable>
   ) : null
 
   const textBlock =
-    expanded && needsExpand ? (
-      <ScrollView
-        style={{ maxHeight: maxExpandedHeight }}
-        nestedScrollEnabled
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        {body}
-      </ScrollView>
-    ) : (
-      body
-    )
+    !usePopup && showInlineFull && needsExpand
+      ? inlineExpandedBody
+      : collapsedBody
 
   return (
     <View
@@ -165,6 +184,37 @@ export function ExpandableBubbleText({
           {expandControl}
         </>
       )}
+
+      {usePopup ? (
+        <CenterDialog
+          visible={expanded && needsExpand}
+          onRequestClose={() => setExpanded(false)}
+          cardStyle={styles.popupCard}
+        >
+          <ScrollView
+            style={{ maxHeight: popupScrollMaxH }}
+            contentContainerStyle={styles.popupScrollContent}
+            showsVerticalScrollIndicator
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={[eojeolTextStyle, styles.popupText, textStyle]}>
+              {eojeolWrap(text)}
+            </Text>
+          </ScrollView>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="접기"
+            onPress={() => setExpanded(false)}
+            style={({ pressed }) => [
+              styles.popupClose,
+              pressed && styles.expandPressed,
+            ]}
+          >
+            <Text style={styles.popupCloseLabel}>접기</Text>
+          </Pressable>
+        </CenterDialog>
+      ) : null}
     </View>
   )
 }
@@ -203,5 +253,37 @@ const styles = StyleSheet.create({
   },
   expandPressed: {
     opacity: 0.65,
+  },
+  popupCard: {
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+    paddingTop: Layout.blockGap,
+    paddingBottom: Layout.blockGap,
+  },
+  popupScrollContent: {
+    paddingBottom: 4,
+  },
+  popupText: {
+    ...TypeStyle.body,
+    lineHeight: 24,
+    color: Colors.textPrimary,
+  },
+  popupClose: {
+    marginTop: Layout.sectionGap,
+    alignSelf: 'center',
+    minHeight: 44,
+    minWidth: 96,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  popupCloseLabel: {
+    ...TypeStyle.button,
+    color: Colors.cocoa,
   },
 })

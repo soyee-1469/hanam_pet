@@ -2707,7 +2707,7 @@ const styles = StyleSheet.create({
   },
   stockCardTour: {
     borderWidth: 2.5,
-    borderColor: Colors.selected,
+    borderColor: Colors.cocoa,
     backgroundColor: Colors.surface,
   },
   stockActionLabel: {

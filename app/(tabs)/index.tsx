@@ -1142,16 +1142,13 @@ function PetHomeScreenBody() {
           const localY = y - cy
           const measuredH = ch > 0 ? Math.round(ch) : rootH
           if (ch > 0) setRootH(measuredH)
-          // 케어: 탭바까지 구멍을 내려 딤 틈을 없앰
-          const holeH =
-            tourHighlightCare && measuredH > 0
-              ? Math.max(h, measuredH - localY)
-              : h
+          // 케어·메뉴: 자연 크기 + 살짝 좌우 여유 (탭바까지 억지로 안 늘림)
+          const padX = tourHighlightCare ? 4 : 2
           setTourHole({
-            x: x - cx,
+            x: Math.max(0, x - cx - padX),
             y: localY,
-            w,
-            h: holeH,
+            w: w + padX * 2,
+            h,
           })
         })
       })
@@ -1876,8 +1873,7 @@ function PetHomeScreenBody() {
         <>
           <CoachScrimHole
             hole={tourHighlightTabs ? null : tourHole}
-            flatBottom={tourHighlightCare}
-            radius={tourHighlightCare ? 22 : 20}
+            radius={tourHighlightCare ? 24 : 22}
           />
           <CoachmarkTourCard
             step={tourStep}
@@ -1892,16 +1888,16 @@ function PetHomeScreenBody() {
                       headerTopPad + 8,
                       (tourHole?.y ?? headerTopPad + 100) +
                         (tourHole?.h ?? 0) +
-                        14,
+                        18,
                     ),
                     tailAlign: 'start' as const,
                   }
                 : {
-                    // 케어(에너지+주기) 구멍 바로 위에 카드
+                    // 케어 영역 바로 위
                     bottom: tourHole
                       ? Math.max(
-                          tabBarReserve + 16,
-                          (rootH || screenHeight) - tourHole.y + 20,
+                          tabBarReserve + 20,
+                          (rootH || screenHeight) - tourHole.y + 16,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +

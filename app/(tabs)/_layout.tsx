@@ -211,27 +211,27 @@ export default function TabLayout() {
           }
         : {
             position: 'absolute' as const,
-            left: mainMenuTour ? 6 : 0,
-            right: mainMenuTour ? 6 : 0,
-            bottom: mainMenuTour ? 6 : 0,
+            left: mainMenuTour ? 10 : 0,
+            right: mainMenuTour ? 10 : 0,
+            bottom: mainMenuTour ? 10 : 0,
             height: tabHeight,
             paddingTop: 5,
             paddingBottom: tabBottomPad,
-            // 투어 중에는 탭바 면도 같이 어둡게
-            backgroundColor: tourHighlight
-              ? 'rgba(45, 28, 18, 0.94)'
-              : Colors.cardRecessed,
-            borderTopWidth: tourHighlight && !mainMenuTour ? 0 : mainMenuTour ? 0 : StyleSheet.hairlineWidth,
+            // 투어 중: 일반은 어둡게 / 6단계는 크림 도크로 리프트
+            backgroundColor: mainMenuTour
+              ? Colors.cardRecessed
+              : tourHighlight
+                ? 'rgba(45, 28, 18, 0.94)'
+                : Colors.cardRecessed,
+            borderTopWidth: tourHighlight ? 0 : StyleSheet.hairlineWidth,
             borderTopColor: Colors.border,
-            // 6단계 — 탭바 자체에 둥근 흰 테두리 (오버레이 프레임과 어긋남 방지)
-            borderWidth: mainMenuTour ? 2 : 0,
-            borderColor: mainMenuTour ? Colors.surface : 'transparent',
-            borderRadius: mainMenuTour ? 20 : 0,
+            borderRadius: mainMenuTour ? 24 : 0,
             overflow: 'hidden' as const,
-            elevation: 0,
-            shadowOpacity: 0,
-            shadowRadius: 0,
-            shadowOffset: { width: 0, height: 0 },
+            elevation: mainMenuTour ? 10 : 0,
+            shadowOpacity: mainMenuTour ? 0.2 : 0,
+            shadowRadius: mainMenuTour ? 14 : 0,
+            shadowOffset: { width: 0, height: mainMenuTour ? 6 : 0 },
+            shadowColor: '#1A0E08',
             zIndex: tourHighlight ? 50 : undefined,
           },
     [overlayLocked, tabHeight, tabBottomPad, tourHighlight, mainMenuTour],

@@ -4,9 +4,9 @@ import {
   StyleSheet,
   type ViewStyle,
   useWindowDimensions,
+  Platform,
 } from 'react-native'
 import Svg, { Defs, Mask, Rect, Path } from 'react-native-svg'
-import { Colors } from '../constants/Colors'
 
 export type CoachHoleRect = {
   x: number
@@ -18,17 +18,14 @@ export type CoachHoleRect = {
 type CoachScrimHoleProps = {
   /** 부모(absoluteFill) 기준 구멍. null이면 전체 진한 딤 */
   hole: CoachHoleRect | null
-  /** 구멍·테두리 모서리 — 대상 UI와 맞춤 */
+  /** 구멍 모서리 */
   radius?: number
-  /** 탭바 바로 위일 때 하단 모서리를 직각으로 */
-  flatBottom?: boolean
   style?: ViewStyle
 }
 
-/** 네이버식 투어처럼 배경을 충분히 눌러 구멍을 살린다 */
-const SCRIM = 'rgba(28, 14, 10, 0.82)'
-const CUT_PAD = 4
-const BORDER = 2
+const SCRIM = 'rgba(28, 14, 10, 0.8)'
+/** 하이라이트 여백 — 카드처럼 숨 쉬게 */
+const CUT_PAD = 10
 
 function roundedHolePath(
   x: number,
@@ -36,37 +33,29 @@ function roundedHolePath(
   w: number,
   h: number,
   r: number,
-  flatBottom: boolean,
 ): string {
-  const rt = Math.min(r, w / 2, h / 2)
-  const rb = flatBottom ? 0 : rt
-  // 시계방향 둥근 사각 (하단 직각 가능)
+  const rx = Math.min(r, w / 2, h / 2)
   return [
-    `M ${x + rt} ${y}`,
-    `H ${x + w - rt}`,
-    `A ${rt} ${rt} 0 0 1 ${x + w} ${y + rt}`,
-    `V ${y + h - rb}`,
-    rb > 0
-      ? `A ${rb} ${rb} 0 0 1 ${x + w - rb} ${y + h}`
-      : `L ${x + w} ${y + h}`,
-    `H ${x + rb}`,
-    rb > 0
-      ? `A ${rb} ${rb} 0 0 1 ${x} ${y + h - rb}`
-      : `L ${x} ${y + h}`,
-    `V ${y + rt}`,
-    `A ${rt} ${rt} 0 0 1 ${x + rt} ${y}`,
+    `M ${x + rx} ${y}`,
+    `H ${x + w - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + w} ${y + rx}`,
+    `V ${y + h - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + w - rx} ${y + h}`,
+    `H ${x + rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x} ${y + h - rx}`,
+    `V ${y + rx}`,
+    `A ${rx} ${rx} 0 0 1 ${x + rx} ${y}`,
     'Z',
   ].join(' ')
 }
 
 /**
- * 6단계 투어용 딤.
- * 진한 딤 + 둥근 구멍 + 코코아 테두리.
+ * 투어 딤 + 부드러운 영역 리프트.
+ * 딱딱한 테두리 대신 크림 글로우·흰 소프트 링.
  */
 export function CoachScrimHole({
   hole,
-  radius = 20,
-  flatBottom = false,
+  radius = 22,
   style,
 }: CoachScrimHoleProps) {
   const { width: winW, height: winH } = useWindowDimensions()
@@ -91,18 +80,10 @@ export function CoachScrimHole({
 
   const { x, y, w, h } = cut
   const rx = Math.min(radius, w / 2, h / 2)
-  const svgW = Math.max(winW, x + w + 8)
-  const svgH = Math.max(winH, y + h + 8)
-  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}-${flatBottom ? 1 : 0}`
-  const holePath = roundedHolePath(x, y, w, h, rx, flatBottom)
-  const borderRadiusStyle = flatBottom
-    ? {
-        borderTopLeftRadius: rx,
-        borderTopRightRadius: rx,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-      }
-    : { borderRadius: rx }
+  const svgW = Math.max(winW, x + w + 24)
+  const svgH = Math.max(winH, y + h + 24)
+  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}`
+  const holePath = roundedHolePath(x, y, w, h, rx)
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
@@ -128,32 +109,34 @@ export function CoachScrimHole({
         />
       </Svg>
 
-      <View
-        pointerEvents="auto"
-        style={{
-          position: 'absolute',
-          left: x,
-          top: y,
-          width: w,
-          height: h,
-          ...borderRadiusStyle,
-        }}
-      />
-
+      {/* 소프트 글로우 판 */}
       <View
         pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: x,
-          top: y,
-          width: w,
-          height: h,
-          borderWidth: BORDER,
-          // 영역 강조 — 흰 라운드 프레임 (모달 카드와 구분)
-          borderColor: Colors.surface,
-          ...(flatBottom ? { borderBottomWidth: 0 } : null),
-          ...borderRadiusStyle,
-        }}
+        style={[
+          styles.glow,
+          {
+            left: x - 6,
+            top: y - 6,
+            width: w + 12,
+            height: h + 12,
+            borderRadius: rx + 6,
+          },
+        ]}
+      />
+
+      {/* 터치 차단 + 얇은 크림 링 */}
+      <View
+        pointerEvents="auto"
+        style={[
+          styles.ring,
+          {
+            left: x,
+            top: y,
+            width: w,
+            height: h,
+            borderRadius: rx,
+          },
+        ]}
       />
     </View>
   )
@@ -171,5 +154,31 @@ const styles = StyleSheet.create({
   scrim: {
     position: 'absolute',
     backgroundColor: SCRIM,
+  },
+  glow: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 248, 240, 0.28)',
+  },
+  ring: {
+    position: 'absolute',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: 'transparent',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#1A0E08',
+        shadowOpacity: 0.28,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+      },
+      android: { elevation: 8 },
+      default: {
+        // web
+        shadowColor: '#1A0E08',
+        shadowOpacity: 0.22,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 6 },
+      },
+    }),
   },
 })

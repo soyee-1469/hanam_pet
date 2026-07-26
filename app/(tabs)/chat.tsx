@@ -168,28 +168,31 @@ function ChatScreenBody() {
       setTourHole(null)
       return
     }
-    const target = composerRef.current
-    if (!target) {
-      setTourHole(null)
-      return
-    }
     let alive = true
     const measure = () => {
-      screenRootRef.current?.measureInWindow((cx, cy) => {
+      const target = composerRef.current
+      const root = screenRootRef.current
+      if (!target || !root) return
+      root.measureInWindow((cx, cy, _cw, ch) => {
         target.measureInWindow((x, y, w, h) => {
           if (!alive || w <= 0 || h <= 0) return
+          if (ch > 0) setRootH(Math.round(ch))
           setTourHole({ x: x - cx, y: y - cy, w, h })
         })
       })
     }
     const t = requestAnimationFrame(measure)
-    const t2 = setTimeout(measure, 120)
+    const t2 = setTimeout(measure, 80)
+    const t3 = setTimeout(measure, 200)
+    const t4 = setTimeout(measure, 400)
     return () => {
       alive = false
       cancelAnimationFrame(t)
       clearTimeout(t2)
+      clearTimeout(t3)
+      clearTimeout(t4)
     }
-  }, [tourHighlightComposer, depleted, inputH, windowH])
+  }, [tourHighlightComposer, depleted, inputH, windowH, showChatTour])
 
   const finishPetTour = async () => {
     finishPetTourWithComplete()
@@ -449,15 +452,16 @@ function ChatScreenBody() {
   }
 
   return (
-    <SafeAreaView
-      ref={screenRootRef}
-      style={styles.safe}
-      edges={['top']}
-      onLayout={(e) => {
-        const h = Math.round(e.nativeEvent.layout.height)
-        if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
-      }}
-    >
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <View
+        ref={screenRootRef}
+        style={styles.flex}
+        collapsable={false}
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height)
+          if (h > 0 && Math.abs(h - rootH) > 2) setRootH(h)
+        }}
+      >
       <KeyboardAvoidingView
         style={[
           styles.flex,
@@ -765,7 +769,7 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={26} />
+          <CoachScrimHole hole={tourHole} radius={28} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -774,14 +778,15 @@ function ChatScreenBody() {
             bottom={
               tourHole
                 ? Math.max(
-                    tabBarSpace + 8,
-                    (rootH || windowH) - tourHole.y + 18,
+                    tabBarSpace + 12,
+                    (rootH || windowH) - tourHole.y + 20,
                   )
                 : Math.max(insets.bottom, 12) + tabBarSpace + 72
             }
           />
         </>
       ) : null}
+      </View>
     </SafeAreaView>
   )
 }

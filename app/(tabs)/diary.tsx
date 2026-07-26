@@ -584,22 +584,24 @@ function DiaryScreenBody() {
         style={[styles.ctaWrap, { paddingBottom: tabBarSpace + 12 }]}
         collapsable={false}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`+ ${ctaLabel}`}
-          onPress={openWriteForSelected}
-          style={({ pressed }) => [pressed && styles.ctaPressed]}
-        >
-          <View ref={writeCtaRef} style={styles.cta} collapsable={false}>
-            <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
-            <Text style={styles.ctaText}>{ctaLabel}</Text>
-          </View>
-        </Pressable>
+        <View ref={writeCtaRef} collapsable={false}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`+ ${ctaLabel}`}
+            onPress={openWriteForSelected}
+            style={({ pressed }) => [pressed && styles.ctaPressed]}
+          >
+            <View style={styles.cta} collapsable={false}>
+              <Plus size={18} color={Colors.buttonPrimaryText} weight="bold" />
+              <Text style={styles.ctaText}>{ctaLabel}</Text>
+            </View>
+          </Pressable>
+        </View>
       </View>
 
       {showDiaryTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={18} />
+          <CoachScrimHole hole={tourHole} radius={20} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -607,7 +609,7 @@ function DiaryScreenBody() {
             onNext={onPetTourNext}
             bottom={
               tourHole && rootH > 0
-                ? Math.max(tabBarSpace + 8, rootH - tourHole.y + 22)
+                ? Math.max(tabBarSpace + 12, rootH - tourHole.y + 18)
                 : tabBarSpace + 100
             }
           />

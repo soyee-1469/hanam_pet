@@ -240,22 +240,23 @@ const styles = StyleSheet.create({
   keyPressed: {
     opacity: 0.72,
   },
-  /** 윗줄 키 위쪽 — 1–0 */
+  /** 윗줄 키 위쪽 — 1–0 (iOS 한글 키패드형) */
   keyDigit: {
     position: 'absolute',
-    top: 3,
+    top: 2,
     left: 0,
     right: 0,
     textAlign: 'center',
-    fontSize: 9,
-    fontWeight: '600',
-    lineHeight: 11,
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 12,
     color: Colors.textSecondary,
   },
   keyText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
+    marginTop: 6,
   },
   keyTextMuted: {
     fontSize: 13,

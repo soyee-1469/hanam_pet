@@ -381,11 +381,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textDisabled,
   },
-  /** 기획안 — 활성 탭 코랄 라운드 테두리 */
+  /** 투어 — 활성 탭 코코아 라운드 테두리 (코랄은 CTA만) */
   tourTabSpotlight: {
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.cocoa,
     backgroundColor: Colors.surface,
     marginHorizontal: 2,
     marginVertical: 2,
@@ -393,7 +393,8 @@ const styles = StyleSheet.create({
   tourTabMainMenu: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
-    borderColor: Colors.primary,
+    borderWidth: 2,
+    borderColor: Colors.cocoa,
   },
   tourTabDimmed: {
     opacity: 0.28,

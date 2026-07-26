@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
-import { View, StyleSheet, type ViewStyle } from 'react-native'
+import { View, StyleSheet, type ViewStyle, useWindowDimensions } from 'react-native'
+import Svg, { Defs, Mask, Rect } from 'react-native-svg'
+import { Colors } from '../constants/Colors'
 
 export type CoachHoleRect = {
   x: number
@@ -11,24 +13,26 @@ export type CoachHoleRect = {
 type CoachScrimHoleProps = {
   /** 부모(absoluteFill) 기준 구멍. null이면 전체 옅은 딤 */
   hole: CoachHoleRect | null
-  /** 구멍 모서리 — 대상 UI와 맞춤 */
+  /** 구멍·테두리 모서리 — 대상 UI와 맞춤 */
   radius?: number
   style?: ViewStyle
 }
 
-/** 정리된 코치마크용 — 옅은 딤 + 구멍만 (테두리/링 없음) */
 const SCRIM = 'rgba(91, 57, 39, 0.22)'
 const CUT_PAD = 6
+const BORDER = 2
 
 /**
  * 6단계 투어용 딤.
- * 하드 테두리 없이, 대상만 밝게 남기고 카드 꼬리로 가리킨다.
+ * 둥근 구멍 + 코코아 테두리로 대상을 가리키고, 카드 꼬리와 맞춘다.
  */
 export function CoachScrimHole({
   hole,
-  radius: _radius = 20,
+  radius = 20,
   style,
 }: CoachScrimHoleProps) {
+  const { width: winW, height: winH } = useWindowDimensions()
+
   const cut = useMemo(() => {
     if (!hole || hole.w <= 0 || hole.h <= 0) return null
     return {
@@ -48,26 +52,37 @@ export function CoachScrimHole({
   }
 
   const { x, y, w, h } = cut
+  const rx = Math.min(radius, w / 2, h / 2)
+  // 레이어가 화면보다 클 수 있어 여유분
+  const svgW = Math.max(winW, x + w + 8)
+  const svgH = Math.max(winH, y + h + 8)
+  const maskId = `coach-hole-${Math.round(x)}-${Math.round(y)}-${Math.round(w)}-${Math.round(h)}`
 
   return (
     <View pointerEvents="box-none" style={[styles.layer, style]}>
-      <View
-        pointerEvents="auto"
-        style={[styles.scrim, { left: 0, right: 0, top: 0, height: y }]}
-      />
-      <View
-        pointerEvents="auto"
-        style={[styles.scrim, { left: 0, right: 0, top: y + h, bottom: 0 }]}
-      />
-      <View
-        pointerEvents="auto"
-        style={[styles.scrim, { left: 0, width: x, top: y, height: h }]}
-      />
-      <View
-        pointerEvents="auto"
-        style={[styles.scrim, { left: x + w, right: 0, top: y, height: h }]}
-      />
-      {/* 구멍 — 터치만 막고 링/테두리 없음 */}
+      <Svg
+        pointerEvents="none"
+        width={svgW}
+        height={svgH}
+        style={StyleSheet.absoluteFill}
+      >
+        <Defs>
+          <Mask id={maskId}>
+            <Rect x={0} y={0} width={svgW} height={svgH} fill="#fff" />
+            <Rect x={x} y={y} width={w} height={h} rx={rx} ry={rx} fill="#000" />
+          </Mask>
+        </Defs>
+        <Rect
+          x={0}
+          y={0}
+          width={svgW}
+          height={svgH}
+          fill={SCRIM}
+          mask={`url(#${maskId})`}
+        />
+      </Svg>
+
+      {/* 구멍 위 터치 차단 */}
       <View
         pointerEvents="auto"
         style={{
@@ -76,6 +91,22 @@ export function CoachScrimHole({
           top: y,
           width: w,
           height: h,
+          borderRadius: rx,
+        }}
+      />
+
+      {/* 둥근 코코아 테두리 */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: x,
+          top: y,
+          width: w,
+          height: h,
+          borderRadius: rx,
+          borderWidth: BORDER,
+          borderColor: Colors.cocoa,
         }}
       />
     </View>

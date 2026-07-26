@@ -765,7 +765,7 @@ function ChatScreenBody() {
 
       {showChatTour && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHole} radius={24} />
+          <CoachScrimHole hole={tourHole} />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={tourIndex ?? 0}
@@ -1207,6 +1207,12 @@ const styles = StyleSheet.create({
   },
   composerFocused: {
     borderColor: Colors.selected,
+  },
+  /** 기획안 3단계 — 입력창 코랄 하이라이트 */
+  composerTour: {
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
   },
   composerLocked: {
     opacity: 0.72,

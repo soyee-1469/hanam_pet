@@ -31,8 +31,9 @@ export const PET_TOUR_STEPS: PetTourStep[] = [
   {
     id: 'cm-02',
     badge: '나의 펫',
-    title: () => '여기서 펫을 돌봐요',
-    body: (name) => `사료·놀아 주기로 ${name}를 챙겨 주세요.`,
+    title: () => '나만의 펫을 돌봐 주세요',
+    body: () =>
+      '사료를 주고 놀아 주면 무럭무럭 자라요. 펫을 돌보며 내 마음도 함께 챙겨요.',
     highlight: 'care',
     route: 'pet',
   },

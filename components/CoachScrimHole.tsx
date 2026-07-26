@@ -18,13 +18,14 @@ type CoachScrimHoleProps = {
   style?: ViewStyle
 }
 
-const SCRIM = 'rgba(91, 57, 39, 0.22)'
-const CUT_PAD = 6
+/** 네이버식 투어처럼 배경을 충분히 눌러 구멍을 살린다 */
+const SCRIM = 'rgba(61, 36, 24, 0.58)'
+const CUT_PAD = 5
 const BORDER = 2
 
 /**
  * 6단계 투어용 딤.
- * 둥근 구멍 + 코코아 테두리로 대상을 가리키고, 카드 꼬리와 맞춘다.
+ * 진한 딤 + 둥근 구멍 + 코코아 테두리.
  */
 export function CoachScrimHole({
   hole,

@@ -1863,7 +1863,11 @@ function PetHomeScreenBody() {
 
       {showPetTour && homeFocused && tourStep ? (
         <>
-          <CoachScrimHole hole={tourHighlightTabs ? null : tourHole} />
+          <CoachScrimHole
+            hole={tourHighlightTabs ? null : tourHole}
+            flatBottom={tourHighlightCare}
+            radius={tourHighlightCare ? 22 : 20}
+          />
           <CoachmarkTourCard
             step={tourStep}
             stepIndex={coachTourStep ?? 0}

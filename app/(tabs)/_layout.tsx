@@ -58,7 +58,8 @@ function isTourTabSpotlight(
   highlight: PetTourTabHighlight,
 ): boolean {
   if (highlight == null) return false
-  if (highlight.mode === 'mainMenu') return MAIN_MENU_TABS.includes(routeName)
+  // 6단계 — 하단 네비 전체를 하나의 프레임으로 (설정 포함)
+  if (highlight.mode === 'mainMenu') return true
   return highlight.route === routeName
 }
 
@@ -148,8 +149,8 @@ export default function TabLayout() {
   const tabHeight = tabBarReserveHeight(bottom)
   const [overlayLocked, setOverlayLocked] = useState(isTabBarOverlayLocked)
   const tourHighlight = useTourTabHighlight()
-  /** 메인 4탭(설정 제외) 묶음 프레임 */
-  const mainMenuFrameW = (windowW * MAIN_MENU_TABS.length) / 5
+  /** 하단 네비 전체 프레임 */
+  const mainMenuFrameW = windowW - 12
 
   useHideTabBarWhileKeyboard()
 
@@ -355,12 +356,10 @@ export default function TabLayout() {
             style={[
               styles.mainMenuFrame,
               {
-                // 탭바 안쪽에 여백 두고 메인 4탭을 한 번에 감쌈
                 left: 6,
-                width: mainMenuFrameW - 8,
-                top: undefined,
-                height: 58,
-                bottom: Math.max(bottom, 6) + 4,
+                width: mainMenuFrameW,
+                height: Math.max(56, tabHeight - Math.max(bottom, 8) - 4),
+                bottom: Math.max(bottom, 8),
               },
             ]}
           />

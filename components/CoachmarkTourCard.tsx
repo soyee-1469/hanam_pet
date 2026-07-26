@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
 import { Colors } from '../constants/Colors'
@@ -10,23 +10,19 @@ type CoachmarkTourCardProps = {
   stepIndex: number
   petName: string
   onNext: () => void
-  /** 설명·화살표 — 구멍 근처 */
+  /** 화살표 — 구멍 근처 */
   bottom?: number
   top?: number
   center?: boolean
   tailAlign?: 'center' | 'start'
-  /**
-   * CTA·점 고정 하단 여백.
-   * 기본: 탭바 위 여유 (네비 구멍과 안 겹치게).
-   */
+  /** 안내·CTA 고정 하단 여백 (기본: 화면 중하단) */
   ctaBottom?: number
 }
 
-const CTA_DOCK_H = 52
-
 /**
- * 영역별 설명 콜아웃
- * — 글·화살표는 구멍을 따라가고, 「다음」은 화면 하단에 고정
+ * 투어 안내
+ * — 문구·점·「다음」은 같은 자리에 고정
+ * — 화살표만 구멍을 가리킴 (버튼이 화살표·구멍 사이에 끼지 않음)
  */
 export function CoachmarkTourCard({
   step,
@@ -40,9 +36,12 @@ export function CoachmarkTourCard({
   ctaBottom,
 }: CoachmarkTourCardProps) {
   const insets = useSafeAreaInsets()
+  const { height: winH } = useWindowDimensions()
   const tabReserve = tabBarReserveHeight(insets.bottom)
-  // 탭바·네비 구멍 위 — 단계마다 같은 손 위치
-  const dockBottom = ctaBottom ?? tabReserve + 168
+
+  // 단계마다 동일한 손·눈 위치 (탭바·네비 구멍 위)
+  const panelBottom =
+    ctaBottom ?? Math.max(tabReserve + 210, Math.round(winH * 0.36))
 
   const page = stepIndex + 1
   const tailMode = step.tail ?? 'down'
@@ -51,38 +50,44 @@ export function CoachmarkTourCard({
   const ctaLabel = step.ctaLabel ?? '다음'
   const alignStart = tailAlign === 'start'
 
-  // 콜아웃이 고정 CTA와 겹치지 않게
-  const calloutBottom =
-    !center && top == null && bottom != null
-      ? Math.max(bottom, dockBottom + CTA_DOCK_H + 16)
-      : bottom
+  // 화살표만 구멍 쪽에 — down은 bottom, up은 top
+  const arrowStyle = (() => {
+    if (!showArrow) return null
+    if (arrowUp) {
+      if (top != null) return { top }
+      if (center) return { top: '18%' as const }
+      return { top: Math.max(24, Math.round(winH * 0.2)) }
+    }
+    // down — 구멍 바로 위
+    if (bottom != null) return { bottom: Math.max(tabReserve + 4, bottom) }
+    if (center) return { bottom: tabReserve + 12 }
+    return { bottom: tabReserve + 96 }
+  })()
 
   return (
     <>
+      {showArrow && arrowStyle ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.arrowWrap,
+            arrowStyle,
+            alignStart && styles.arrowWrapStart,
+          ]}
+          accessibilityElementsHidden
+        >
+          <DashedArrow up={arrowUp} />
+        </View>
+      ) : null}
+
       <View
         pointerEvents="box-none"
-        style={[
-          styles.calloutWrap,
-          center && styles.calloutCenter,
-          !center &&
-            (top != null
-              ? { top }
-              : { bottom: calloutBottom ?? dockBottom + CTA_DOCK_H + 16 }),
-        ]}
+        style={[styles.panel, { bottom: panelBottom }]}
       >
         <View
           style={[styles.unit, alignStart && styles.unitStart]}
           pointerEvents="box-none"
         >
-          {showArrow && arrowUp ? (
-            <View
-              style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
-              accessibilityElementsHidden
-            >
-              <DashedArrow up />
-            </View>
-          ) : null}
-
           <View style={[styles.copy, alignStart && styles.copyStart]}>
             <Text style={styles.page}>
               {page}/{PET_TOUR_TOTAL}
@@ -95,41 +100,30 @@ export function CoachmarkTourCard({
             </Text>
           </View>
 
-          {showArrow && !arrowUp ? (
-            <View
-              style={[styles.arrowSlot, alignStart && styles.arrowSlotStart]}
-              accessibilityElementsHidden
-            >
-              <DashedArrow />
-            </View>
-          ) : null}
-        </View>
-      </View>
-
-      <View
-        pointerEvents="box-none"
-        style={[styles.ctaDock, { bottom: dockBottom }]}
-      >
-        <View style={styles.footer} pointerEvents="box-none">
-          <View style={styles.dots} accessibilityRole="progressbar">
-            {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
-              <View
-                key={i}
-                style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
-              />
-            ))}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ctaLabel}
-            onPress={onNext}
-            style={({ pressed }) => [
-              styles.nextBtn,
-              pressed && styles.pressed,
-            ]}
+          <View
+            style={[styles.footer, alignStart && styles.footerStart]}
+            pointerEvents="box-none"
           >
-            <Text style={styles.nextText}>{ctaLabel}</Text>
-          </Pressable>
+            <View style={styles.dots} accessibilityRole="progressbar">
+              {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
+                <View
+                  key={i}
+                  style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
+                />
+              ))}
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ctaLabel}
+              onPress={onNext}
+              style={({ pressed }) => [
+                styles.nextBtn,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.nextText}>{ctaLabel}</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </>
@@ -164,17 +158,7 @@ function DashedArrow({ up = false }: { up?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  calloutWrap: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    zIndex: 40,
-    elevation: 40,
-  },
-  calloutCenter: {
-    top: '26%',
-  },
-  ctaDock: {
+  panel: {
     position: 'absolute',
     left: 20,
     right: 20,
@@ -182,8 +166,22 @@ const styles = StyleSheet.create({
     elevation: 45,
     alignItems: 'center',
   },
+  arrowWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 40,
+    elevation: 40,
+    alignItems: 'center',
+    height: 36,
+  },
+  arrowWrapStart: {
+    alignItems: 'flex-start',
+    paddingLeft: 56,
+  },
   unit: {
     width: '100%',
+    maxWidth: 320,
     alignItems: 'center',
   },
   unitStart: {
@@ -191,8 +189,8 @@ const styles = StyleSheet.create({
   },
   copy: {
     width: '100%',
-    maxWidth: 320,
     paddingHorizontal: 4,
+    marginBottom: 14,
   },
   copyStart: {
     paddingLeft: 8,
@@ -218,16 +216,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.92)',
     lineHeight: 21,
   },
-  arrowSlot: {
-    height: 36,
-    marginVertical: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowSlotStart: {
-    alignSelf: 'flex-start',
-    paddingLeft: 36,
-  },
   arrowFlip: {
     transform: [{ rotate: '180deg' }],
   },
@@ -236,8 +224,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    maxWidth: 320,
-    minHeight: CTA_DOCK_H,
+  },
+  footerStart: {
+    paddingLeft: 8,
   },
   dots: {
     flexDirection: 'row',

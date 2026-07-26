@@ -32,8 +32,6 @@ import {
 
 type TourTabName = 'chat' | 'diary' | 'index' | 'mind' | 'more'
 
-const MAIN_MENU_TABS: TourTabName[] = ['chat', 'diary', 'index', 'mind']
-
 /** Soft tab button — navigation tab bar button props */
 type SoftTabButtonProps = {
   children: ReactNode

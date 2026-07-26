@@ -67,6 +67,24 @@ function petReplies(name: string) {
   ]
 }
 
+/** 질문 줄 수에 맞춰 답변 줄 수를 맞춤 (더보기 UI 테스트용) */
+function replyMatchingLines(
+  userText: string,
+  petName: string,
+  fallbacks: string[],
+  replyIndex: number,
+): string {
+  const lines = userText.replace(/\r\n/g, '\n').split('\n').length
+  if (lines <= 1) {
+    return fallbacks[replyIndex % fallbacks.length]
+  }
+  return Array.from({ length: lines }, (_, i) => {
+    if (i === 0) return `응, ${petName}가 네 이야기 ${lines}줄 모두 들었어.`
+    if (i === 1) return `천천히 말해도 괜찮아. 여기 앉아 있을게.`
+    return `${i + 1}번째 줄 — 네 마음, 같이 들어줄게.`
+  }).join('\n')
+}
+
 type ChatMessage = {
   id: string
   role: 'user' | 'pet'
@@ -264,8 +282,8 @@ function ChatScreenBody() {
     usableStageH > 0 ? Math.round(usableStageH * 0.5) : Math.round(windowH * 0.28)
   const characterH =
     usableStageH > 0 ? usableStageH - dialogueH : Math.round(windowH * 0.28)
-  /** 질문 최대 ≈ 위 구간의 38% (2줄+확대), 답변이 나머지 */
-  const userMaxH = Math.max(56, Math.min(96, Math.round(dialogueH * 0.38)))
+  /** 질문 최대 — 2줄 본문 + 「더보기」가 잘리지 않게 여유 */
+  const userMaxH = Math.max(88, Math.min(120, Math.round(dialogueH * 0.4)))
   const answerMaxH = Math.max(
     64,
     dialogueH - (latestUserMessage ? userMaxH : 0) - 8,
@@ -322,7 +340,12 @@ function ChatScreenBody() {
     setTyping(true)
     if (typingTimer.current) clearTimeout(typingTimer.current)
     typingTimer.current = setTimeout(() => {
-      const reply = replies[replyIndex.current % replies.length]
+      const reply = replyMatchingLines(
+        trimmed,
+        petName,
+        replies,
+        replyIndex.current,
+      )
       replyIndex.current += 1
       setMessages((prev) => [
         ...prev,
@@ -510,8 +533,8 @@ function ChatScreenBody() {
                         textStyle={styles.userText}
                         align="left"
                         collapsedLines={2}
-                        expandPlacement="trailing"
-                        maxExpandedHeight={Math.max(48, userMaxH - 52)}
+                        expandPlacement="below"
+                        maxExpandedHeight={Math.max(48, userMaxH - 56)}
                       />
                     </ChatBubble>
                   </View>
@@ -571,7 +594,7 @@ function ChatScreenBody() {
                         text={latestPetReply.text}
                         textStyle={styles.petAnswerText}
                         align="left"
-                        collapsedLines={4}
+                        collapsedLines={2}
                         expandPlacement="below"
                         maxExpandedHeight={Math.max(72, answerMaxH - 40)}
                       />

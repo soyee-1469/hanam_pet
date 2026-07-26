@@ -8,6 +8,7 @@ import {
   type StyleProp,
   type TextStyle,
   type ViewStyle,
+  type LayoutChangeEvent,
 } from 'react-native'
 import { Colors } from '../constants/Colors'
 import { Type } from '../constants/Typography'
@@ -21,18 +22,16 @@ type ExpandableBubbleTextProps = {
   maxExpandedHeight?: number
   align?: 'left' | 'center' | 'right'
   /**
-   * below — 텍스트 아래 「더보기/접기」(기본, 답변)
-   * trailing — 텍스트 우측 「더보기/접기」(질문)
+   * below — 텍스트 아래 「더보기/접기」(기본)
+   * trailing — 텍스트 우측 「더보기/접기」
    */
   expandPlacement?: 'below' | 'trailing'
   style?: StyleProp<ViewStyle>
 }
 
-/** trailing 라벨 폭 여유 (측정용) */
-const TRAILING_LABEL_RESERVE = 44
-
 /**
- * 긴 말풍선 — 2줄 이상이면 접고, 작은 「더보기/접기」로 펼친다.
+ * 긴 말풍선 — 접힌 줄 수를 넘으면 작은 「더보기/접기」로 펼친다.
+ * (웹에서도 동작하도록 높이 비교로 overflow 감지)
  */
 export function ExpandableBubbleText({
   text,
@@ -46,14 +45,33 @@ export function ExpandableBubbleText({
   const [expanded, setExpanded] = useState(false)
   const [needsExpand, setNeedsExpand] = useState(false)
   const [measureWidth, setMeasureWidth] = useState(0)
+  const [fullH, setFullH] = useState(0)
+  const [collapsedH, setCollapsedH] = useState(0)
 
   useEffect(() => {
     setExpanded(false)
     setNeedsExpand(false)
+    setFullH(0)
+    setCollapsedH(0)
   }, [text])
+
+  useEffect(() => {
+    if (fullH <= 0 || collapsedH <= 0) return
+    setNeedsExpand(fullH > collapsedH + 2)
+  }, [fullH, collapsedH])
 
   const trailing = expandPlacement === 'trailing'
   const showFull = expanded || !needsExpand
+
+  const onFullLayout = (e: LayoutChangeEvent) => {
+    const h = Math.round(e.nativeEvent.layout.height)
+    if (h > 0 && h !== fullH) setFullH(h)
+  }
+
+  const onCollapsedLayout = (e: LayoutChangeEvent) => {
+    const h = Math.round(e.nativeEvent.layout.height)
+    if (h > 0 && h !== collapsedH) setCollapsedH(h)
+  }
 
   const body = (
     <Text
@@ -68,7 +86,7 @@ export function ExpandableBubbleText({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={expanded ? '접기' : '더보기'}
-      hitSlop={8}
+      hitSlop={10}
       onPress={() => setExpanded((v) => !v)}
       style={({ pressed }) => [
         trailing ? styles.expandTrailing : styles.expandBelow,
@@ -103,26 +121,23 @@ export function ExpandableBubbleText({
         if (w > 0 && w !== measureWidth) setMeasureWidth(w)
       }}
     >
+      {/* 높이 측정용 — 웹에서도 줄 수 판별 */}
       {measureWidth > 0 ? (
-        <Text
-          style={[
-            textStyle,
-            styles.measure,
-            {
-              width: trailing
-                ? Math.max(0, measureWidth - TRAILING_LABEL_RESERVE)
-                : measureWidth,
-            },
-          ]}
-          onTextLayout={(e) => {
-            setNeedsExpand(e.nativeEvent.lines.length > collapsedLines)
-          }}
+        <View
           pointerEvents="none"
+          style={[styles.measureBox, { width: measureWidth }]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          {text}
-        </Text>
+          <View onLayout={onFullLayout}>
+            <Text style={textStyle}>{text}</Text>
+          </View>
+          <View onLayout={onCollapsedLayout}>
+            <Text style={textStyle} numberOfLines={collapsedLines}>
+              {text}
+            </Text>
+          </View>
+        </View>
       ) : null}
 
       {trailing ? (
@@ -141,10 +156,12 @@ export function ExpandableBubbleText({
 }
 
 const styles = StyleSheet.create({
-  measure: {
+  measureBox: {
     position: 'absolute',
     opacity: 0,
     zIndex: -1,
+    left: 0,
+    top: 0,
   },
   trailingRow: {
     flexDirection: 'row',
@@ -172,13 +189,12 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   expandLabel: {
-    fontSize: Type.micro,
-    lineHeight: 14,
-    fontWeight: '600',
+    fontSize: Type.captionSm,
+    lineHeight: 16,
+    fontWeight: '700',
     color: Colors.cocoa,
-    opacity: 0.72,
   },
   expandPressed: {
-    opacity: 0.7,
+    opacity: 0.65,
   },
 })

@@ -25,6 +25,7 @@ import {
   Lock,
   Notebook,
   Question,
+  ShieldCheck,
   Warning,
 } from 'phosphor-react-native'
 import type { Icon } from 'phosphor-react-native'
@@ -136,8 +137,15 @@ export default function OnboardingResume() {
   const [failCount, setFailCount] = useState(0)
   const [restartOpen, setRestartOpen] = useState(false)
   const [tipOpen, setTipOpen] = useState(true)
+  /** giveUp 전체 페이지에서 뒤로가기 시 돌아갈 단계 */
+  const [giveUpBackStep, setGiveUpBackStep] = useState<'code' | 'lost'>('code')
   const inputs = useRef<(RNTextInput | null)[]>([])
   const scrollRef = useRef<ScrollView>(null)
+
+  const openGiveUp = (from: 'code' | 'lost') => {
+    setGiveUpBackStep(from)
+    setStep('giveUp')
+  }
 
   const scrollOtpIntoView = useCallback(() => {
     setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 80)
@@ -387,7 +395,7 @@ export default function OnboardingResume() {
                   {tip.key === 'device' ? (
                     <Pressable
                       accessibilityRole="button"
-                      onPress={() => setStep('giveUp')}
+                      onPress={() => openGiveUp('lost')}
                       style={({ pressed }) => [
                         styles.cantFindBtn,
                         pressed && styles.cantFindBtnPressed,
@@ -425,6 +433,60 @@ export default function OnboardingResume() {
             ]}
           >
             <Text style={styles.restartLinkText}>{copy.lost.restart}</Text>
+          </Pressable>
+        </View>
+        {restartConfirmSheet}
+      </SafeAreaView>
+    )
+  }
+
+  if (step === 'giveUp') {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <ScreenHeader
+          title={copy.header}
+          onBack={() => setStep(giveUpBackStep)}
+        />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.giveUpBody}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.headline}>{copy.lost.giveUp.title}</Text>
+          <View style={styles.giveUpCard}>
+            <View style={styles.giveUpIconBadge}>
+              <ShieldCheck size={28} color={Colors.cocoa} weight="duotone" />
+            </View>
+            <Text style={styles.giveUpBodyText}>{copy.lost.giveUp.body}</Text>
+            <View style={styles.giveUpPrivacyRow}>
+              <Lock size={18} color={Colors.cocoa} weight="regular" />
+              <Text style={styles.giveUpPrivacyTitle}>
+                {copy.lost.giveUp.privacyTitle}
+              </Text>
+            </View>
+            <Text style={styles.giveUpPrivacyBody}>
+              {copy.lost.giveUp.privacyBody}
+            </Text>
+          </View>
+        </ScrollView>
+        <View style={styles.footer}>
+          <PrimaryButton
+            label={copy.lost.giveUp.lookAgain}
+            emphasized
+            onPress={() => setStep('code')}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={copy.lost.giveUp.restart}
+            onPress={openRestartConfirm}
+            style={({ pressed }) => [
+              styles.restartLink,
+              pressed && styles.restartLinkPressed,
+            ]}
+          >
+            <Text style={styles.restartLinkText}>
+              {copy.lost.giveUp.restart}
+            </Text>
           </Pressable>
         </View>
         {restartConfirmSheet}
@@ -508,7 +570,7 @@ export default function OnboardingResume() {
           <Pressable
             accessibilityRole="button"
             disabled={busy}
-            onPress={() => setStep('giveUp')}
+            onPress={() => openGiveUp('code')}
             style={({ pressed }) => [
               styles.helpBtn,
               pressed && styles.helpBtnPressed,
@@ -609,43 +671,6 @@ export default function OnboardingResume() {
         </View>
       ) : null}
 
-      <BottomSheet
-        visible={step === 'giveUp'}
-        onRequestClose={() => setStep('code')}
-      >
-        <Text style={styles.giveUpTitle}>{copy.lost.giveUp.title}</Text>
-        <View style={styles.giveUpCard}>
-          <Text style={styles.giveUpBody}>{copy.lost.giveUp.body}</Text>
-          <View style={styles.giveUpPrivacyRow}>
-            <Lock size={18} color={Colors.cocoa} weight="regular" />
-            <Text style={styles.giveUpPrivacyTitle}>
-              {copy.lost.giveUp.privacyTitle}
-            </Text>
-          </View>
-          <Text style={styles.giveUpPrivacyBody}>
-            {copy.lost.giveUp.privacyBody}
-          </Text>
-        </View>
-        <View style={styles.giveUpActions}>
-          <PrimaryButton
-            label={copy.lost.giveUp.lookAgain}
-            emphasized
-            onPress={() => setStep('code')}
-          />
-          <Pressable
-            accessibilityRole="button"
-            onPress={openRestartConfirm}
-            style={({ pressed }) => [
-              styles.giveUpLookAgain,
-              pressed && styles.giveUpLookAgainPressed,
-            ]}
-          >
-            <Text style={styles.giveUpRestartText}>
-              {copy.lost.giveUp.restart}
-            </Text>
-          </Pressable>
-        </View>
-      </BottomSheet>
       {restartConfirmSheet}
     </SafeAreaView>
   )
@@ -1081,30 +1106,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textDisabled,
   },
-  giveUpTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    marginBottom: 16,
-    lineHeight: 30,
-    textAlign: 'center',
+  giveUpBody: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: Layout.sectionGapLg,
+    flexGrow: 1,
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 20,
     paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: Layout.blockGap,
-    paddingBottom: 18,
+    paddingTop: Layout.sectionGap,
+    paddingBottom: 20,
     borderWidth: 1,
     borderColor: Colors.divider,
-    marginBottom: 20,
   },
-  giveUpBody: {
+  giveUpIconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: Colors.creamyBeige,
+    marginBottom: 16,
+  },
+  giveUpBodyText: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textPrimary,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   giveUpPrivacyRow: {
     flexDirection: 'row',
@@ -1123,35 +1154,5 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-  },
-  giveUpPrivacyGap: {
-    marginBottom: 12,
-  },
-  giveUpPrivacyBold: {
-    fontWeight: '800',
-    color: Colors.textPrimary,
-  },
-  giveUpActions: {
-    gap: 4,
-  },
-  giveUpLookAgain: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-  },
-  giveUpLookAgainPressed: {
-    opacity: 0.7,
-  },
-  giveUpLookAgainText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textDecorationLine: 'underline',
-  },
-  giveUpRestartText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.cocoa,
-    textDecorationLine: 'underline',
   },
 })

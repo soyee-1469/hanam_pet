@@ -8,17 +8,16 @@ type CoachmarkTourCardProps = {
   stepIndex: number
   petName: string
   onNext: () => void
-  /** 카드 세로 위치 (하단 기준) — top / center와 택일 */
   bottom?: number
-  /** 카드 세로 위치 (상단 기준) */
   top?: number
-  /** 화면 세로 중앙 */
   center?: boolean
-  /** 꼬리 가로 정렬 (상단 메뉴 등 왼쪽 타깃용) */
   tailAlign?: 'center' | 'start'
 }
 
-/** 6단계 투어 카드 — 옅은 면 + 꼬리만, 장식 최소화 */
+/**
+ * 6단계 투어 카드
+ * — 흰 면 + 코랄은「다음」만 / 테두리·이중 꼬리 없음
+ */
 export function CoachmarkTourCard({
   step,
   stepIndex,
@@ -34,11 +33,6 @@ export function CoachmarkTourCard({
   const showTail = tailMode !== 'none'
   const tailUp = tailMode === 'up'
   const ctaLabel = step.ctaLabel ?? '다음'
-  const tailStyle = [
-    styles.tail,
-    tailUp && styles.tailUp,
-    tailAlign === 'start' && styles.tailStart,
-  ]
 
   return (
     <View
@@ -49,45 +43,69 @@ export function CoachmarkTourCard({
         !center && (top != null ? { top } : { bottom: bottom ?? 0 }),
       ]}
     >
-      {showTail && tailUp ? <View style={tailStyle} /> : null}
-      <View style={styles.card}>
-        <View style={styles.topRow}>
-          <Text style={styles.badgeText}>{step.badge}</Text>
-          <Text style={styles.page}>
-            {page} / {PET_TOUR_TOTAL}
-          </Text>
-        </View>
-
-        <Text style={styles.title} numberOfLines={2}>
-          {step.title(petName)}
-        </Text>
-        <Text style={styles.body} numberOfLines={4}>
-          {step.body(petName)}
-        </Text>
-
-        <View style={styles.footer}>
-          <View style={styles.dots} accessibilityRole="progressbar">
-            {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
-              <View
-                key={i}
-                style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
-              />
-            ))}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ctaLabel}
-            onPress={onNext}
-            style={({ pressed }) => [
-              styles.nextBtn,
-              pressed && styles.pressed,
+      <View style={styles.unit}>
+        {showTail && tailUp ? (
+          <View
+            style={[
+              styles.tailSlot,
+              styles.tailSlotUp,
+              tailAlign === 'start' && styles.tailSlotStart,
             ]}
           >
-            <Text style={styles.nextText}>{ctaLabel}</Text>
-          </Pressable>
+            <View style={[styles.tail, styles.tailUp]} />
+          </View>
+        ) : null}
+
+        <View style={styles.card}>
+          <View style={styles.topRow}>
+            <Text style={styles.badgeText}>{step.badge}</Text>
+            <Text style={styles.page}>
+              {page} / {PET_TOUR_TOTAL}
+            </Text>
+          </View>
+
+          <Text style={styles.title} numberOfLines={2}>
+            {step.title(petName)}
+          </Text>
+          <Text style={styles.body} numberOfLines={4}>
+            {step.body(petName)}
+          </Text>
+
+          <View style={styles.footer}>
+            <View style={styles.dots} accessibilityRole="progressbar">
+              {Array.from({ length: PET_TOUR_TOTAL }, (_, i) => (
+                <View
+                  key={i}
+                  style={[i === stepIndex ? styles.dotOn : styles.dotOff]}
+                />
+              ))}
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ctaLabel}
+              onPress={onNext}
+              style={({ pressed }) => [
+                styles.nextBtn,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.nextText}>{ctaLabel}</Text>
+            </Pressable>
+          </View>
         </View>
+
+        {showTail && !tailUp ? (
+          <View
+            style={[
+              styles.tailSlot,
+              styles.tailSlotDown,
+              tailAlign === 'start' && styles.tailSlotStart,
+            ]}
+          >
+            <View style={styles.tail} />
+          </View>
+        ) : null}
       </View>
-      {showTail && !tailUp ? <View style={tailStyle} /> : null}
     </View>
   )
 }
@@ -104,6 +122,10 @@ const styles = StyleSheet.create({
   wrapCenter: {
     top: '30%',
   },
+  unit: {
+    width: '100%',
+    alignItems: 'center',
+  },
   card: {
     width: '100%',
     backgroundColor: Colors.surface,
@@ -111,8 +133,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: 16,
     paddingBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   topRow: {
     flexDirection: 'row',
@@ -183,27 +203,32 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.88,
   },
+  tailSlot: {
+    width: '100%',
+    height: 10,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  tailSlotUp: {
+    marginBottom: -1,
+  },
+  tailSlotDown: {
+    marginTop: -1,
+  },
+  tailSlotStart: {
+    alignItems: 'flex-start',
+    paddingLeft: 40,
+  },
+  /** 순수 흰 다이아 — 테두리 없음(코랄/베이지 라인 오인 방지) */
   tail: {
     width: 12,
     height: 12,
     backgroundColor: Colors.surface,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
     transform: [{ rotate: '45deg' }],
-    marginTop: -6,
+    marginTop: -2,
   },
   tailUp: {
     marginTop: 0,
-    marginBottom: -6,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderLeftWidth: 1,
-    borderTopWidth: 1,
-    zIndex: 1,
-  },
-  tailStart: {
-    alignSelf: 'flex-start',
-    marginLeft: 40,
+    marginBottom: -2,
   },
 })

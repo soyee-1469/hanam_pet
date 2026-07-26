@@ -1865,15 +1865,15 @@ function PetHomeScreenBody() {
                     tailAlign: 'start' as const,
                   }
                 : {
-                    // 케어 버튼 구멍 바로 위에 카드
+                    // 케어 영역과 겹치지 않게 여유 두고 위에 배치
                     bottom: tourHole
                       ? Math.max(
-                          tabBarReserve + 12,
-                          (rootH || screenHeight) - tourHole.y + 14,
+                          tabBarReserve + 16,
+                          (rootH || screenHeight) - tourHole.y + 28,
                         )
                       : tabBarReserve +
                         Math.min(sheetH, sheetMaxHeight) +
-                        12,
+                        24,
                   })}
           />
         </>

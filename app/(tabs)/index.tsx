@@ -1021,12 +1021,16 @@ function PetHomeScreenBody() {
           showSpeech(getOnboardingCopy().resume.restored.homeBubble, 3600)
           return
         }
+        // 투어 진행 중에는 웰컴 시트를 다시 열지 않음 (다른 탭→홈 복귀)
+        if (getPetTourStepIndex() != null) return
         // cm-01-welcome: 홈 탭 포커스일 때만
         const coach = await getCoachmarkWelcomeStatus()
         if (cancelled) return
         if (coach === 'pending') {
           coachTimer = setTimeout(() => {
-            if (!cancelled) setCoachWelcomeOpen(true)
+            if (!cancelled && getPetTourStepIndex() == null) {
+              setCoachWelcomeOpen(true)
+            }
           }, 450)
           return
         }
@@ -1081,6 +1085,8 @@ function PetHomeScreenBody() {
 
   const startPetTour = () => {
     setCoachWelcomeOpen(false)
+    // 수락 즉시 저장 — 탭 이동 후 홈 복귀 시 웰컴이 다시 뜨지 않게
+    void setCoachmarkWelcomeStatus('accepted')
     startPetTourFromWelcome()
   }
 
@@ -1109,6 +1115,10 @@ function PetHomeScreenBody() {
   const tourHighlightCare = showPetTour && tourStep?.highlight === 'care'
   const tourHighlightMenu = showPetTour && tourStep?.highlight === 'menu'
   const tourHighlightTabs = showPetTour && tourStep?.highlight === 'tabs'
+
+  useEffect(() => {
+    if (coachTourStep != null) setCoachWelcomeOpen(false)
+  }, [coachTourStep])
 
   useEffect(() => {
     if (!showPetTour || !homeFocused || tourHighlightTabs) {

@@ -730,6 +730,11 @@ const styles = StyleSheet.create({
   checkList: {
     gap: 8,
   },
+  tourLiftTarget: {
+    zIndex: 30,
+    elevation: 30,
+    position: 'relative',
+  },
   checkCard: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -33,7 +33,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
-import { PrimaryButton, SecondaryButton, ScreenHeader } from '../../components/ui'
+import { PrimaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
 import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
@@ -273,16 +273,24 @@ export default function OnboardingResume() {
         {copy.lost.restartConfirm.body}
       </Text>
       <View style={styles.restartConfirmActions}>
-        {/* 안전 선택 먼저 → 되돌리기 어려운 선택은 아래 */}
-        <SecondaryButton
-          label={copy.lost.restartConfirm.back}
-          onPress={closeRestartConfirm}
-        />
         <PrimaryButton
           label={copy.lost.restartConfirm.cta}
           emphasized
           onPress={confirmRestartFresh}
         />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copy.lost.restartConfirm.back}
+          onPress={closeRestartConfirm}
+          style={({ pressed }) => [
+            styles.restartConfirmBack,
+            pressed && styles.restartLinkPressed,
+          ]}
+        >
+          <Text style={styles.restartConfirmBackText}>
+            {copy.lost.restartConfirm.back}
+          </Text>
+        </Pressable>
       </View>
     </BottomSheet>
   )
@@ -435,30 +443,29 @@ export default function OnboardingResume() {
   if (step === 'giveUp') {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScreenHeader
-          title={copy.header}
-          onBack={() => setStep(giveUpBackStep)}
-        />
+        <ScreenHeader onBack={() => setStep(giveUpBackStep)} />
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.giveUpBody}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.headline}>{copy.lost.giveUp.title}</Text>
+          <Text style={styles.giveUpHeadline}>{copy.lost.giveUp.title}</Text>
           <View style={styles.giveUpCard}>
             <View style={styles.giveUpIconBadge}>
               <ShieldCheck size={28} color={Colors.cocoa} weight="duotone" />
             </View>
             <Text style={styles.giveUpBodyText}>{copy.lost.giveUp.body}</Text>
-            <View style={styles.giveUpPrivacyRow}>
-              <Lock size={18} color={Colors.cocoa} weight="regular" />
-              <Text style={styles.giveUpPrivacyTitle}>
-                {copy.lost.giveUp.privacyTitle}
+            <View style={styles.giveUpPrivacyBlock}>
+              <View style={styles.giveUpPrivacyRow}>
+                <Lock size={18} color={Colors.cocoa} weight="regular" />
+                <Text style={styles.giveUpPrivacyTitle}>
+                  {copy.lost.giveUp.privacyTitle}
+                </Text>
+              </View>
+              <Text style={styles.giveUpPrivacyBody}>
+                {copy.lost.giveUp.privacyBody}
               </Text>
             </View>
-            <Text style={styles.giveUpPrivacyBody}>
-              {copy.lost.giveUp.privacyBody}
-            </Text>
           </View>
         </ScrollView>
         <View style={styles.footer}>
@@ -1127,12 +1134,31 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   restartConfirmActions: {
-    gap: 10,
+    gap: 4,
+  },
+  restartConfirmBack: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  restartConfirmBackText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textDisabled,
   },
   giveUpBody: {
     paddingHorizontal: Layout.screenPaddingH,
+    paddingTop: 8,
     paddingBottom: Layout.sectionGapLg,
     flexGrow: 1,
+  },
+  giveUpHeadline: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.textPrimary,
+    marginBottom: 18,
+    lineHeight: 32,
+    letterSpacing: -0.3,
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
@@ -1140,8 +1166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.cardPaddingH,
     paddingTop: Layout.sectionGap,
     paddingBottom: 20,
-    borderWidth: 1,
-    borderColor: Colors.divider,
+    ...Shadows.elevation,
   },
   giveUpIconBadge: {
     width: 56,
@@ -1160,11 +1185,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 18,
   },
+  giveUpPrivacyBlock: {
+    gap: 8,
+  },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
   },
   giveUpPrivacyTitle: {
     flex: 1,
@@ -1177,5 +1204,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
+    paddingLeft: 26,
   },
 })

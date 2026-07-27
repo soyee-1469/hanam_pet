@@ -142,6 +142,8 @@ export default function OnboardingRestoreCode() {
           </Pressable>
         </View>
 
+        <Text style={styles.settingsHint}>{copy.settingsHint}</Text>
+
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ expanded: methodsOpen }}
@@ -153,7 +155,9 @@ export default function OnboardingRestoreCode() {
           ]}
         >
           <Warning size={18} color={Colors.selected} weight="fill" />
-          <Text style={styles.accordionTitle}>{copy.tip}</Text>
+          <Text style={styles.accordionTitle} numberOfLines={1}>
+            {copy.tip}
+          </Text>
           {methodsOpen ? (
             <CaretUp size={18} color={Colors.textPrimary} weight="bold" />
           ) : (
@@ -265,18 +269,26 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
   },
+  settingsHint: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 10,
+  },
   accordionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 8,
+    minHeight: 44,
+    paddingVertical: 10,
     marginBottom: 12,
   },
   accordionTitle: {
     flex: 1,
     minWidth: 0,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: Colors.textPrimary,
     lineHeight: 20,
   },

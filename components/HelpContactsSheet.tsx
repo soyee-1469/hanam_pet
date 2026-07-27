@@ -3,8 +3,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  useWindowDimensions,
 } from 'react-native'
+import { useDesignWindow } from '../lib/designWindow'
 import { Colors } from '../constants/Colors'
 import { BottomSheet } from './ui/AppOverlay'
 import { HelpContactRow } from './HelpContactRow'
@@ -23,7 +23,7 @@ export function HelpContactsSheet({
   visible,
   onClose,
 }: HelpContactsSheetProps) {
-  const { height: winH } = useWindowDimensions()
+  const { height: winH } = useDesignWindow()
   const sheetMaxHeight = Math.round(winH * 0.82)
   const scrollMaxHeight = Math.max(240, sheetMaxHeight - SHEET_CHROME)
 

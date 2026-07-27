@@ -3,9 +3,9 @@ import {
   View,
   StyleSheet,
   type ViewStyle,
-  useWindowDimensions,
 } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
+import { useDesignWindow } from '../lib/designWindow'
 
 export type CoachHoleRect = {
   x: number
@@ -98,7 +98,7 @@ export function CoachScrimHole({
   roundTopOnly = false,
   style,
 }: CoachScrimHoleProps) {
-  const { width: winW, height: winH } = useWindowDimensions()
+  const { width: winW, height: winH } = useDesignWindow()
 
   const cut = useMemo(() => {
     if (!hole || hole.w <= 0 || hole.h <= 0) return null

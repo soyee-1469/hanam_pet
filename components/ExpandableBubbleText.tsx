@@ -5,11 +5,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  useWindowDimensions,
   type StyleProp,
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
+import { useDesignWindow } from '../lib/designWindow'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { Type, TypeStyle } from '../constants/Typography'
@@ -92,7 +92,7 @@ export function ExpandableBubbleText({
   expandMode = 'popup',
   style,
 }: ExpandableBubbleTextProps) {
-  const { height: windowH } = useWindowDimensions()
+  const { height: windowH } = useDesignWindow()
   const [expanded, setExpanded] = useState(false)
   const [measureWidth, setMeasureWidth] = useState(0)
 

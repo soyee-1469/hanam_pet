@@ -8,11 +8,11 @@ import {
   Platform,
   Animated,
   Easing,
-  useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { X, ArrowSquareOut } from 'phosphor-react-native'
+import { useDesignWindow } from '../lib/designWindow'
 import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import {
@@ -62,7 +62,7 @@ export function YouTubeVideoModal({
 }: YouTubeVideoModalProps) {
   useTabBarCoverWhileVisible(visible)
   const insets = useSafeAreaInsets()
-  const { width } = useWindowDimensions()
+  const { width } = useDesignWindow()
   const closingRef = useRef(false)
 
   const backdropOpacity = useRef(new Animated.Value(0)).current

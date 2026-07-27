@@ -145,7 +145,7 @@ export const CHROME_EXISTING: ExistingItem[] = [
   {
     name: '앱 뷰포트 / AppViewport',
     path: 'components/AppViewport.tsx',
-    note: '반응형 뷰포트 래퍼',
+    note: '웹 360×800 폰 프레임 · 네이티브는 실화면',
   },
   {
     name: '토스트 / ToastHost',

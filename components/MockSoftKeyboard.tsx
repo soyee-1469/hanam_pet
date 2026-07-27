@@ -10,26 +10,17 @@ import {
 } from 'react-native'
 import { Colors } from '../constants/Colors'
 
-/** 윗줄 — 실제 한글 키패드처럼 키 위에 1–0 숫자 표기 */
-const TOP_ROW: { key: string; digit: string }[] = [
-  { key: 'ㅂ', digit: '1' },
-  { key: 'ㅈ', digit: '2' },
-  { key: 'ㄷ', digit: '3' },
-  { key: 'ㄱ', digit: '4' },
-  { key: 'ㅅ', digit: '5' },
-  { key: 'ㅛ', digit: '6' },
-  { key: 'ㅕ', digit: '7' },
-  { key: 'ㅑ', digit: '8' },
-  { key: 'ㅐ', digit: '9' },
-  { key: 'ㅔ', digit: '0' },
-]
+/** 맨 위 — 눌러서 입력되는 숫자 키 */
+const NUMBER_ROW = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'] as const
 
 const ROWS = [
+  ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'],
   ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
   ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ'],
 ] as const
 
-const KEYBOARD_H = 276
+/** 숫자줄 + 한글 3줄 + 액션줄 */
+const KEYBOARD_H = 318
 
 type Props = {
   visible: boolean
@@ -74,30 +65,25 @@ export function MockSoftKeyboard({
       <View style={[styles.wrap, { paddingBottom: padBottom }]}>
         <View style={styles.handle} />
         <View style={styles.row}>
-          {TOP_ROW.map(({ key, digit }) => (
+          {NUMBER_ROW.map((digit) => (
             <Pressable
-              key={key}
+              key={digit}
               accessibilityRole="button"
-              accessibilityLabel={`${key} ${digit}`}
-              onPress={() => onInsert?.(key)}
+              accessibilityLabel={digit}
+              onPress={() => onInsert?.(digit)}
               style={({ pressed }) => [
                 styles.key,
-                styles.keyTop,
+                styles.keyNumber,
                 pressed && styles.keyPressed,
               ]}
             >
-              <Text style={styles.keyDigit} numberOfLines={1}>
-                {digit}
-              </Text>
-              <Text style={styles.keyTextTop} numberOfLines={1}>
-                {key}
-              </Text>
+              <Text style={styles.keyNumberText}>{digit}</Text>
             </Pressable>
           ))}
         </View>
         {ROWS.map((row, ri) => (
           <View key={`r-${ri}`} style={styles.row}>
-            {ri === 1 ? <View style={styles.sideSpacer} /> : null}
+            {ri === 2 ? <View style={styles.sideSpacer} /> : null}
             {row.map((key) => (
               <Pressable
                 key={key}
@@ -112,7 +98,7 @@ export function MockSoftKeyboard({
                 <Text style={styles.keyText}>{key}</Text>
               </Pressable>
             ))}
-            {ri === 1 ? (
+            {ri === 2 ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="지우기"
@@ -124,9 +110,9 @@ export function MockSoftKeyboard({
               >
                 <Text style={styles.keyTextMuted}>⌫</Text>
               </Pressable>
-            ) : (
+            ) : ri === 1 ? (
               <View style={styles.sideSpacer} />
-            )}
+            ) : null}
           </View>
         ))}
         <View style={styles.row}>
@@ -217,14 +203,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'visible',
   },
-  /** 윗줄 — 숫자(1–0) + 글자 세로 스택 */
-  keyTop: {
-    height: 46,
-    justifyContent: 'flex-start',
-    paddingTop: 3,
-    gap: 0,
+  /** 숫자줄 — 탭하면 해당 숫자 입력 */
+  keyNumber: {
+    backgroundColor: Colors.sand,
   },
   keyWide: {
     width: 44,
@@ -253,21 +235,10 @@ const styles = StyleSheet.create({
   keyPressed: {
     opacity: 0.72,
   },
-  keyDigit: {
-    fontSize: 11,
+  keyNumberText: {
+    fontSize: 17,
     fontWeight: '700',
-    lineHeight: 12,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    includeFontPadding: false,
-  },
-  keyTextTop: {
-    fontSize: 15,
-    fontWeight: '600',
-    lineHeight: 18,
     color: Colors.textPrimary,
-    textAlign: 'center',
-    includeFontPadding: false,
   },
   keyText: {
     fontSize: 16,

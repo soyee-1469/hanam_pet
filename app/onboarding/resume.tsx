@@ -451,22 +451,29 @@ export default function OnboardingResume() {
           style={styles.scroll}
           contentContainerStyle={styles.giveUpBody}
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
           <Text style={styles.giveUpHeadline}>{copy.lost.giveUp.title}</Text>
+
           <View style={styles.giveUpCard}>
             <View style={styles.giveUpIconBadge}>
-              <ShieldCheck size={26} color={Colors.cocoa} weight="fill" />
+              <ShieldCheck size={24} color={Colors.cocoa} weight="fill" />
             </View>
-            <Text style={styles.giveUpBodyText}>
-              {copy.lost.giveUp.body}
-              {'\n'}
+
+            <View style={styles.giveUpMessage}>
+              <Text style={styles.giveUpBodyText}>{copy.lost.giveUp.body}</Text>
               <Text style={styles.giveUpBodyEmphasis}>
                 {copy.lost.giveUp.bodyEmphasis}
               </Text>
-            </Text>
+            </View>
+
+            <View style={styles.giveUpDivider} />
+
             <View style={styles.giveUpPrivacyBlock}>
               <View style={styles.giveUpPrivacyRow}>
-                <Lock size={16} color={Colors.cocoa} weight="bold" />
+                <View style={styles.giveUpLockBadge}>
+                  <Lock size={14} color={Colors.cocoa} weight="bold" />
+                </View>
                 <Text style={styles.giveUpPrivacyTitle}>
                   {copy.lost.giveUp.privacyTitle}
                 </Text>
@@ -477,6 +484,7 @@ export default function OnboardingResume() {
             </View>
           </View>
         </ScrollView>
+
         <View style={styles.giveUpFooter}>
           <PrimaryButton
             label={copy.lost.giveUp.lookAgain}
@@ -487,12 +495,13 @@ export default function OnboardingResume() {
             accessibilityRole="button"
             accessibilityLabel={copy.lost.giveUp.restart}
             onPress={openRestartConfirm}
+            hitSlop={8}
             style={({ pressed }) => [
-              styles.restartLink,
+              styles.giveUpRestartLink,
               pressed && styles.restartLinkPressed,
             ]}
           >
-            <Text style={styles.restartLinkText}>
+            <Text style={styles.giveUpRestartLinkText}>
               {copy.lost.giveUp.restart}
             </Text>
           </Pressable>
@@ -1157,57 +1166,76 @@ const styles = StyleSheet.create({
   },
   giveUpBody: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 4,
-    paddingBottom: Layout.sectionGapLg,
+    paddingTop: 8,
+    paddingBottom: 8,
     flexGrow: 1,
   },
   giveUpHeadline: {
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 16,
+    marginBottom: 18,
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 20,
+    borderRadius: 22,
     paddingHorizontal: 20,
-    paddingTop: 22,
+    paddingTop: 24,
     paddingBottom: 22,
     ...Shadows.elevation,
   },
   giveUpIconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
     backgroundColor: Colors.creamyBeige,
-    marginBottom: 16,
+    marginBottom: 18,
+  },
+  giveUpMessage: {
+    gap: 8,
+    marginBottom: 18,
   },
   giveUpBodyText: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 23,
     fontWeight: '500',
     color: Colors.textPrimary,
     textAlign: 'left',
-    marginBottom: 18,
+    letterSpacing: -0.1,
   },
   giveUpBodyEmphasis: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 23,
     fontWeight: '800',
     color: Colors.textPrimary,
+    textAlign: 'left',
+    letterSpacing: -0.1,
+  },
+  giveUpDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.divider,
+    marginBottom: 16,
   },
   giveUpPrivacyBlock: {
-    gap: 8,
+    gap: 10,
   },
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+  },
+  giveUpLockBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.creamyBeige,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   giveUpPrivacyTitle: {
     flex: 1,
@@ -1222,11 +1250,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'left',
+    letterSpacing: -0.1,
   },
   giveUpFooter: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingBottom: Layout.blockGap,
-    paddingTop: Layout.sectionGap,
+    paddingBottom: Layout.sectionGapLg,
+    paddingTop: 12,
     backgroundColor: Colors.background,
+    gap: 2,
+  },
+  giveUpRestartLink: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  giveUpRestartLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
 })

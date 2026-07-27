@@ -531,7 +531,9 @@ export default function OnboardingResume() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.headline}>{copy.code.headline}</Text>
-          <Text style={styles.sub}>{copy.code.body}</Text>
+          <View style={styles.guideShade}>
+            <Text style={styles.sub}>{copy.code.body}</Text>
+          </View>
 
           <View style={styles.otpRow} pointerEvents={busy ? 'none' : 'auto'}>
             <OtpGroup
@@ -786,12 +788,20 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     letterSpacing: -0.3,
   },
+  /** 안내만 아주 옅게 — OTP(흰 면·테두리)보다 덜 튀게 */
+  guideShade: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 22,
+  },
   sub: {
     fontSize: 14,
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textSecondary,
-    marginBottom: 22,
   },
   otpRow: {
     flexDirection: 'row',

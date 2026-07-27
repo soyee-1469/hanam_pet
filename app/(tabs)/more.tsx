@@ -213,14 +213,15 @@ function MoreScreenBody() {
           accessibilityRole="button"
           accessibilityLabel="회원탈퇴"
           onPress={() => router.push('/withdraw')}
-          hitSlop={8}
+          android_ripple={{ color: 'transparent' }}
           style={({ pressed }) => [
             styles.withdrawBtn,
             pressed && styles.rowPressed,
           ]}
         >
-          <UserMinus size={18} color={Colors.textDisabled} weight="regular" />
+          <SignOut size={18} color={Colors.textSecondary} weight="regular" />
           <Text style={styles.withdrawText}>회원탈퇴</Text>
+          <CaretRight size={16} color={Colors.textDisabled} weight="bold" />
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -290,17 +291,20 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   withdrawBtn: {
-    alignSelf: 'center',
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: Layout.headerPaddingH,
+    minHeight: 52,
+    paddingHorizontal: Layout.cardPaddingH,
+    paddingVertical: 12,
+    gap: 10,
     marginTop: 4,
   },
   withdrawText: {
-    fontSize: 14,
+    flex: 1,
+    minWidth: 0,
+    fontSize: 15,
     fontWeight: '600',
-    color: Colors.textDisabled,
+    color: Colors.textSecondary,
   },
 })

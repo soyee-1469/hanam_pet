@@ -3,14 +3,12 @@ import {
   View,
   Text,
   Image,
-  Pressable,
   StyleSheet,
   ScrollView,
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Copy } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
@@ -102,22 +100,6 @@ export default function RecoveryCodeScreen() {
             void copyCode()
           }}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="번호만 다시 보기"
-          disabled={copying}
-          onPress={() => {
-            void copyCode()
-          }}
-          hitSlop={8}
-          style={({ pressed }) => [
-            styles.secondaryCopy,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Copy size={16} color={Colors.textSecondary} weight="bold" />
-          <Text style={styles.secondaryCopyText}>번호 다시 복사하기</Text>
-        </Pressable>
       </View>
     </SafeAreaView>
   )
@@ -209,21 +191,5 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...onboardingFooterStyle,
-    gap: 4,
-  },
-  secondaryCopy: {
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 12,
-  },
-  secondaryCopyText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  pressed: {
-    opacity: 0.75,
   },
 })

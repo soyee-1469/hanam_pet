@@ -9,7 +9,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native'
-import { useDesignWindow } from './AppViewport'
+import { useDesignWindow } from '../lib/designWindow'
 import { Colors } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { Type, TypeStyle } from '../constants/Typography'

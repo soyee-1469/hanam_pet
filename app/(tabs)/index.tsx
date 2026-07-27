@@ -32,7 +32,7 @@ import { TypeStyle } from '../../constants/Typography'
 import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { DogExpr } from '../../constants/DogExpr'
 import { CatExpr } from '../../constants/OnboardingMascot'
-import { useDesignWindow } from '../../components/AppViewport'
+import { useDesignWindow } from '../../lib/designWindow'
 import {
   consumeWelcomePending,
   getOnboardingProfile,

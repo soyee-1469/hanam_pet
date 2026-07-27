@@ -4,7 +4,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native'
-import { useDesignWindow } from './AppViewport'
+import { useDesignWindow } from '../lib/designWindow'
 import { Colors } from '../constants/Colors'
 import { BottomSheet } from './ui/AppOverlay'
 import { HelpContactRow } from './HelpContactRow'

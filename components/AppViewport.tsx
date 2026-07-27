@@ -1,16 +1,13 @@
 import type { ReactNode } from 'react'
-import {
-  Platform,
-  StyleSheet,
-  View,
-  useWindowDimensions,
-  type ScaledSize,
-} from 'react-native'
+import { Platform, StyleSheet, View } from 'react-native'
 import { Colors } from '../constants/Colors'
+import {
+  DESIGN_HEIGHT,
+  DESIGN_WIDTH,
+  useDesignWindow,
+} from '../lib/designWindow'
 
-/** 디자인 기준 캔버스 */
-export const DESIGN_WIDTH = 360
-export const DESIGN_HEIGHT = 800
+export { DESIGN_WIDTH, DESIGN_HEIGHT, useDesignWindow }
 
 type AppViewportProps = {
   children: ReactNode
@@ -32,19 +29,6 @@ export function AppViewport({ children }: AppViewportProps) {
   )
 }
 
-/** 웹은 디자인 캔버스 크기, 네이티브는 실기기 크기 */
-export function useDesignWindow(): ScaledSize {
-  const win = useWindowDimensions()
-  if (Platform.OS === 'web') {
-    return {
-      ...win,
-      width: DESIGN_WIDTH,
-      height: DESIGN_HEIGHT,
-    }
-  }
-  return win
-}
-
 const styles = StyleSheet.create({
   shell: {
     flex: 1,
@@ -55,7 +39,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cocoa,
     ...Platform.select({
       web: {
-        // 창이 작을 때 프레임이 잘리지 않게 스크롤
         overflow: 'auto',
       },
       default: {},
@@ -68,7 +51,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     overflow: 'hidden',
     backgroundColor: Colors.background,
-    // Stack 등 flex:1 자식이 프레임을 채우도록
     flexDirection: 'column',
   },
 })

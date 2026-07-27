@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
-import { useDesignWindow } from './AppViewport'
+import { useDesignWindow } from '../lib/designWindow'
 import { Colors } from '../constants/Colors'
 import { tabBarReserveHeight } from '../constants/Layout'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'

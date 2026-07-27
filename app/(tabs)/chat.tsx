@@ -61,7 +61,7 @@ import {
 import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { formatDateTime } from '../../lib/dateFormat'
 import { MockSoftKeyboard } from '../../components/MockSoftKeyboard'
-import { useDesignWindow } from '../../components/AppViewport'
+import { useDesignWindow } from '../../lib/designWindow'
 import {
   acquireTabBarOverlay,
   releaseTabBarOverlay,

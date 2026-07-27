@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { X, ArrowSquareOut } from 'phosphor-react-native'
-import { useDesignWindow } from './AppViewport'
+import { useDesignWindow } from '../lib/designWindow'
 import { Layout } from '../constants/Layout'
 import { Colors, Shadows } from '../constants/Colors'
 import {

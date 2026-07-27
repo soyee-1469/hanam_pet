@@ -33,7 +33,8 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
-import { PrimaryButton, ScreenHeader, ConfirmDialog } from '../../components/ui'
+import { PrimaryButton, ScreenHeader } from '../../components/ui'
+import { BottomSheet } from '../../components/ui/AppOverlay'
 import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
 import { getOnboardingCopy } from '../../lib/onboarding'
@@ -264,17 +265,34 @@ export default function OnboardingResume() {
   }
 
   const restartConfirmSheet = (
-    <ConfirmDialog
-      visible={restartOpen}
-      tone="warning"
-      title={copy.lost.restartConfirm.title}
-      body={copy.lost.restartConfirm.body}
-      cancelLabel={copy.lost.restartConfirm.back}
-      confirmLabel={copy.lost.restartConfirm.cta}
-      onCancel={closeRestartConfirm}
-      onConfirm={confirmRestartFresh}
-      onBackdropPress={closeRestartConfirm}
-    />
+    <BottomSheet visible={restartOpen} onRequestClose={closeRestartConfirm}>
+      <Text style={styles.restartConfirmTitle}>
+        {copy.lost.restartConfirm.title}
+      </Text>
+      <Text style={styles.restartConfirmBody}>
+        {copy.lost.restartConfirm.body}
+      </Text>
+      <View style={styles.restartConfirmActions}>
+        <PrimaryButton
+          label={copy.lost.restartConfirm.cta}
+          emphasized
+          onPress={confirmRestartFresh}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={copy.lost.restartConfirm.back}
+          onPress={closeRestartConfirm}
+          style={({ pressed }) => [
+            styles.restartConfirmBack,
+            pressed && styles.restartLinkPressed,
+          ]}
+        >
+          <Text style={styles.restartConfirmBackText}>
+            {copy.lost.restartConfirm.back}
+          </Text>
+        </Pressable>
+      </View>
+    </BottomSheet>
   )
 
   const pressNext = () => {
@@ -1094,6 +1112,37 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   restartLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textDisabled,
+  },
+  /** 「처음부터 새로 시작」확인 바텀시트 — 시안: 좌측 정렬 + 코랄 CTA + 텍스트 링크 */
+  restartConfirmTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    textAlign: 'left',
+    lineHeight: 26,
+    letterSpacing: -0.2,
+    marginBottom: 10,
+  },
+  restartConfirmBody: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    textAlign: 'left',
+    lineHeight: 22,
+    marginBottom: 22,
+  },
+  restartConfirmActions: {
+    gap: 4,
+  },
+  restartConfirmBack: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  restartConfirmBackText: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textDisabled,

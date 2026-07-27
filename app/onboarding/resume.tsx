@@ -443,7 +443,10 @@ export default function OnboardingResume() {
   if (step === 'giveUp') {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScreenHeader onBack={() => setStep(giveUpBackStep)} />
+        <ScreenHeader
+          title={copy.header}
+          onBack={() => setStep(giveUpBackStep)}
+        />
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.giveUpBody}
@@ -452,12 +455,18 @@ export default function OnboardingResume() {
           <Text style={styles.giveUpHeadline}>{copy.lost.giveUp.title}</Text>
           <View style={styles.giveUpCard}>
             <View style={styles.giveUpIconBadge}>
-              <ShieldCheck size={28} color={Colors.cocoa} weight="duotone" />
+              <ShieldCheck size={26} color={Colors.cocoa} weight="fill" />
             </View>
-            <Text style={styles.giveUpBodyText}>{copy.lost.giveUp.body}</Text>
+            <Text style={styles.giveUpBodyText}>
+              {copy.lost.giveUp.body}
+              {'\n'}
+              <Text style={styles.giveUpBodyEmphasis}>
+                {copy.lost.giveUp.bodyEmphasis}
+              </Text>
+            </Text>
             <View style={styles.giveUpPrivacyBlock}>
               <View style={styles.giveUpPrivacyRow}>
-                <Lock size={18} color={Colors.cocoa} weight="regular" />
+                <Lock size={16} color={Colors.cocoa} weight="bold" />
                 <Text style={styles.giveUpPrivacyTitle}>
                   {copy.lost.giveUp.privacyTitle}
                 </Text>
@@ -468,7 +477,7 @@ export default function OnboardingResume() {
             </View>
           </View>
         </ScrollView>
-        <View style={styles.footer}>
+        <View style={styles.giveUpFooter}>
           <PrimaryButton
             label={copy.lost.giveUp.lookAgain}
             emphasized
@@ -1148,7 +1157,7 @@ const styles = StyleSheet.create({
   },
   giveUpBody: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: Layout.sectionGapLg,
     flexGrow: 1,
   },
@@ -1156,22 +1165,22 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    marginBottom: 18,
+    marginBottom: 16,
     lineHeight: 32,
     letterSpacing: -0.3,
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
     borderRadius: 20,
-    paddingHorizontal: Layout.cardPaddingH,
-    paddingTop: Layout.sectionGap,
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 22,
     ...Shadows.elevation,
   },
   giveUpIconBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -1183,7 +1192,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     color: Colors.textPrimary,
+    textAlign: 'left',
     marginBottom: 18,
+  },
+  giveUpBodyEmphasis: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   giveUpPrivacyBlock: {
     gap: 8,
@@ -1191,19 +1207,26 @@ const styles = StyleSheet.create({
   giveUpPrivacyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   giveUpPrivacyTitle: {
     flex: 1,
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
+    letterSpacing: -0.2,
   },
   giveUpPrivacyBody: {
     fontSize: 13,
-    lineHeight: 22,
+    lineHeight: 21,
     fontWeight: '500',
     color: Colors.textSecondary,
-    paddingLeft: 26,
+    textAlign: 'left',
+  },
+  giveUpFooter: {
+    paddingHorizontal: Layout.screenPaddingH,
+    paddingBottom: Layout.blockGap,
+    paddingTop: Layout.sectionGap,
+    backgroundColor: Colors.background,
   },
 })

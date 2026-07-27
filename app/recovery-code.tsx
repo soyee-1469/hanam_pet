@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import {
   View,
   Text,
@@ -6,68 +6,47 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import { Images } from 'phosphor-react-native'
+import { Copy } from 'phosphor-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { Colors, Shadows } from '../constants/Colors'
 import { Layout } from '../constants/Layout'
 import { DogExpr } from '../constants/DogExpr'
-import { ScreenHeader, onboardingFooterStyle } from '../components/ui'
-import { PhotoPermissionDeniedDialog } from '../components/PhotoPermissionDeniedDialog'
+import {
+  PrimaryButton,
+  ScreenHeader,
+  onboardingFooterStyle,
+} from '../components/ui'
 import { getOnboardingCopy } from '../lib/onboarding'
-import { saveRecoveryCodeImage } from '../lib/saveRecoveryCodeImage'
 import { showToast } from '../lib/toast'
 
 const restoreCopy = getOnboardingCopy().restoreCode
 const RECOVERY_CODE = restoreCopy.dummyCode.replace(/\D/g, '').slice(0, 8)
 const CODE_DISPLAY =
   RECOVERY_CODE.length === 8
-    ? `${RECOVERY_CODE.slice(0, 4)} ${RECOVERY_CODE.slice(4)}`
+    ? `${RECOVERY_CODE.slice(0, 4)}-${RECOVERY_CODE.slice(4)}`
     : RECOVERY_CODE
 
+/**
+ * 설정 > 내 기록 가져오기 번호
+ * 세로형 안내 카드 + 복사하기 (사진첩 저장 없음)
+ */
 export default function RecoveryCodeScreen() {
-  const cardRef = useRef<View>(null)
-  const [saving, setSaving] = useState(false)
-  const [deniedOpen, setDeniedOpen] = useState(false)
+  const [copying, setCopying] = useState(false)
 
   const copyCode = async () => {
+    if (copying) return
+    setCopying(true)
     try {
       await Clipboard.setStringAsync(RECOVERY_CODE)
       showToast('클립보드에 복사되었어요')
     } catch {
       Alert.alert('복사 실패', '잠시 후 다시 시도해 주세요.')
-    }
-  }
-
-  const saveToGallery = async () => {
-    if (saving) return
-    setSaving(true)
-    try {
-      const result = await saveRecoveryCodeImage(cardRef)
-      if (result === 'saved') {
-        showToast('사진첩에 저장했어요')
-        return
-      }
-      if (result === 'denied') {
-        setDeniedOpen(true)
-        return
-      }
-      if (result === 'unsupported') {
-        try {
-          await Clipboard.setStringAsync(RECOVERY_CODE)
-        } catch {
-          // ignore
-        }
-        showToast('웹에서는 스크린샷으로 보관해 주세요')
-        return
-      }
-      Alert.alert('저장 실패', '잠시 후 다시 시도해 주세요.')
     } finally {
-      setSaving(false)
+      setCopying(false)
     }
   }
 
@@ -83,44 +62,26 @@ export default function RecoveryCodeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionLabel}>내 기록 가져오기 번호</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="복사하기"
-            hitSlop={8}
-            onPress={() => {
-              void copyCode()
-            }}
-            style={({ pressed }) => pressed && styles.btnPressed}
-          >
-            <Text style={styles.copyLink}>복사하기</Text>
-          </Pressable>
-        </View>
-
         <Text style={styles.description}>
           휴대폰을 바꾸거나 앱을 다시 설치할 때, 이 번호로 마음 기록을 불러올 수
           있어요.
         </Text>
 
-        {/* 멤버십 카드 — 단색 크림 면 + 코코아 밴드 (그라데이션 없음) */}
         <View style={styles.cardShell}>
-          <View ref={cardRef} collapsable={false} style={styles.cardCapture}>
-            <View style={styles.stripe}>
-              <View style={styles.stripeDot} />
-              <View style={[styles.stripeDot, styles.stripeDotSoft]} />
+          <View style={styles.cardInner}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.brandName}>하남이네 힐링펫</Text>
+              <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
             </View>
 
-            <View style={styles.codePlate}>
-              <Text style={styles.codeCaption}>기록 번호</Text>
+            <View style={styles.codeBlock}>
               <Text style={styles.codeValue}>{CODE_DISPLAY}</Text>
             </View>
 
-            <Text style={styles.brandName}>하남이네 힐링펫</Text>
-            <Text style={styles.cardSub}>나의 기록 가져오기 번호</Text>
-
-            <View style={styles.petRow}>
-              <View style={styles.petSpacer} />
+            <View style={styles.cardFooter}>
+              <Text style={styles.cardTip}>
+                메모장에 적어두거나{'\n'}스크린샷으로 보관해 주세요.
+              </Text>
               <Image
                 source={DogExpr.soft}
                 style={styles.dog}
@@ -130,55 +91,34 @@ export default function RecoveryCodeScreen() {
             </View>
           </View>
         </View>
-
-        <Text style={styles.tip}>{restoreCopy.tip}</Text>
       </ScrollView>
 
       <View style={styles.footer}>
+        <PrimaryButton
+          label="복사하기"
+          emphasized
+          disabled={copying}
+          onPress={() => {
+            void copyCode()
+          }}
+        />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="사진첩에 저장하기"
-          disabled={saving}
+          accessibilityLabel="번호만 다시 보기"
+          disabled={copying}
           onPress={() => {
-            void saveToGallery()
+            void copyCode()
           }}
+          hitSlop={8}
           style={({ pressed }) => [
-            styles.saveBtn,
-            pressed && !saving && styles.btnPressed,
-            saving && styles.saveBtnDisabled,
+            styles.secondaryCopy,
+            pressed && styles.pressed,
           ]}
         >
-          <View style={styles.btnInner}>
-            {saving ? (
-              <ActivityIndicator
-                size="small"
-                color={Colors.inactiveText}
-              />
-            ) : (
-              <Images
-                size={18}
-                color={
-                  saving ? Colors.inactiveText : Colors.buttonPrimaryText
-                }
-                weight="bold"
-              />
-            )}
-            <Text
-              style={[
-                styles.saveBtnText,
-                saving && styles.saveBtnTextDisabled,
-              ]}
-            >
-              사진첩에 저장하기
-            </Text>
-          </View>
+          <Copy size={16} color={Colors.textSecondary} weight="bold" />
+          <Text style={styles.secondaryCopyText}>번호 다시 복사하기</Text>
         </Pressable>
       </View>
-
-      <PhotoPermissionDeniedDialog
-        visible={deniedOpen}
-        onClose={() => setDeniedOpen(false)}
-      />
     </SafeAreaView>
   )
 }
@@ -193,104 +133,42 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Layout.screenPaddingH,
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: Layout.contentPaddingBottom,
     alignItems: 'stretch',
-  },
-  sectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 10,
-  },
-  sectionLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.cocoa,
-  },
-  copyLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.cocoa,
-    textDecorationLine: 'underline',
   },
   description: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
     lineHeight: 22,
-    marginBottom: 24,
+    textAlign: 'left',
+    marginBottom: 22,
   },
   cardShell: {
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 320,
-    aspectRatio: 0.68,
+    maxWidth: 300,
+    aspectRatio: 0.72,
     borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border,
     backgroundColor: Colors.creamyBeige,
     ...Shadows.elevation,
   },
-  cardCapture: {
+  cardInner: {
     flex: 1,
-    backgroundColor: Colors.creamyBeige,
-    paddingTop: 0,
-    paddingHorizontal: 22,
-    paddingBottom: 10,
-    overflow: 'hidden',
+    paddingTop: 28,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
   },
-  stripe: {
-    height: 40,
-    marginHorizontal: -22,
-    marginBottom: 22,
-    backgroundColor: Colors.selected,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: 18,
-    gap: 8,
-  },
-  stripeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.accent,
-  },
-  stripeDotSoft: {
-    backgroundColor: Colors.accentSoft,
-    opacity: 0.9,
-  },
-  codePlate: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.sand,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    marginBottom: 18,
-    alignItems: 'center',
-    gap: 6,
-  },
-  codeCaption: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    letterSpacing: -0.2,
-  },
-  codeValue: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: Colors.cocoa,
-    letterSpacing: 4,
+  cardHeader: {
+    marginBottom: 28,
   },
   brandName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: Colors.cocoa,
+    letterSpacing: -0.3,
     marginBottom: 4,
   },
   cardSub: {
@@ -298,61 +176,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textSecondary,
   },
-  petRow: {
+  codeBlock: {
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  codeValue: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: Colors.cocoa,
+    letterSpacing: 2,
+  },
+  cardFooter: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    marginTop: 8,
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  petSpacer: {
+  cardTip: {
     flex: 1,
-  },
-  dog: {
-    width: 150,
-    height: 150,
-    marginRight: -10,
-    marginBottom: -6,
-  },
-  tip: {
-    marginTop: 20,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     color: Colors.textSecondary,
-    lineHeight: 20,
-    textAlign: 'center',
+    lineHeight: 18,
+    paddingBottom: 8,
+  },
+  dog: {
+    width: 120,
+    height: 120,
+    marginRight: -8,
+    marginBottom: -4,
   },
   footer: {
     ...onboardingFooterStyle,
+    gap: 4,
   },
-  btnPressed: {
-    opacity: 0.88,
-  },
-  btnInner: {
+  secondaryCopy: {
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
+    paddingVertical: 12,
   },
-  saveBtn: {
-    height: 54,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary,
-    ...Shadows.elevation,
+  secondaryCopyText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
-  saveBtnDisabled: {
-    backgroundColor: Colors.inactive,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  saveBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.buttonPrimaryText,
-  },
-  saveBtnTextDisabled: {
-    color: Colors.inactiveText,
+  pressed: {
+    opacity: 0.75,
   },
 })

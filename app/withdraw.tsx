@@ -158,23 +158,23 @@ const styles = StyleSheet.create({
     paddingBottom: Layout.blockGap,
   },
   hero: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 28,
-    paddingHorizontal: 4,
   },
   headline: {
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 30,
     marginBottom: 12,
+    letterSpacing: -0.3,
   },
   sub: {
     fontSize: 14,
     fontWeight: '500',
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 22,
   },
   card: {

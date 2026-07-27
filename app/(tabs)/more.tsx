@@ -76,11 +76,9 @@ const SECTIONS: SettingsSection[] = [
 
 function SettingsRow({
   item,
-  isLast,
   onPress,
 }: {
   item: SettingsRowItem
-  isLast: boolean
   onPress?: () => void
 }) {
   const [hovered, setHovered] = useState(false)
@@ -89,7 +87,7 @@ function SettingsRow({
   if (isVersion) {
     return (
       <View
-        style={[styles.row, !isLast && styles.rowDivider]}
+        style={styles.row}
         accessibilityRole="text"
         accessibilityLabel={`${item.title}, ${item.trailing ?? ''}`}
       >
@@ -116,7 +114,6 @@ function SettingsRow({
       <View
         style={[
           styles.row,
-          !isLast && styles.rowDivider,
           hovered && styles.rowHover,
         ]}
       >
@@ -197,11 +194,10 @@ function MoreScreenBody() {
               <Text style={styles.sectionTitle}>{section.title}</Text>
             ) : null}
             <View style={styles.card}>
-              {section.rows.map((row, i) => (
+              {section.rows.map((row) => (
                 <SettingsRow
                   key={row.id}
                   item={row}
-                  isLast={i === section.rows.length - 1}
                   onPress={
                     row.kind === 'version'
                       ? undefined
@@ -273,10 +269,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.cardPaddingH,
     paddingVertical: 14,
     gap: 10,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.divider,
   },
   rowPressed: {
     opacity: 0.88,

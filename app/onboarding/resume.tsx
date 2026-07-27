@@ -33,7 +33,7 @@ import { Colors, Shadows } from '../../constants/Colors'
 import { Layout } from '../../constants/Layout'
 import { DogExpr } from '../../constants/DogExpr'
 import { onboardingMascot } from '../../constants/OnboardingMascot'
-import { PrimaryButton, ScreenHeader } from '../../components/ui'
+import { PrimaryButton, SecondaryButton, ScreenHeader } from '../../components/ui'
 import { BottomSheet } from '../../components/ui/AppOverlay'
 import { NumberKeypad } from '../../components/NumberKeypad'
 import { markOnboardingCompleted } from '../../lib/onboardingStorage'
@@ -273,24 +273,16 @@ export default function OnboardingResume() {
         {copy.lost.restartConfirm.body}
       </Text>
       <View style={styles.restartConfirmActions}>
+        {/* 안전 선택 먼저 → 되돌리기 어려운 선택은 아래 */}
+        <SecondaryButton
+          label={copy.lost.restartConfirm.back}
+          onPress={closeRestartConfirm}
+        />
         <PrimaryButton
           label={copy.lost.restartConfirm.cta}
           emphasized
           onPress={confirmRestartFresh}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={copy.lost.restartConfirm.back}
-          onPress={closeRestartConfirm}
-          style={({ pressed }) => [
-            styles.restartConfirmBack,
-            pressed && styles.restartLinkPressed,
-          ]}
-        >
-          <Text style={styles.restartConfirmBackText}>
-            {copy.lost.restartConfirm.back}
-          </Text>
-        </Pressable>
       </View>
     </BottomSheet>
   )
@@ -1135,17 +1127,7 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   restartConfirmActions: {
-    gap: 4,
-  },
-  restartConfirmBack: {
-    marginTop: 10,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  restartConfirmBackText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textDisabled,
+    gap: 10,
   },
   giveUpBody: {
     paddingHorizontal: Layout.screenPaddingH,

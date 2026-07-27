@@ -115,8 +115,9 @@ export default function WithdrawScreen() {
         body={
           '탈퇴하시면 모든 추억이 사라지고,\n이전 기록을 다시 되돌릴 수 없어요.'
         }
+        /** 왼쪽=탈퇴(위험) · 오른쪽=다시 이용(안전·강조) */
         confirmLabel="탈퇴할게요"
-        cancelLabel="계속 이용할게요"
+        cancelLabel="다시 이용할게요"
         actionsOrder="confirm-cancel"
         cancelTone="primary"
         onConfirm={() => {

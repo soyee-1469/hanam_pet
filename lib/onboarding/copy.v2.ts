@@ -241,7 +241,8 @@ export const onboardingCopyV2 = {
     body: '휴대폰을 바꾸거나 앱을 다시 설치해도, 이 번호로 이전 기록을 안전하게 불러올 수 있어요.',
     codeLabel: '나의 번호',
     dummyCode: '48291736',
-    tip: '아래 저장 방법 중 하나로 꼭 보관하세요.',
+    tip: '저장 방법 보기',
+    settingsHint: '이 번호는 [설정 > 내 정보]에서도 확인할 수 있어요.',
     copyBtn: '복사',
     methods: [
       {

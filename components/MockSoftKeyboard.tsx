@@ -29,7 +29,7 @@ const ROWS = [
   ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ'],
 ] as const
 
-const KEYBOARD_H = 268
+const KEYBOARD_H = 276
 
 type Props = {
   visible: boolean
@@ -82,11 +82,16 @@ export function MockSoftKeyboard({
               onPress={() => onInsert?.(key)}
               style={({ pressed }) => [
                 styles.key,
+                styles.keyTop,
                 pressed && styles.keyPressed,
               ]}
             >
-              <Text style={styles.keyDigit}>{digit}</Text>
-              <Text style={styles.keyText}>{key}</Text>
+              <Text style={styles.keyDigit} numberOfLines={1}>
+                {digit}
+              </Text>
+              <Text style={styles.keyTextTop} numberOfLines={1}>
+                {key}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -212,6 +217,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
+  },
+  /** 윗줄 — 숫자(1–0) + 글자 세로 스택 */
+  keyTop: {
+    height: 46,
+    justifyContent: 'flex-start',
+    paddingTop: 3,
+    gap: 0,
   },
   keyWide: {
     width: 44,
@@ -240,23 +253,26 @@ const styles = StyleSheet.create({
   keyPressed: {
     opacity: 0.72,
   },
-  /** 윗줄 키 위쪽 — 1–0 (iOS 한글 키패드형) */
   keyDigit: {
-    position: 'absolute',
-    top: 2,
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     lineHeight: 12,
     color: Colors.textSecondary,
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  keyTextTop: {
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 18,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   keyText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginTop: 6,
   },
   keyTextMuted: {
     fontSize: 13,

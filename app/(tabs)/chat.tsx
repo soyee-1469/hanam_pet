@@ -12,7 +12,6 @@ import {
   ScrollView,
   Animated,
   Easing,
-  useWindowDimensions,
   type TextInput as RNTextInput,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -62,6 +61,7 @@ import {
 import { TextKeyboardProps } from '../../lib/inputKeyboard'
 import { formatDateTime } from '../../lib/dateFormat'
 import { MockSoftKeyboard } from '../../components/MockSoftKeyboard'
+import { useDesignWindow } from '../../components/AppViewport'
 import {
   acquireTabBarOverlay,
   releaseTabBarOverlay,
@@ -115,7 +115,7 @@ export default function ChatScreen() {
 
 function ChatScreenBody() {
   const insets = useSafeAreaInsets()
-  const { height: windowH } = useWindowDimensions()
+  const { height: windowH } = useDesignWindow()
   const [stageH, setStageH] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
   const inputRef = useRef<RNTextInput>(null)

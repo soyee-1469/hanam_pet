@@ -1,7 +1,14 @@
 import type { ReactNode } from 'react'
-import { useWindowDimensions } from 'react-native'
+import {
+  Platform,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+  type ScaledSize,
+} from 'react-native'
+import { Colors } from '../constants/Colors'
 
-/** 디자인 기준 캔버스 (레이아웃·카피 참고용) */
+/** 디자인 기준 캔버스 */
 export const DESIGN_WIDTH = 360
 export const DESIGN_HEIGHT = 800
 
@@ -10,14 +17,58 @@ type AppViewportProps = {
 }
 
 /**
- * 웹·네이티브 모두 실제 화면을 그대로 사용 (반응형).
- * 예전에 쓰던 고정 프레임은 가로 확장을 막아 제거함.
+ * 웹: 360×800 폰 프레임으로 고정 (캡처·미리보기 기준).
+ * 네이티브: 실제 화면 그대로.
  */
 export function AppViewport({ children }: AppViewportProps) {
-  return <>{children}</>
+  if (Platform.OS !== 'web') {
+    return <>{children}</>
+  }
+
+  return (
+    <View style={styles.shell} accessibilityLabel="앱 화면 360x800">
+      <View style={styles.frame}>{children}</View>
+    </View>
+  )
 }
 
-/** 실제 창 크기 — 반응형 레이아웃용 */
-export function useDesignWindow() {
-  return useWindowDimensions()
+/** 웹은 디자인 캔버스 크기, 네이티브는 실기기 크기 */
+export function useDesignWindow(): ScaledSize {
+  const win = useWindowDimensions()
+  if (Platform.OS === 'web') {
+    return {
+      ...win,
+      width: DESIGN_WIDTH,
+      height: DESIGN_HEIGHT,
+    }
+  }
+  return win
 }
+
+const styles = StyleSheet.create({
+  shell: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.cocoa,
+    ...Platform.select({
+      web: {
+        // 창이 작을 때 프레임이 잘리지 않게 스크롤
+        overflow: 'auto',
+      },
+      default: {},
+    }),
+  },
+  frame: {
+    width: DESIGN_WIDTH,
+    height: DESIGN_HEIGHT,
+    flexGrow: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
+    backgroundColor: Colors.background,
+    // Stack 등 flex:1 자식이 프레임을 채우도록
+    flexDirection: 'column',
+  },
+})

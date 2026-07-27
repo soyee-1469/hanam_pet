@@ -1,6 +1,7 @@
-import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
+import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
+import { useDesignWindow } from './AppViewport'
 import { Colors } from '../constants/Colors'
 import { tabBarReserveHeight } from '../constants/Layout'
 import { PET_TOUR_TOTAL, type PetTourStep } from '../lib/coachmarkTour'
@@ -36,7 +37,7 @@ export function CoachmarkTourCard({
   ctaBottom,
 }: CoachmarkTourCardProps) {
   const insets = useSafeAreaInsets()
-  const { height: winH } = useWindowDimensions()
+  const { height: winH } = useDesignWindow()
   const tabReserve = tabBarReserveHeight(insets.bottom)
 
   // 단계마다 동일한 손·눈 위치 (탭바·네비 구멍 위)

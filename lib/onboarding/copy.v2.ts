@@ -212,7 +212,7 @@ export const onboardingCopyV2 = {
     header: '기본 정보',
     headline: '나만을 위한 맞춤 케어를 위해\n정보를 입력해 주세요',
     sub: '이 정보는 설정 메뉴에서 언제든지 바꿀 수 있어요.',
-    label: '내 닉네임',
+    label: '내 닉네임(필수)',
     placeholder: '닉네임을 입력해 주세요',
     hintInvalid: '2자 이상 입력해 주세요',
     maxHint: '최대 8글자까지 입력할 수 있어요',

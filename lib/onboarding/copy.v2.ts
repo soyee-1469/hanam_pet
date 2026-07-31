@@ -222,7 +222,7 @@ export const onboardingCopyV2 = {
       { id: '20s' as const, label: '20대' },
       { id: '30s' as const, label: '30대' },
       { id: '40s' as const, label: '40대' },
-      { id: '50plus' as const, label: '그 이상' },
+      { id: '50plus' as const, label: '50대 이상' },
     ],
     genderLabel: '성별',
     genderOptions: [

@@ -1962,7 +1962,7 @@ const pv = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: 1,
+    letterSpacing: -0.2,
     marginBottom: 8,
   },
   restoreHint: {

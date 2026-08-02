@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   notFoundBodyText: {
     marginTop: 14,
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.textPrimary,
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 12,
   },
   restoredBody: {
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 10,
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   /** 안내만 아주 옅게 — OTP(흰 면·테두리)보다 덜 튀게 */
   guideShade: {
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 18,
     lineHeight: 32,
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
   },
   giveUpCard: {
     backgroundColor: Colors.surface,
@@ -1206,7 +1206,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
     textAlign: 'left',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   giveUpBodyEmphasis: {
     fontSize: 14,
@@ -1214,7 +1214,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.textPrimary,
     textAlign: 'left',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   giveUpDivider: {
     height: StyleSheet.hairlineWidth,
@@ -1250,7 +1250,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textSecondary,
     textAlign: 'left',
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   giveUpFooter: {
     paddingHorizontal: Layout.screenPaddingH,

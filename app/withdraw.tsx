@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     lineHeight: 30,
     marginBottom: 12,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   sub: {
     fontSize: 14,

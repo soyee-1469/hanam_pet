@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '800',
     color: Colors.cocoa,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   pressed: {
     opacity: 0.92,

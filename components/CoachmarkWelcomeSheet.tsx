@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 28,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 10,
   },
   body: {

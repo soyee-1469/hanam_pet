@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     lineHeight: 16,
   },
   spectrumNameMine: {

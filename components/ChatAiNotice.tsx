@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     ...TypeStyle.modalTitle,
     color: Colors.cocoa,
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 10,
   },
   lead: {

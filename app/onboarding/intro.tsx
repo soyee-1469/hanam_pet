@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
     lineHeight: 34,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 14,
   },
   centerBody: {
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.textPrimary,
     lineHeight: 32,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 8,
   },
   featuresBody: {

@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   brandPet: {
     color: Colors.selected,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     color: Colors.textPrimary,
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     textAlign: 'center',
     lineHeight: 32,
   },

@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
   },
   stockHaveEnergy: {
     color: Colors.accent,

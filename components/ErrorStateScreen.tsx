@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.cocoa,
     textAlign: 'center',
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     lineHeight: 32,
   },
   sub: {

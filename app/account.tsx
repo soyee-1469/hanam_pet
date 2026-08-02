@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: Colors.textPrimary,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 8,
   },
   lead: {

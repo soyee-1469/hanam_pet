@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 8,
     lineHeight: 30,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   sub: {
     fontSize: 14,

@@ -201,14 +201,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'rgba(255,255,255,0.55)',
     marginBottom: 6,
-    letterSpacing: 0.2,
+    letterSpacing: -0.2,
   },
   title: {
     fontSize: 20,
     fontWeight: '800',
     color: Colors.accent,
     marginBottom: 6,
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     lineHeight: 28,
   },
   body: {

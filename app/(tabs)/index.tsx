@@ -2369,7 +2369,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
     color: Colors.cocoa,
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     includeFontPadding: false,
   },
   menuClaimBand: {
@@ -2475,7 +2475,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 8,
   },
   nameModalLead: {

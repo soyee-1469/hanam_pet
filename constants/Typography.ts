@@ -106,11 +106,11 @@ export const TypeStyle = {
   hero: {
     fontSize: Type.display,
     fontWeight: '800' as const,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   displayLg: {
     fontSize: Type.displayLg,
     fontWeight: '800' as const,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
 } as const

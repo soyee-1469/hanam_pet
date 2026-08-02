@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textPrimary,
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
     textAlign: 'right',
   },
   tagRow: {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
     lineHeight: 26,
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   footer: {
     flexDirection: 'row',

@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
     color: Colors.cocoa,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     marginBottom: 4,
   },
   cardSub: {

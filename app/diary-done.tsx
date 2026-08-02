@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     ...TypeStyle.hero,
     color: Colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: -0.4,
+    letterSpacing: -0.2,
     lineHeight: 34,
   },
   stage: {

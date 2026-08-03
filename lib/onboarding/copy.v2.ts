@@ -28,7 +28,7 @@ export const onboardingCopyV2 = {
     ctaContinue: '다음',
     ctaNext: '다음',
     skip: '건너뛰기',
-    /** 투어 7닷 — promises → reasons → features → help → diary → healing → mind */
+    /** 투어 9닷 — promises → reasons → features → help → chat → diary → mind → healing → pet */
     slides: [
       {
         key: 'promises' as const,
@@ -95,31 +95,32 @@ export const onboardingCopyV2 = {
         body: '위기 상황 시 연결할 수 있도록 전문 상담 기관을 항상 안내해요.',
       },
     ],
+    /** 스크린샷·소개 5장과 동일 문구 */
     features: [
       {
-        key: 'pet',
-        title: '나만의 펫 키우기',
-        body: '5마리 중 나의 펫을 고를 수 있고, 언제든지 바꿀 수 있어요. 사료를 주고 장난감을 주며 펫을 키울 수 있어요.',
-      },
-      {
         key: 'chat',
-        title: '나의 펫과 대화하기',
-        body: '오늘 있었던 일을 편하게 이야기해요. 대화하면서 위로와 공감을 받아요.',
+        title: '펫과 대화해요',
+        body: '오늘 있었던 일을 편하게 말하고, 공감·위로를 받아요.',
       },
       {
         key: 'diary',
-        title: '마음 기록하기',
-        body: '하루의 감정을 돌아보고 일기를 남겨보세요. 쌓인 기록으로 내 마음의 흐름을 돌아볼 수 있어요.',
-      },
-      {
-        key: 'fill',
-        title: '마음 채우기',
-        body: '나를 다독여주고 변화할 수 있도록 돕는 영상 콘텐츠를 만나요',
+        title: '마음을 기록해요',
+        body: '하루 감정을 남기고, 쌓인 기록으로 흐름을 돌아봐요.',
       },
       {
         key: 'check',
-        title: '마음 살피기',
-        body: '약 10개 내외 문항에 스스로 답을 하면서 지금의 마음 건강 상태를 확인해요.',
+        title: '마음 상태를 살펴요',
+        body: '짧은 문항으로 지금 상태를 확인하고, 필요할 때 도움을 연결해요.',
+      },
+      {
+        key: 'fill',
+        title: '힐링 영상을 봐요',
+        body: '다양한 힐링 영상으로 마음을 다독여 보세요.',
+      },
+      {
+        key: 'pet',
+        title: '나의 펫을 키워요',
+        body: '5마리 중 나의 펫을 고르고, 언제든지 바꿀 수 있어요. 사료와 장난감을 주며 키울 수 있어요.',
       },
     ],
     helpLines: [
@@ -145,29 +146,52 @@ export const onboardingCopyV2 = {
     helpConnect: '연결',
   },
 
-  diaryRecord: {
-    bubble: '오늘 기분은 어땠어?\n같이 짧게 적어보자.',
-    title: '마음 일기',
-    body: '하루의 감정을 남기고,\n한 달의 흐름을 돌아볼 수 있어요.',
+  /** 소개 1/5 — 펫과 대화 */
+  petChat: {
+    bubble: '오늘 있었던 일,\n나한테 편하게 말해줘.',
+    title: '펫과 대화해요',
+    body: '오늘 있었던 일을 편하게 말하고,\n공감·위로를 받아요.',
     image: 'soft' as const,
     skip: '건너뛰기',
     cta: '다음',
   },
 
-  healingContent: {
-    bubble: '지친 날엔 이런 소리랑\n이야기가 있어.',
-    title: '힐링 콘텐츠',
-    body: '자연 소리, 음악, 가이드로\n마음을 다독여 보세요.',
-    image: 'tired' as const,
+  /** 소개 2/5 — 마음 기록 */
+  diaryRecord: {
+    bubble: '오늘 기분은 어땠어?\n같이 짧게 적어보자.',
+    title: '마음을 기록해요',
+    body: '하루 감정을 남기고,\n쌓인 기록으로 흐름을 돌아봐요.',
+    image: 'soft' as const,
     skip: '건너뛰기',
-    cta: '계속하기',
+    cta: '다음',
   },
 
+  /** 소개 3/5 — 마음 상태 */
   mindCheck: {
     bubble: '오늘 마음은 어떤지\n같이 살펴볼까?',
-    title: '마음 체크',
-    body: '간단한 질문으로 상태를 확인하고,\n필요할 때 도움을 받을 수 있어요.',
+    title: '마음 상태를 살펴요',
+    body: '짧은 문항으로 지금 상태를 확인하고,\n필요할 때 도움을 연결해요.',
     image: 'wink' as const,
+    skip: '건너뛰기',
+    cta: '다음',
+  },
+
+  /** 소개 4/5 — 힐링 영상 */
+  healingContent: {
+    bubble: '지친 날엔 이런 영상이\n마음을 다독여 줘.',
+    title: '힐링 영상을 봐요',
+    body: '다양한 힐링 영상으로\n마음을 다독여 보세요.',
+    image: 'tired' as const,
+    skip: '건너뛰기',
+    cta: '다음',
+  },
+
+  /** 소개 5/5 — 펫 키우기 */
+  petCare: {
+    bubble: '사료랑 장난감으로\n나를 키워줄래?',
+    title: '나의 펫을 키워요',
+    body: '5마리 중 나의 펫을 고르고, 언제든지 바꿀 수 있어요.\n사료와 장난감을 주며 키울 수 있어요.',
+    image: 'fun' as const,
     skip: '건너뛰기',
     cta: '다음',
   },

@@ -12,13 +12,13 @@ import {
 import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
-const copy = getOnboardingCopy().healingContent
-/** 소개 토크 4/5 */
+const copy = getOnboardingCopy().petCare
+/** 소개 토크 5/5 */
 const TOUR_TOTAL = 9
-const TOUR_INDEX = 7
+const TOUR_INDEX = 8
 
-export default function OnboardingHealingContent() {
-  const goNext = () => router.push('/onboarding/pet-care')
+export default function OnboardingPetCare() {
+  const goNext = () => router.push('/onboarding/terms')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   return (

@@ -18,21 +18,23 @@
 
 ## 1. 온보딩
 
-흐름: 스플래시 → 게이트 → **인트로 4장**(브랜드·기능·프라이버시·위기도움) → **토크 3장**(일기·콘텐츠·체크) → 약관 → 펫 → 프로필 → 복구번호 → 환영  
+흐름: 스플래시 → 게이트 → **인트로 4장** → **소개 토크 5장**(대화·기록·마음살피기·힐링·펫키우기) → 약관 → 프로필 → 펫 → 복구번호 → 환영  
 이어하기: 게이트 → resume (데모 번호 `48291736`)
 
 1. [스플래시](https://hanam-pet.vercel.app/onboarding/splash) — `https://hanam-pet.vercel.app/onboarding/splash`
 2. [게이트](https://hanam-pet.vercel.app/onboarding/gate) — `https://hanam-pet.vercel.app/onboarding/gate`
 3. [인트로 투어](https://hanam-pet.vercel.app/onboarding/intro) — `https://hanam-pet.vercel.app/onboarding/intro`
-4. [일기 기록 소개](https://hanam-pet.vercel.app/onboarding/diary-record) — `https://hanam-pet.vercel.app/onboarding/diary-record`
-5. [힐링 콘텐츠 소개](https://hanam-pet.vercel.app/onboarding/healing-content) — `https://hanam-pet.vercel.app/onboarding/healing-content`
-6. [마음 검사 소개(온보딩)](https://hanam-pet.vercel.app/onboarding/mind-check) — `https://hanam-pet.vercel.app/onboarding/mind-check`
-7. [약관 동의](https://hanam-pet.vercel.app/onboarding/terms) — `https://hanam-pet.vercel.app/onboarding/terms`
-8. [펫 선택](https://hanam-pet.vercel.app/onboarding/pet-select) — `https://hanam-pet.vercel.app/onboarding/pet-select`
-9. [프로필](https://hanam-pet.vercel.app/onboarding/profile) — `https://hanam-pet.vercel.app/onboarding/profile`
-10. [복구 코드](https://hanam-pet.vercel.app/onboarding/restore-code) — `https://hanam-pet.vercel.app/onboarding/restore-code`
-11. [환영](https://hanam-pet.vercel.app/onboarding/welcome) — `https://hanam-pet.vercel.app/onboarding/welcome`
-12. [이어하기](https://hanam-pet.vercel.app/onboarding/resume) — `https://hanam-pet.vercel.app/onboarding/resume`
+4. [소개1 펫과 대화](https://hanam-pet.vercel.app/onboarding/pet-chat) — `https://hanam-pet.vercel.app/onboarding/pet-chat`
+5. [소개2 마음 기록](https://hanam-pet.vercel.app/onboarding/diary-record) — `https://hanam-pet.vercel.app/onboarding/diary-record`
+6. [소개3 마음 상태](https://hanam-pet.vercel.app/onboarding/mind-check) — `https://hanam-pet.vercel.app/onboarding/mind-check`
+7. [소개4 힐링 영상](https://hanam-pet.vercel.app/onboarding/healing-content) — `https://hanam-pet.vercel.app/onboarding/healing-content`
+8. [소개5 펫 키우기](https://hanam-pet.vercel.app/onboarding/pet-care) — `https://hanam-pet.vercel.app/onboarding/pet-care`
+9. [약관 동의](https://hanam-pet.vercel.app/onboarding/terms) — `https://hanam-pet.vercel.app/onboarding/terms`
+10. [프로필](https://hanam-pet.vercel.app/onboarding/profile) — `https://hanam-pet.vercel.app/onboarding/profile`
+11. [펫 선택](https://hanam-pet.vercel.app/onboarding/pet-select) — `https://hanam-pet.vercel.app/onboarding/pet-select`
+12. [복구 코드](https://hanam-pet.vercel.app/onboarding/restore-code) — `https://hanam-pet.vercel.app/onboarding/restore-code`
+13. [환영](https://hanam-pet.vercel.app/onboarding/welcome) — `https://hanam-pet.vercel.app/onboarding/welcome`
+14. [이어하기](https://hanam-pet.vercel.app/onboarding/resume) — `https://hanam-pet.vercel.app/onboarding/resume`
 
 ---
 
@@ -103,12 +105,14 @@ https://hanam-pet.vercel.app/
 https://hanam-pet.vercel.app/onboarding/splash
 https://hanam-pet.vercel.app/onboarding/gate
 https://hanam-pet.vercel.app/onboarding/intro
+https://hanam-pet.vercel.app/onboarding/pet-chat
 https://hanam-pet.vercel.app/onboarding/diary-record
-https://hanam-pet.vercel.app/onboarding/healing-content
 https://hanam-pet.vercel.app/onboarding/mind-check
+https://hanam-pet.vercel.app/onboarding/healing-content
+https://hanam-pet.vercel.app/onboarding/pet-care
 https://hanam-pet.vercel.app/onboarding/terms
-https://hanam-pet.vercel.app/onboarding/pet-select
 https://hanam-pet.vercel.app/onboarding/profile
+https://hanam-pet.vercel.app/onboarding/pet-select
 https://hanam-pet.vercel.app/onboarding/restore-code
 https://hanam-pet.vercel.app/onboarding/welcome
 https://hanam-pet.vercel.app/onboarding/resume

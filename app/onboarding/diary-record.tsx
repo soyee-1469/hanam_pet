@@ -13,12 +13,12 @@ import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().diaryRecord
-/** features·help·privacy 다음 — 닷 6개 중 4번째 */
-const TOUR_TOTAL = 7
-const TOUR_INDEX = 4
+/** 소개 토크 2/5 */
+const TOUR_TOTAL = 9
+const TOUR_INDEX = 5
 
 export default function OnboardingDiaryRecord() {
-  const goNext = () => router.push('/onboarding/healing-content')
+  const goNext = () => router.push('/onboarding/mind-check')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   return (

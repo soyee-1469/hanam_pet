@@ -13,11 +13,12 @@ import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
 const copy = getOnboardingCopy().mindCheck
-const TOUR_TOTAL = 7
+/** 소개 토크 3/5 */
+const TOUR_TOTAL = 9
 const TOUR_INDEX = 6
 
 export default function OnboardingMindCheck() {
-  const goNext = () => router.push('/onboarding/terms')
+  const goNext = () => router.push('/onboarding/healing-content')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   return (

@@ -12,13 +12,13 @@ import {
 import { OnboardingTalkStage } from '../../components/OnboardingTalkStage'
 import { getOnboardingCopy } from '../../lib/onboarding'
 
-const copy = getOnboardingCopy().healingContent
-/** 소개 토크 4/5 */
+const copy = getOnboardingCopy().petChat
+/** intro 4장 다음 — 소개 토크 1/5 */
 const TOUR_TOTAL = 9
-const TOUR_INDEX = 7
+const TOUR_INDEX = 4
 
-export default function OnboardingHealingContent() {
-  const goNext = () => router.push('/onboarding/pet-care')
+export default function OnboardingPetChat() {
+  const goNext = () => router.push('/onboarding/diary-record')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   return (
@@ -31,7 +31,7 @@ export default function OnboardingHealingContent() {
 
       <View style={styles.body}>
         <OnboardingTalkStage
-          image={onboardingMascot(1, copy.image)}
+          image={onboardingMascot(0, copy.image)}
           bubble={copy.bubble}
           title={copy.title}
           body={copy.body}

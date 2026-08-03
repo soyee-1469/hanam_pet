@@ -51,7 +51,7 @@ export const IntroFeatureScreens = [
   {
     key: 'pet',
     title: '나의 펫을 키워요',
-    body: '5마리 중 나의 펫을 고르고, 언제든지 바꿀 수 있어요. 사료와 장난감을 주며 키울 수 있어요.',
+    body: '5마리 중 나의 펫을 고르고, 언제든지 바꿀 수 있어요. 사료·장난감·출석으로 에너지를 채워요.',
     path: FeatureIconSvgPath.pet,
     route: '/onboarding/pet-care',
   },

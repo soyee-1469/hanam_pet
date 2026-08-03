@@ -47,8 +47,8 @@ import {
 
 const copy = getOnboardingCopy().intro
 const SLIDES = copy.slides
-/** promises → reasons → features → help → diary → healing → mind */
-const TOUR_TOTAL = 7
+/** promises → reasons → features → help → chat → diary → mind → healing → pet */
+const TOUR_TOTAL = 9
 const SWIPE_THRESHOLD = 56
 
 const FEATURE_ICONS: Record<string, Icon> = {
@@ -348,7 +348,7 @@ export default function OnboardingIntro() {
     setIndex(Math.max(0, Math.min(SLIDES.length - 1, next)))
   }
 
-  const finishIntro = () => router.push('/onboarding/diary-record')
+  const finishIntro = () => router.push('/onboarding/pet-chat')
   const skipToTerms = () => router.push('/onboarding/terms')
 
   const goNext = () => {
